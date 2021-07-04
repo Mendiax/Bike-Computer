@@ -1,0 +1,38 @@
+# build files
+build/
+
+# local files
+pico/
+../bike_computer_v2/
+specification/
+sim800_doc/
+source/external/no-OS-FatFS
+
+# parser files
+source/lib/Parser/src/parser_bison.hpp
+source/lib/Parser/src/parser_bison.cpp
+source/lib/Parser/src/lexer.cpp
+source/lib/Parser/test_data.json
+
+# clion
+.idea
+cmake-build-release
+cmake-build-debug
+
+
+# vs code
+.cache
+.vscode
+
+# old
+drivers/DOF/Mag/
+
+
+# tools
+tools/data/log
+tools/data/map.html
+tools/data/gear.png
+
+# doxygen
+tools/doxygen/doc
+tools/doxygen/logs

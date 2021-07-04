@@ -1,0 +1,9 @@
+[submodule "bike_computer_v3/source/external/no-OS-FatFS-SD-SPI-RPi-Pico"]
+	path = bike_computer_v3/source/external/no-OS-FatFS-SD-SPI-RPi-Pico
+	url = https://github.com/carlk3/no-OS-FatFS-SD-SPI-RPi-Pico
+[submodule "bike_computer_v3/pico-host-sdl"]
+	path = bike_computer_v3/pico-host-sdl
+	url = https://github.com/raspberrypi/pico-host-sdl
+[submodule "bike_computer_v3/source/external/pico-host-sdl"]
+	path = bike_computer_v3/source/external/pico-host-sdl
+	url = https://github.com/raspberrypi/pico-host-sdl

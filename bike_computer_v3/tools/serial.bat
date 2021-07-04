@@ -1,0 +1,1 @@
+putty.exe -serial com7
