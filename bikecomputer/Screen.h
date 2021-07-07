@@ -1,18 +1,19 @@
+#ifndef __SCREEN_H__
+#define __SCREEN_H__
 // ================================================================
 // ===                 wyświetlacz oled                         ===
 // ================================================================
-#define Screen
 //#include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32// OLED display height, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+
+#include "ringbuffer.h"
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define OLED_RESET -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-
 
 #define refreshTime 10
 //#define frames 3
@@ -22,7 +23,8 @@ void ScreenSetup()
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
   { // Address 0x3C for 128x32
     Serial.println(F("SSD1306 allocation failed"));
-    for (;;); // Don't proceed, loop forever
+    for (;;)
+      ; // Don't proceed, loop forever
   }
   // Show initial display buffer contents on the screen --
   // the library initializes this with an Adafruit splash screen.
@@ -49,7 +51,8 @@ void drawPlot(double _array[], byte startpoint)
   int i = 0;
   while (i < SCREEN_WIDTH - 2)
   {
-    display.drawLine(i, newArray[i], ++i, newArray[i], SSD1306_WHITE);
+    display.drawLine(i, newArray[i], i + 1, newArray[i + 1], SSD1306_WHITE);
+    i++;
   }
   //  while (i < SCREEN_WIDTH - 1)
   //  {
@@ -57,3 +60,21 @@ void drawPlot(double _array[], byte startpoint)
   //  }
   display.display();
 }
+/*draws floats from ring buffer*/
+#define drawPlotRingBuffer(ringbuffer, min, max) (                                                                   \
+    {                                                                                                                \
+      display.clearDisplay();                                                                                        \
+      int i = 0;                                                                                                     \
+      long next = SCREEN_HEIGHT - map(ring_buffer_get_element_at(ringbuffer, i, float), min, max, 1, SCREEN_HEIGHT); \
+      long current;                                                                                                  \
+      while (i < SCREEN_WIDTH - 2)                                                                                   \
+      {                                                                                                              \
+        current = next;                                                                                              \
+        i++;                                                                                                         \
+        next = SCREEN_HEIGHT - map(ring_buffer_get_element_at(ringbuffer, i, float), min, max, 1, SCREEN_HEIGHT);    \
+        display.drawLine(i - 1, current, i, next, SSD1306_WHITE);                                                    \
+      }                                                                                                              \
+      display.display();                                                                                             \
+    })
+
+#endif

@@ -1,18 +1,22 @@
 #include <Wire.h>
+#define PCDEBUG
 #include "ShockLength.h"
-#include "GyroRead.h"
-#ifndef Screen
-#include "Screen.h"
+
+#ifdef gyro
+  #include "GyroRead.h"
 #endif
 
-#define pcDebug
+#include "Screen.h"
+#include "speedmeter.h"
+
+
 
 /*print in serial in range 0-100*/
 void printOnPC(double data)
 {
 
-  Serial.print(100);
-  Serial.print("\t");
+  //Serial.print(100);
+  //Serial.print("\t");
   Serial.print(0);
   Serial.print("\t");
   Serial.print(data);
@@ -22,17 +26,21 @@ void printOnPC(double data)
 
 void setup() {
   Wire.begin();
-#ifdef pcDebug
+#ifdef PCDEBUG
   Serial.begin(115200);
 #endif
 #ifdef gyro
   gyrosetup();
 #endif
 
+  speed_setup(3,SCREEN_WIDTH);
   ScreenSetup();
-  ShockSetup();
+  //ShockSetup();
+
   //  qmc.init();
   //qmc.setMode(Mode_Continuous,ODR_200Hz,RNG_2G,OSR_256);
+  //Serial.print("MAX_TIME: ");
+  //Serial.println(max_time);
 }
 
 double dataToDisplay[SCREEN_WIDTH] = {0};
@@ -42,8 +50,19 @@ unsigned long currentMillis = 0;
 
 int loops = 0;
 int Frames = 0;
+
+
+float v,prev_v;
 void loop() {
-  travel_usage = 0;
+  delay(200);
+  //speed_update();
+  //printOnPC(speed_velocity);
+  v = speed_get_speed();
+  ring_buffer_push_overwrite(speed_buffer, (char *)&prev_v);
+  drawPlotRingBuffer(speed_buffer,0,20);
+  printOnPC(prev_v);
+  
+/*  travel_usage = 0;
   loops = 0;
   do
   {
@@ -54,7 +73,7 @@ void loop() {
   } while (currentMillis - previousMillis < refreshTime);
   previousMillis = currentMillis;
   travel_usage /= loops;
-#ifdef pcDebug
+#ifdef PCDEBUG
   printOnPC(travel_usage);
 #endif
 //  Travel[Position] = travel_usage;
@@ -70,7 +89,7 @@ void loop() {
 
 #ifdef gyro
   gyroloop();
-#endif
+#endif*/
 
 
 
