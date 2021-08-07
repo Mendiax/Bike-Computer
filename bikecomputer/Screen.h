@@ -1,11 +1,9 @@
 #ifndef __SCREEN_H__
 #define __SCREEN_H__
-// ================================================================
-// ===                 wyświetlacz oled                         ===
-// ================================================================
-//#include <SPI.h>
+
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 
@@ -15,10 +13,7 @@
 #define OLED_RESET -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-#define refreshTime 10
-//#define frames 3
-const int frames = 30 / refreshTime;
-void ScreenSetup()
+void Screen_Setup()
 {
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
   { // Address 0x3C for 128x32
@@ -32,11 +27,8 @@ void ScreenSetup()
   delay(200); // Pause for 2 seconds
 }
 
-//======================================================================================
-//                            rysowanie tablicy na ekranie
-//======================================================================================
 byte newArray[SCREEN_WIDTH];
-void drawPlot(double _array[], byte startpoint)
+void Screen_drawPlot(double _array[], byte startpoint)
 {
   byte Position = 0;
   for (byte i = startpoint; i < SCREEN_WIDTH; i++)
@@ -61,7 +53,7 @@ void drawPlot(double _array[], byte startpoint)
   display.display();
 }
 /*draws floats from ring buffer*/
-#define drawPlotRingBuffer(ringbuffer, min, max, type) (                                                                   \
+#define Screen_drawPlotRingBuffer(ringbuffer, min, max, type) (                                                                   \
     {                                                                                                                \
       display.clearDisplay();                                                                                        \
       int i = 0;                                                                                                     \
@@ -78,3 +70,7 @@ void drawPlot(double _array[], byte startpoint)
     })
 
 #endif
+
+void  Screen_drawString(const char* msg){
+  display.println(msg);
+}
