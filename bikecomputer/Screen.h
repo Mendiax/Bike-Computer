@@ -61,17 +61,17 @@ void drawPlot(double _array[], byte startpoint)
   display.display();
 }
 /*draws floats from ring buffer*/
-#define drawPlotRingBuffer(ringbuffer, min, max) (                                                                   \
+#define drawPlotRingBuffer(ringbuffer, min, max, type) (                                                                   \
     {                                                                                                                \
       display.clearDisplay();                                                                                        \
       int i = 0;                                                                                                     \
-      long next = SCREEN_HEIGHT - map(ring_buffer_get_element_at(ringbuffer, i, float), min, max, 1, SCREEN_HEIGHT); \
+      long next = SCREEN_HEIGHT - map(ring_buffer_get_element_at(ringbuffer, i, type), min, max, 1, SCREEN_HEIGHT); \
       long current;                                                                                                  \
       while (i < SCREEN_WIDTH - 2)                                                                                   \
       {                                                                                                              \
         current = next;                                                                                              \
         i++;                                                                                                         \
-        next = SCREEN_HEIGHT - map(ring_buffer_get_element_at(ringbuffer, i, float), min, max, 1, SCREEN_HEIGHT);    \
+        next = SCREEN_HEIGHT - map(ring_buffer_get_element_at(ringbuffer, i, type), min, max, 1, SCREEN_HEIGHT);    \
         display.drawLine(i - 1, current, i, next, SSD1306_WHITE);                                                    \
       }                                                                                                              \
       display.display();                                                                                             \

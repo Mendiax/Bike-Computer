@@ -53,13 +53,21 @@ int Frames = 0;
 
 
 float v,prev_v;
+
+#define LOOP_FOR(delay_millis, ...) ({
+  long start = millis();
+  do{...}while(millis() - start < delay_millis)})
+
 void loop() {
-  delay(200);
+  LOOP_FOR(200,
+  millis();
+  //update data
+  );
   //speed_update();
   //printOnPC(speed_velocity);
   v = speed_get_speed();
   ring_buffer_push_overwrite(speed_buffer, (char *)&prev_v);
-  drawPlotRingBuffer(speed_buffer,0,20);
+  drawPlotRingBuffer(speed_buffer,0,20,float);
   printOnPC(prev_v);
   
 /*  travel_usage = 0;
