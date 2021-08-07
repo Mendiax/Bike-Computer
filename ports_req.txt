@@ -1,0 +1,49 @@
+##TODO
+front suspension
+
+
+# speedometer
+    gnd
+    digit 3 (interrupt pin)
+
+# Screen
+    gnd
+    5V Vin
+    i2c
+
+# suspension meter
+    gnd
+    5V Vin
+    Analog pin
+
+## future
+
+# temp (x2)
+    gnd
+    5V Vin
+    Analog pin
+
+# BMP
+    gnd
+    5V Vin
+    i2c
+
+# gyro
+    gnd
+    5V Vin
+    i2c
+
+## SUMMARY
+    base:
+        gnd dig3
+        1x i2c
+        1x Analog
+
+    future:
+        2x Analog
+        2x i2c
+
+    all:
+        gnd dig3
+        3x i2c
+        3x Analog
