@@ -3,20 +3,25 @@
 
 #include "ringbuffer.h"
 
-unsigned long speed_lastupdate = 0;
-float speed_velocity = 0.0f;
-float speed_wheelesize = 2 * 0.6985 * PI ;
-bool read = true;
+//updated in speed_update()
+static volatile unsigned long speed_lastupdate = 0;
+static volatile float speed_velocity = 0.0f;
 
-float min_speed = 2;
+//defined wheel size 
+static float speed_wheelesize;
 
-static float max_time = (speed_wheelesize / min_speed) * 1000.0;
+//check if last value was read by speed_getSpeed() function
+static bool read = true;
 
-byte speed_pinread = -1;
-RingBuffer *speed_buffer;
+#define MIN_SPEED 2 //in m/s
+
+//time after speed is set to 0
+static const float max_time = (speed_wheelesize / MIN_SPEED) * 1000.0;
+
+static byte speed_pinread = -1;
 
 /*waits for speed update with timeout*/
-float speed_get_speed()
+float speed_getSpeed()
 {
     float update = millis();
     float speed = speed_velocity;
@@ -28,7 +33,7 @@ float speed_get_speed()
     return speed;
 }
 
-void speed_update()
+static void speed_update()
 {
 
     float update = millis();
@@ -52,17 +57,16 @@ void speed_update()
 #endif*/
 }
 
-void speed_setup(byte pin, size_t bufferlength)
+void speed_new(byte pin, double wheelSize)
 {
-    speed_buffer = ring_buffer_create(sizeof(float), bufferlength);
+    speed_wheelesize = wheelSize;
     speed_pinread = pin;
-    pinMode(speed_pinread, INPUT);
-    attachInterrupt(digitalPinToInterrupt(speed_pinread), speed_update, RISING);
+    pinMode(speed_pinread, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(speed_pinread), speed_update, FALLING );
 }
 
 void speed_delete()
 {
-    ring_buffer_destroy(speed_buffer);
     detachInterrupt(digitalPinToInterrupt(speed_pinread));
 }
 

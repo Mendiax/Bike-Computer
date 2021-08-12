@@ -3,38 +3,55 @@
 #include "ShockLength.h"
 
 #ifdef gyro
-  #include "GyroRead.h"
+#include "GyroRead.h"
 #endif
 
 #include "Screen.h"
+
+//----------------------------------
 #include "speedmeter.h"
+#define PIN_SPEED 3
+#define WHEEL_SIZE (2 * 0.6985 * PI)
+//----------------------------------
 
+#define REFRESH_RATE_TARGET_HZ 60
+#define MIN_DELAY (1000 / 60)
 
+#include "print.h"
 
-/*print in serial in range 0-100*/
-void printOnPC(double data)
+float velocity;
+enum displayType
 {
+  plot,
+  lastVal
+};
 
-  //Serial.print(100);
-  //Serial.print("\t");
-  Serial.print(0);
-  Serial.print("\t");
-  Serial.print(data);
-  Serial.println("\t");
+enum dataType
+{
+  speed,
+  suspension,
+  gyro
+};
 
-}
+RingBuffer *mainBuffer;
+displayType currentDisplayType = displayType::plot;
+dataType currentDataType = dataType::speed;
 
-void setup() {
+void setup()
+{
   Wire.begin();
 #ifdef PCDEBUG
   Serial.begin(115200);
+  printArgs("PCDEBUG is on\n");
+  printArgs("%s is running on %d\n","Serial",115200);
 #endif
+  delay(100000);
 #ifdef gyro
   gyrosetup();
 #endif
-
-  speed_setup(3,SCREEN_WIDTH);
-  ScreenSetup();
+  mainBuffer = ring_buffer_create(sizeof(double), SCREEN_WIDTH);
+  speed_new(PIN_SPEED, WHEEL_SIZE);
+  Screen_Setup();
   //ShockSetup();
 
   //  qmc.init();
@@ -43,62 +60,47 @@ void setup() {
   //Serial.println(max_time);
 }
 
-double dataToDisplay[SCREEN_WIDTH] = {0};
-byte Position = 0;
-unsigned long previousMillis = 0;
-unsigned long currentMillis = 0;
-
-int loops = 0;
-int Frames = 0;
-
-
-float v,prev_v;
-
-#define LOOP_FOR(delay_millis, ...) ({
+void loop()
+{
   long start = millis();
-  do{...}while(millis() - start < delay_millis)})
-
-void loop() {
-  LOOP_FOR(200,
-  millis();
-  //update data
-  );
-  //speed_update();
-  //printOnPC(speed_velocity);
-  v = speed_get_speed();
-  ring_buffer_push_overwrite(speed_buffer, (char *)&prev_v);
-  drawPlotRingBuffer(speed_buffer,0,20,float);
-  printOnPC(prev_v);
-  
-/*  travel_usage = 0;
-  loops = 0;
   do
   {
-    //Serial.print("do/while\t");
-    currentMillis = millis();
-    travel_usage += (maxshock - shocklength()) / travel * 100;
-    loops++;
-  } while (currentMillis - previousMillis < refreshTime);
-  previousMillis = currentMillis;
-  travel_usage /= loops;
-#ifdef PCDEBUG
-  printOnPC(travel_usage);
-#endif
-//  Travel[Position] = travel_usage;
-  if (++Position == SCREEN_WIDTH)
-    Position = 0;
-  if (Frames >= frames)
-  {
-//    drawPlot(Travel, Position);
-    Frames = 0;
-  }
-  else
-    Frames++;
+    // time for update data
+    velocity = speed_getSpeed();
+  } while (millis() - start < MIN_DELAY);
+  //speed_update();
+  //printOnPC(speed_velocity);
 
+  double data;
+
+  switch (currentDataType)
+  {
+  case dataType::speed:
+    data = velocity;
+    break;
+
+  default:
+    data = 0;
+    break;
+  }
+  //update
+  ring_buffer_push_overwrite(mainBuffer, (char *)&data);
+
+  //display data on screen
+  switch (currentDisplayType)
+  {
+  case displayType::plot:
+    Screen_drawPlotRingBuffer(mainBuffer, 0, 20, double);
+    break;
+
+  default:
+    break;
+  }
+
+  printOnPC(velocity);
+
+  /*
 #ifdef gyro
   gyroloop();
 #endif*/
-
-
-
 }

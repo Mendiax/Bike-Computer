@@ -17,12 +17,10 @@ void Screen_Setup()
 {
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
   { // Address 0x3C for 128x32
-    Serial.println(F("SSD1306 allocation failed"));
+    Serial.println(F("[SCREEN] SSD1306 allocation failed"));
     for (;;)
       ; // Don't proceed, loop forever
   }
-  // Show initial display buffer contents on the screen --
-  // the library initializes this with an Adafruit splash screen.
   display.display();
   delay(200); // Pause for 2 seconds
 }
@@ -52,18 +50,27 @@ void Screen_drawPlot(double _array[], byte startpoint)
   //  }
   display.display();
 }
-/*draws floats from ring buffer*/
+/*draws floats from ring buffer full screenm*/
 #define Screen_drawPlotRingBuffer(ringbuffer, min, max, type) (                                                                   \
     {                                                                                                                \
+      Screen_drawPlotAtPosRingBuffer(ringbuffer, min, max, type, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH);                                                                                           \
+    })
+
+#endif
+
+/*draws floats from ring buffer*/
+#define Screen_drawPlotAtPosRingBuffer(ringbuffer, min, max, type,x0,y0,height,width) (                                                                   \
+    {             
+      const byte MAX_X = x0 + width, MAX_Y = y0 + height;                                                                                                   \
       display.clearDisplay();                                                                                        \
-      int i = 0;                                                                                                     \
-      long next = SCREEN_HEIGHT - map(ring_buffer_get_element_at(ringbuffer, i, type), min, max, 1, SCREEN_HEIGHT); \
+      int i = x0;                                                                                                    \
+      long next = MAX_Y - map(ring_buffer_get_element_at(ringbuffer, i, type), min, max, y0, MAX_Y);                 \
       long current;                                                                                                  \
-      while (i < SCREEN_WIDTH - 2)                                                                                   \
+      while (i < MAX_X - 2)                                                                                          \
       {                                                                                                              \
         current = next;                                                                                              \
         i++;                                                                                                         \
-        next = SCREEN_HEIGHT - map(ring_buffer_get_element_at(ringbuffer, i, type), min, max, 1, SCREEN_HEIGHT);    \
+        next = MAX_Y - map(ring_buffer_get_element_at(ringbuffer, i, type), min, max, y0, MAX_Y);                    \
         display.drawLine(i - 1, current, i, next, SSD1306_WHITE);                                                    \
       }                                                                                                              \
       display.display();                                                                                             \
