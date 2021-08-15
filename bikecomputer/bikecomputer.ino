@@ -1,30 +1,27 @@
+#define NDEBUG
 #include <Wire.h>
 #define PCDEBUG
-#include "ShockLength.h"
+#include "sensors/rearshock.h"
 
 #ifdef gyro
 #include "GyroRead.h"
 #endif
 
-#include "Screen.h"
+#include "display/display.h"
+#include "sensors/data.h"
 
 //----------------------------------
-#include "speedmeter.h"
+#include "sensors/speedmeter.h"
 #define PIN_SPEED 3
 #define WHEEL_SIZE (2 * 0.6985 * PI)
 //----------------------------------
 
-#define REFRESH_RATE_TARGET_HZ 60
+#define REFRESH_RATE_TARGET_HZ 10
 #define MIN_DELAY (1000 / 60)
 
-#include "print.h"
+#include "addons/print.h"
 
 float velocity;
-enum displayType
-{
-  plot,
-  lastVal
-};
 
 enum dataType
 {
@@ -34,24 +31,25 @@ enum dataType
 };
 
 RingBuffer *mainBuffer;
-displayType currentDisplayType = displayType::plot;
 dataType currentDataType = dataType::speed;
+
+SensorData sensorData = {0};
 
 void setup()
 {
   Wire.begin();
 #ifdef PCDEBUG
   Serial.begin(115200);
-  printArgs("PCDEBUG is on\n");
-  printArgs("%s is running on %d\n","Serial",115200);
+  //printArgs("PCDEBUG is on\n");
+  //printArgs("%s is running on %d\n","Serial",115200);
 #endif
-  delay(100000);
+  DEBUG_PRINT("ERROR TEST");
 #ifdef gyro
   gyrosetup();
 #endif
-  mainBuffer = ring_buffer_create(sizeof(double), SCREEN_WIDTH);
+  sensorData.velocity = ring_buffer_create(sizeof(double), SCREEN_WIDTH);
   speed_new(PIN_SPEED, WHEEL_SIZE);
-  Screen_Setup();
+  Display_init(&sensorData);
   //ShockSetup();
 
   //  qmc.init();
@@ -62,42 +60,18 @@ void setup()
 
 void loop()
 {
+  DEBUG_PRINT(" update loop ");
   long start = millis();
   do
   {
     // time for update data
     velocity = speed_getSpeed();
   } while (millis() - start < MIN_DELAY);
-  //speed_update();
-  //printOnPC(speed_velocity);
-
-  double data;
-
-  switch (currentDataType)
-  {
-  case dataType::speed:
-    data = velocity;
-    break;
-
-  default:
-    data = 0;
-    break;
-  }
-  //update
-  ring_buffer_push_overwrite(mainBuffer, (char *)&data);
-
-  //display data on screen
-  switch (currentDisplayType)
-  {
-  case displayType::plot:
-    Screen_drawPlotRingBuffer(mainBuffer, 0, 20, double);
-    break;
-
-  default:
-    break;
-  }
-
-  printOnPC(velocity);
+  ring_buffer_push_overwrite(sensorData.velocity, (char*) &velocity);
+  //Serial.println(velocity);
+  DEBUG_PRINT("display update");
+  Display_update();
+  DEBUG_PRINT("display update end");
 
   /*
 #ifdef gyro

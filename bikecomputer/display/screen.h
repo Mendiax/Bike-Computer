@@ -7,24 +7,38 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 
-#include "ringbuffer.h"
+#include "../addons/ringbuffer.h"
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 #define OLED_RESET -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-void Screen_Setup()
+void Screen_setup()
 {
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
   { // Address 0x3C for 128x32
     Serial.println(F("[SCREEN] SSD1306 allocation failed"));
-    for (;;)
-      ; // Don't proceed, loop forever
+    for (;;);
   }
   display.display();
-  delay(200); // Pause for 2 seconds
+  delay(200);
 }
 
+typedef struct Frame
+{
+    byte x, y, width, height;
+} Frame;
+
+void Screen_draw(){
+  display.display();
+}
+
+void Screen_clear(){
+  display.clearDisplay();
+}
+
+
+/*
 byte newArray[SCREEN_WIDTH];
 void Screen_drawPlot(double _array[], byte startpoint)
 {
@@ -50,34 +64,16 @@ void Screen_drawPlot(double _array[], byte startpoint)
   //  }
   display.display();
 }
+*/
 /*draws floats from ring buffer full screenm*/
-#define Screen_drawPlotRingBuffer(ringbuffer, min, max, type) (                                                                   \
+/*#define Screen_drawPlotRingBuffer(ringbuffer, min, max, type) (                                                                   \
     {                                                                                                                \
       Screen_drawPlotAtPosRingBuffer(ringbuffer, min, max, type, 0, 0, SCREEN_HEIGHT, SCREEN_WIDTH);                                                                                           \
     })
 
-#endif
-
-/*draws floats from ring buffer*/
-#define Screen_drawPlotAtPosRingBuffer(ringbuffer, min, max, type,x0,y0,height,width) (                                                                   \
-    {             
-      const byte MAX_X = x0 + width, MAX_Y = y0 + height;                                                                                                   \
-      display.clearDisplay();                                                                                        \
-      int i = x0;                                                                                                    \
-      long next = MAX_Y - map(ring_buffer_get_element_at(ringbuffer, i, type), min, max, y0, MAX_Y);                 \
-      long current;                                                                                                  \
-      while (i < MAX_X - 2)                                                                                          \
-      {                                                                                                              \
-        current = next;                                                                                              \
-        i++;                                                                                                         \
-        next = MAX_Y - map(ring_buffer_get_element_at(ringbuffer, i, type), min, max, y0, MAX_Y);                    \
-        display.drawLine(i - 1, current, i, next, SSD1306_WHITE);                                                    \
-      }                                                                                                              \
-      display.display();                                                                                             \
-    })
-
-#endif
 
 void  Screen_drawString(const char* msg){
   display.println(msg);
-}
+}*/
+
+#endif

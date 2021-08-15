@@ -1,3 +1,6 @@
+#ifndef __PRINT_H__
+#define __PRINT_H__
+
 #include <assert.h>
 /*print in serial in range 0-100*/
 void printOnPC(double data)
@@ -10,6 +13,12 @@ void printOnPC(double data)
     Serial.print(data);
     Serial.println("\t");
 }
+
+#ifdef NDEBUG
+    #define DEBUG_PRINT(X) (void*) 0
+#else
+    #define DEBUG_PRINT(X) Serial.println(String(__FILE__) + " line: " + String(__LINE__) + " " + String(X))
+#endif
 
 //max 200 length
 void printArgs(char *format, ...)
@@ -54,3 +63,5 @@ RET:
     Serial.print(buffer);
     va_end(args);
 }
+
+#endif

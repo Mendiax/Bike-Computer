@@ -18,11 +18,11 @@ RingBuffer *ring_buffer_create(size_t size_of_element, size_t buffer_length)
     RingBuffer *ring_buffer = (RingBuffer *)calloc(sizeof(RingBuffer) + size_of_element * buffer_length, 1);
     if (!ring_buffer)
     {
-        return (void *)0;
+        return (RingBuffer *)0;
     }
-    ring_buffer->min = (char*)calloc(1, size_of_element);
-    ring_buffer->max = (char*)calloc(1, size_of_element);
-    ring_buffer->avg = (char*)calloc(1, size_of_element);
+    ring_buffer->min = (char *)calloc(1, size_of_element);
+    ring_buffer->max = (char *)calloc(1, size_of_element);
+    ring_buffer->avg = (char *)calloc(1, size_of_element);
     ring_buffer->max_queue_length = buffer_length;
     ring_buffer->size_of_element = size_of_element;
     ring_buffer->current_queue_length = 0;
@@ -59,6 +59,14 @@ static char *ring_buffer_get_element_pointer(RingBuffer *ring_buffer, size_t ind
 #define ring_buffer_get_element(ring_buffer, index, type) (*((type *)ring_buffer_get_element_pointer(ring_buffer, index)))
 
 #define ring_buffer_get_element_at(ring_buffer, index, type) (*((type *)ring_buffer_get_element_pointer(ring_buffer, (index + ring_buffer->current_index) % ring_buffer->max_queue_length)))
+
+double ring_buffer_get_element_at_double(RingBuffer *ring_buffer, int index)
+{
+    index = index % ring_buffer->max_queue_length;
+    index = index + ring_buffer->current_index;
+    index = index  % ring_buffer->max_queue_length > 0 ? index : ring_buffer->max_queue_length - index;
+    return *((double *)ring_buffer_get_element_pointer(ring_buffer, index));
+}
 
 static void ring_buffer_inc_index(RingBuffer *queue)
 {
