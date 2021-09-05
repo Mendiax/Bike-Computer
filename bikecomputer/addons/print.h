@@ -14,12 +14,31 @@ void printOnPC(double data)
     Serial.println("\t");
 }
 
+//#define TRACE_SPEED
+
 #ifdef NDEBUG
     #define DEBUG_PRINT(X) (void*) 0
 #else
-    #define DEBUG_PRINT(X) Serial.println(String(__FILE__) + " line: " + String(__LINE__) + " " + String(X))
+    #define DEBUG_PRINT(X) Serial.println(String(__FILE__) + " line: " + String(__LINE__) + " " + X)
 #endif
 
+#ifdef TRACE_DISPLAY
+    #define TRACE_DISPLAY_PRINT(X) Serial.println(String(__FILE__) + " line: " + String(__LINE__) + " " + X)   
+#else
+    #define TRACE_DISPLAY_PRINT(X) (void*) 0
+#endif
+
+#ifdef TRACE_FRAME
+    #define TRACE_FRAME_PRINT(X) Serial.println(String(__FILE__) + " line: " + String(__LINE__) + " " + X)   
+#else
+    #define TRACE_FRAME_PRINT(X) (void*) 0
+#endif
+
+#ifdef TRACE_SPEED
+    #define TRACE_SPEED_PRINT(X) Serial.println(X)   
+#else
+    #define TRACE_SPEED_PRINT(X) (void*) 0
+#endif
 //max 200 length
 void printArgs(char *format, ...)
 {

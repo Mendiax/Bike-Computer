@@ -3,10 +3,12 @@
 
 #include "screen.h"
 #include "screenfunc/plot.h"
+#include "screenfunc/lastval.h"
 #include "window.h"
 #include "../sensors/data.h"
 
-enum Display_type
+#define DISPLAYTYPELENGTH 2
+enum DisplayType
 {
     graph,
     lastVal
@@ -46,8 +48,8 @@ void view_delete(View **this_pp)
 typedef struct Display
 {
     SensorData *data;
-    View *views[1];
-    Display_type currentType;
+    View *views[2];
+    DisplayType currentType;
 } Display;
 
 Display _Display;
@@ -55,37 +57,56 @@ Display _Display;
 void Display_init(SensorData *data)
 {
     _Display.data = data;
-    _Display.currentType = (Display_type)0;
+    _Display.currentType = (DisplayType)0;
     Screen_setup();
 
-    /* 2 frames */
-    _Display.views[0] = view_new(2);
+    /*plot*/
+    _Display.views[0] = view_new(1);
     PlotDoubleSettings* plotSettings = (PlotDoubleSettings*)malloc(sizeof(PlotDoubleSettings));
     *plotSettings = {0, 30};
     (*_Display.views[0]).windows[0] = new Window(
-        (Frame){0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
+        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
         (void *)_Display.data->velocity,
         (void *)plotSettings,
         PlotDoubleDraw);
-    (*_Display.views[0]).windows[1] = new Window(
-        (Frame){SCREEN_WIDTH/2, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
+
+    /*last val*/
+    _Display.views[1] = view_new(1);
+    LastValSettings* lastValSettings = (LastValSettings*)malloc(sizeof(LastValSettings));
+    *lastValSettings = {true, 4, 3, 2, 2};
+    (*_Display.views[1]).windows[0] = new Window(
+        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
         (void *)_Display.data->velocity,
-        (void *)plotSettings,
-        PlotDoubleDraw);
+        (void *)lastValSettings,
+        LastValDraw);
+
+    
 }
 
 //TODO add destroy to all created views
 
-void Display_setDisplayType(Display_type type)
+void Display_setDisplayType(DisplayType type)
 {
     _Display.currentType = type;
+}
+
+void Display_incDisplayType()
+{
+    _Display.currentType = (DisplayType) (_Display.currentType + 1) % DISPLAYTYPELENGTH;
+}
+
+void Display_decDisplayType()
+{
+    _Display.currentType = _Display.currentType > 0 ? (DisplayType) _Display.currentType - 1 : (DisplayType) DISPLAYTYPELENGTH - 1;
 }
 
 void Display_update()
 {
     Screen_clear();
+    
     //display data on screen
     view_draw(_Display.views[_Display.currentType]);
+
     Screen_draw();
 }
 

@@ -1,5 +1,7 @@
-#ifndef CUT_RINGBUFFER_H
-#define CUT_RINGBUFFER_H
+#ifndef __RINGBUFFER_H__
+#define __RINGBUFFER_H__
+
+#define assert(X) do{if(!(X)) {while(1){Serial.print("ASSERT FAILED\n"); Serial.println(#X); delay(1000);}}}while(0);
 
 typedef struct RingBuffer
 {
@@ -62,10 +64,24 @@ static char *ring_buffer_get_element_pointer(RingBuffer *ring_buffer, size_t ind
 
 double ring_buffer_get_element_at_double(RingBuffer *ring_buffer, int index)
 {
+    index += ring_buffer->current_index;
     index = index % ring_buffer->max_queue_length;
-    index = index + ring_buffer->current_index;
-    index = index  % ring_buffer->max_queue_length > 0 ? index : ring_buffer->max_queue_length - index;
+    if(index < 0){
+        index += ring_buffer->max_queue_length;
+    }
+    //assert(index >= 0);
+    //assert(index < ring_buffer->max_queue_length);
+    //index = index  % ring_buffer->max_queue_length > 0 ? index : ring_buffer->max_queue_length - index;
     return *((double *)ring_buffer_get_element_pointer(ring_buffer, index));
+}
+
+static char *ring_buffer_get_last_element_pointer(RingBuffer *ring_buffer)
+{
+    if(ring_buffer_is_empty(ring_buffer)){
+        return ring_buffer->data_pointer;
+    }
+    size_t nextFree = (ring_buffer->current_index + ring_buffer->current_queue_length - 1) % ring_buffer->max_queue_length;
+    return ring_buffer_get_element_pointer(ring_buffer, nextFree);
 }
 
 static void ring_buffer_inc_index(RingBuffer *queue)
@@ -128,4 +144,4 @@ int ring_buffer_push_overwrite(RingBuffer *ring_buffer, const char *element)
     return 0;
 }
 
-#endif //CUT_RINGBUFFER_H
+#endif

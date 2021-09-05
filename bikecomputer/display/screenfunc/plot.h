@@ -16,24 +16,24 @@ typedef struct PlotDoubleData
 } PlotDoubleData;
 
 /*draws floats from ring buffer*/
-void PlotDoubleDraw(void *data, void *settings, Frame *window)
+void PlotDoubleDraw(void *data, void *settings, Frame *plotFrame)
 {
     //DEBUG_PRINT("plots update");
     PlotDoubleSettings *plot = (PlotDoubleSettings *)settings;
     PlotDoubleData plotData = {(RingBuffer *)data};
-    const byte MAX_X = window->x + window->width, MAX_Y = window->y + window->height;
+    const size_t MAX_X = plotFrame->x + plotFrame->width, MAX_Y = plotFrame->y + plotFrame->height;
 
-    byte x_cord = window->x;
-    byte buf_pos = plotData.bufferDouble->current_index - window->width;
-    long next = SCREEN_HEIGHT - map((long)ring_buffer_get_element_at_double(plotData.bufferDouble, buf_pos), plot->min, plot->max, 0, window->height);
-    long current;
+    size_t x_cord = plotFrame->x;
+    size_t buf_pos = -1 * plotFrame->width;
+    long nextValue = SCREEN_HEIGHT - map((long)ring_buffer_get_element_at_double(plotData.bufferDouble, buf_pos), plot->min, plot->max, 1, plotFrame->height - 1);
+    long currentValue;
     while (x_cord < MAX_X - 2)
     {
-        current = next;
+        currentValue = nextValue;
         x_cord++;
-        next = SCREEN_HEIGHT - map((long)ring_buffer_get_element_at_double(plotData.bufferDouble, buf_pos), plot->min, plot->max, 0, window->height);
+        nextValue = SCREEN_HEIGHT - map((long)ring_buffer_get_element_at_double(plotData.bufferDouble, buf_pos), plot->min, plot->max, 1, plotFrame->height - 1);
         buf_pos++;
-        display.drawLine(x_cord - 1, current, x_cord, next, SSD1306_WHITE);
+        display.drawLine(x_cord - 1, currentValue, x_cord, nextValue, SSD1306_WHITE);
     }
 }
 

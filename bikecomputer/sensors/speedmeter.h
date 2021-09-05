@@ -3,66 +3,73 @@
 
 #include "../addons/ringbuffer.h"
 
-//updated in speed_update()
 static volatile unsigned long speed_lastupdate = 0;
-static volatile float speed_velocity = 0.0f;
+//[m/s]
+static volatile double speed_velocity = 0.0f;
 
-//defined wheel size 
-static float speed_wheelesize = 2 * 0.6985 * PI;
+//defined wheel size [m]
+static double speed_wheelesize = 0.6985 * PI;
 
 //check if last value was read by speed_getSpeed() function
 static volatile bool read = true;
 
-#define MIN_SPEED 2 //in m/s
+#define MIN_SPEED 2 // [m/s]
 
-//time after speed is set to 0
-static const float max_time = (speed_wheelesize / MIN_SPEED) * 1000.0;
+//time after speed is set to 0 [s]
+static const double max_time = (speed_wheelesize / MIN_SPEED) * 1000.0;
 
 static byte speed_pinread = -1;
 
-/*waits for speed update with timeout*/
-float speed_getSpeed()
+double speed_mps_to_kmph(double speed_mps){
+    return speed_mps * 3.6;
+}
+
+/*returns last read speed [m/s]*/
+double speed_getSpeed()
 {
-    float update = millis();
-    float speed = speed_velocity;
+    double update = millis();
+    double speed = speed_velocity;
     if (update - speed_lastupdate > max_time)
     {
         speed = 0.0;
     }
     read = true;
     //Serial.println("V " + String(speed));
+    //TRACE_SPEED_PRINT("getSpeed : " + String(update) + " speed : " + String(speed));
     return speed;
 }
 
 static void speed_update()
 {
 
-    float update = millis();
+    unsigned long update = millis();
     unsigned long delta_time = update - speed_lastupdate;
     //Serial.println("dt " + String(delta_time));
-    if (delta_time < 78.996159)
+    if (delta_time < 79)
     {
         return;
     }
-    float prev_v = speed_velocity;
-    float curr_v = speed_wheelesize / ((float)delta_time / 1000.0);
-    //if (abs(prev_v - curr_v) > 5.0 && delta_time < 1000.0)
-    speed_velocity = curr_v;
+
+    speed_velocity = speed_wheelesize / ((float)delta_time / 1000.0);
+
+    Serial.print("Interrupt time : ");
+    Serial.print(update);
+    Serial.print(" speed : ");
+    Serial.print(speed_velocity);
+    Serial.print(" delta time : ");
+    Serial.println(delta_time);
+    //TRACE_SPEED_PRINT("Interrupt time : " + String(update) + " speed : " + String(speed_velocity) + " delta time : " + String(delta_time));
     
     if (read)
     {
         speed_lastupdate = update;
         read = false;
     }
-
-    /*#ifdef PCDEBUG
-    Serial.println(speed_velocity);
-#endif*/
 }
 
 void speed_new(byte pin, double wheelSize)
 {
-    //speed_wheelesize = wheelSize;
+    speed_wheelesize = wheelSize;
     speed_pinread = pin;
     pinMode(speed_pinread, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(speed_pinread), speed_update, FALLING );

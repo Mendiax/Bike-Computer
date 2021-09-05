@@ -36,7 +36,7 @@ public:
     ~Window();
 
     void update(){
-        Serial.println(String(frame.x) + "," + String(frame.y) + " update");
+        TRACE_FRAME_PRINT("Frame: " + String(frame.x) + "," + String(frame.y) + " update");
         updateFunc_p(data, settings, &frame);
     }
 };
