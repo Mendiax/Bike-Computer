@@ -1,0 +1,9 @@
+Erors:
+położenie kondesatora od kwarca
+i2c od wyświetlacza
+rezystory od i2c z V do gnd
+
+
+Feature:
+? zasilanie z 1S
+przejście na full smd

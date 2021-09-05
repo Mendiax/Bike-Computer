@@ -1,0 +1,9 @@
+3x buttons 6mm
+atmega smd
+resistors: 3x10k 4x1k 1M
+capacitors: 2x22pF 100pF 2x100nF 330nF
+kwarc 15MHz
+5v Stabilizer 
+
+
+Lipo 2s
