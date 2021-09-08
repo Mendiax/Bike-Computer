@@ -6,8 +6,7 @@ enum Buttons{
 };
 
 Buttons getButton(){
-  long val = analogRead(PIN_BUTTONS);
-  Serial.println(val);
+  uint16_t val = analogRead(PIN_BUTTONS);
   if(val < 200){  //no press
     return btnNone;
   }

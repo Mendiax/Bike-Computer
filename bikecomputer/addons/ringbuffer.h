@@ -62,7 +62,7 @@ static char *ring_buffer_get_element_pointer(RingBuffer *ring_buffer, size_t ind
 
 #define ring_buffer_get_element_at(ring_buffer, index, type) (*((type *)ring_buffer_get_element_pointer(ring_buffer, (index + ring_buffer->current_index) % ring_buffer->max_queue_length)))
 
-double ring_buffer_get_element_at_double(RingBuffer *ring_buffer, int index)
+float ring_buffer_get_element_at_float(RingBuffer *ring_buffer, int index)
 {
     index += ring_buffer->current_index;
     index = index % ring_buffer->max_queue_length;
@@ -72,7 +72,7 @@ double ring_buffer_get_element_at_double(RingBuffer *ring_buffer, int index)
     //assert(index >= 0);
     //assert(index < ring_buffer->max_queue_length);
     //index = index  % ring_buffer->max_queue_length > 0 ? index : ring_buffer->max_queue_length - index;
-    return *((double *)ring_buffer_get_element_pointer(ring_buffer, index));
+    return *((float *)ring_buffer_get_element_pointer(ring_buffer, index));
 }
 
 static char *ring_buffer_get_last_element_pointer(RingBuffer *ring_buffer)

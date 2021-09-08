@@ -15,11 +15,18 @@ void printOnPC(double data)
 }
 
 //#define TRACE_SPEED
+#define TRACE_DISPLAY
 
 #ifdef NDEBUG
     #define DEBUG_PRINT(X) (void*) 0
 #else
     #define DEBUG_PRINT(X) Serial.println(String(__FILE__) + " line: " + String(__LINE__) + " " + X)
+#endif
+
+#ifdef DEBUG_PRINT
+    #define DEBUG_PRINT(X) Serial.println(X)   
+#else
+    #define DEBUG_PRINT(X) (void*) 0
 #endif
 
 #ifdef TRACE_DISPLAY

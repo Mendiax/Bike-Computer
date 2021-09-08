@@ -1,10 +1,10 @@
 //#define NDEBUG
-//#define SIM_INPUT
-
+#define SIM_INPUT
+#include <MemoryFree.h>
 #include <Wire.h>
 #define PCDEBUG
 
-#include "sensors/rearshock.h"
+//#include "sensors/rearshock.h"
 
 //#include "GyroRead.h"
 
@@ -18,8 +18,7 @@
 
 //----------------------------------
 #include "sensors/speedmeter.h"
-#define PIN_SPEED 2
-#define WHEEL_SIZE (0.6985 * PI)
+
 //----------------------------------
 
 #define PIN_BUTTONS A3
@@ -27,23 +26,25 @@
 
 #include "addons/print.h"
 
-SensorData sensorData = {0};
-
+SensorData sensorData = {0, 0, 0, 0};
 void setup()
 {
   Wire.begin();
 #ifndef NDEBUG
   Serial.begin(115200);
 #endif
-  DEBUG_PRINT("PCDEBUG is defined");
-
+  DEBUG_PRINT(F("PCDEBUG is defined"));
   /*sensors*/
 #ifdef gyro
   gyrosetup();
 #endif
 
-  sensorData.velocity = ring_buffer_create(sizeof(double), SCREEN_WIDTH);
-  speed_new(PIN_SPEED, WHEEL_SIZE);
+  sensorData.speedBuffer = ring_buffer_create(sizeof(float), SCREEN_WIDTH);
+  sensorData.speedAvgCnt = 0.0;
+  sensorData.speedAvgVal = 0.0;
+  sensorData.speedMax = 0.0;
+
+  speed_new();
   Display_init(&sensorData);
   Display_setDisplayType(DisplayType::lastVal);
   //ShockSetup();
@@ -55,18 +56,26 @@ void setup()
 }
 //Timer displayTimer("DISPLAY UPDATE");
 
-double velocity;
+float velocity;
 #ifdef SIM_INPUT
 double time = 0.0;
 #endif
 
 bool isButtonPressed = false;
+unsigned long start;
+Buttons pressedButton = btnNone;
+Buttons pressedButtonBuffer;
 void loop()
 {
   //DEBUG_PRINT(" update loop ");
-  long start = millis();
-  Buttons pressedButton = btnNone;
-  Buttons pressedButtonBuffer;
+  start = millis();
+  pressedButton = btnNone;
+  velocity = speed_mps_to_kmph(speed_getSpeed());
+  sensorData.speedMax = max(sensorData.speedMax, velocity);
+  //update avg speed
+  sensorData.speedAvgCnt += 1.0;
+  sensorData.speedAvgVal *= (sensorData.speedAvgCnt - 1.0) / sensorData.speedAvgCnt;
+  sensorData.speedAvgVal += velocity / sensorData.speedAvgCnt;
   do
   {
     // time for update data
@@ -76,11 +85,10 @@ void loop()
       pressedButton = pressedButtonBuffer;
       isButtonPressed = true;
     }
-    if(pressedButtonBuffer == btnNone){
+    if (pressedButtonBuffer == btnNone)
+    {
       isButtonPressed = false;
     }
-
-    velocity = speed_mps_to_kmph(speed_getSpeed());
     //delay(100);
   } while (millis() - start < MIN_DELAY);
 #ifdef SIM_INPUT
@@ -98,7 +106,7 @@ void loop()
     break;
   }
 
-  ring_buffer_push_overwrite(sensorData.velocity, (char *)&velocity);
+  ring_buffer_push_overwrite(sensorData.speedBuffer, (char *)&velocity);
   //printMem(sensorData.velocity->data_pointer, sensorData.velocity->size_of_element * sensorData.velocity->max_queue_length);
   //Serial.println(velocity);
   //DEBUG_PRINT("display update");
