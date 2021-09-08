@@ -16,7 +16,7 @@ typedef struct ValSettings
 
 typedef struct ValData
 {
-    double val; // must be double
+    float val;
 } ValData;
 
 /*draws last val from ring buffer*/

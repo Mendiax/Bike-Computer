@@ -6,8 +6,8 @@
 typedef struct SensorData
 {
     RingBuffer* speedBuffer;
-    double speedMax;
-    double speedAvgVal;
+    float speedMax;
+    float speedAvgVal;
     unsigned long speedAvgCnt;
 } SensorData;
 

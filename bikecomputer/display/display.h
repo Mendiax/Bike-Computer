@@ -22,13 +22,14 @@ enum DisplayType
 
 
 
+
 /*
     class setting up one view for display contaninig multiple windows
 */
 typedef struct View
 {
     size_t numberOfWindows;
-    Window* windows;
+    Window windows[MAX_NUMBER_OF_WINDOWS];
 } View;
 
 View *view_new(size_t numberOfWindows)
@@ -36,6 +37,11 @@ View *view_new(size_t numberOfWindows)
     View *newView = (View *)malloc(sizeof(View) + sizeof(Window) * numberOfWindows);
     newView->numberOfWindows = numberOfWindows;
     return newView;
+}
+
+void view_new_inAllocatedPlace(View *newView ,size_t numberOfWindows)
+{
+    newView->numberOfWindows = numberOfWindows;
 }
 
 void view_draw(View *this_p)
@@ -52,6 +58,13 @@ void view_delete(View **this_pp)
     *this_pp = 0;
 }
 
+uint8_t* mallocAllData(){
+    uint16_t maxSettingsSize = max(sizeof(LastValSettings),sizeof(PlotFloatSettings));
+    maxSettingsSize = max(maxSettingsSize, sizeof(LabelSettings));
+    maxSettingsSize = max(maxSettingsSize, sizeof(ValSettings));
+    return malloc(sizeof(View) + maxSettingsSize * MAX_NUMBER_OF_WINDOWS);
+}
+
 typedef struct Display
 {
     uint8_t* dataAlloc;
@@ -62,35 +75,27 @@ typedef struct Display
 
 Display _Display;
 
-typedef View *(*view_new_func)(void);
-typedef void (*view_delete_func)(View **);
+typedef void (*view_new_func)(void);
 
-View *view1_new(void)
+void view1_new(void)
 {
-    View *newView = view_new(1);
-    assert(newView);
-    PlotFloatSettings *plotSettings = (PlotFloatSettings *)malloc(sizeof(PlotFloatSettings));
+    View *newView = (View *)_Display.dataAlloc;
+    view_new_inAllocatedPlace(newView, 1);
+    PlotFloatSettings *plotSettings = (PlotFloatSettings *)(_Display.dataAlloc + sizeof(View));
     *plotSettings = {0, 30};
     Window_new_inPlace(&newView->windows[0],
         (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
         (void *)_Display.data->speedBuffer,
         (void *)plotSettings,
         PlotDoubleDraw);
-    return newView;
 }
 
-void view1_delete(View **view1)
+void view2_new(void)
 {
-    //Window_delete(&(*view1)->windows[0]);
-    view_delete(view1);
-}
+    View *newView = (View *)_Display.dataAlloc;
+    view_new_inAllocatedPlace(newView, 2);
 
-View *view2_new(void)
-{
-    View *newView = view_new(2);
-    assert(newView);
-
-    LastValSettings *lastValSettings = (LastValSettings *)malloc(sizeof(LastValSettings));
+    LastValSettings *lastValSettings = (LastValSettings *)(_Display.dataAlloc + sizeof(View));
     *lastValSettings = (LastValSettings){
         .isInt = true,
         .format = "%2dkm/h",
@@ -105,7 +110,7 @@ View *view2_new(void)
         LastValDraw);
 
     /*top header*/
-    LabelSettings *headerSettings = (LabelSettings *)malloc(sizeof(LabelSettings));
+    LabelSettings *headerSettings = (LabelSettings *)(_Display.dataAlloc + sizeof(View) + sizeof(LastValSettings));
     *headerSettings = (LabelSettings){
         .string = "speed",
         .textSize = 1,
@@ -119,20 +124,12 @@ View *view2_new(void)
     return newView;
 }
 
-void view2_delete(View **view2)
+void view3_new(void)
 {
-    //Window_delete(&(*view2)->windows[0]);
-    //Window_delete(&(*view2)->windows[1]);
-    view_delete(view2);
-}
-
-View *view3_new(void)
-{
-    View *newView = view_new(2);
-    assert(newView);
-    LastValSettings *maxSpeedSettings = (LastValSettings *)malloc(sizeof(LastValSettings));
-    *maxSpeedSettings = (LastValSettings){
-        .isInt = true,
+    View *newView = (View *)_Display.dataAlloc;
+    view_new_inAllocatedPlace(newView, 2);
+    ValSettings *maxSpeedSettings = (ValSettings *)(_Display.dataAlloc + sizeof(View));
+    *maxSpeedSettings = (ValSettings){
         .format = "%2d",
         .maxLength = 6,
         .textSize = 3,
@@ -140,14 +137,14 @@ View *view3_new(void)
         .offsetY = 8};
     Window_new_inPlace(&newView->windows[0],
         (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-        (void *)&_Display.data->speedMax,
+        (void *)&(_Display.data->speedMax),
         (void *)maxSpeedSettings,
         ValDraw);
 
     /*top header*/
-    LabelSettings *header2Settings = (LabelSettings *)malloc(sizeof(LabelSettings));
+    LabelSettings *header2Settings = (LabelSettings *)(_Display.dataAlloc + sizeof(View) + sizeof(LastValSettings));
     *header2Settings = (LabelSettings){
-        .string = "speed",
+        .string = "speed max",
         .textSize = 1,
         .offsetX = 2,
         .offsetY = 0};
@@ -156,18 +153,9 @@ View *view3_new(void)
         (void *)0,
         (void *)header2Settings,
         LabelDraw);
-    return newView;
-}
-
-void view3_delete(View **view3)
-{
-    //Window_delete(&(*view3)->windows[0]);
-    //Window_delete(&(*view3)->windows[1]);
-    view_delete(view3);
 }
 
 view_new_func views_all_new[] = {view1_new, view2_new, view3_new};
-view_delete_func views_all_delete[] = {view1_delete, view2_delete, view3_delete};
 
 void Display_init(SensorData *data)
 {
@@ -175,7 +163,9 @@ void Display_init(SensorData *data)
     _Display.currentType = 0;
     Screen_setup();
 
-    _Display.currentview = views_all_new[_Display.currentType]();
+    _Display.dataAlloc = mallocAllData();
+    view1_new();
+    _Display.currentview = (View*)_Display.dataAlloc;//views_all_new[_Display.currentType]();
 }
 
 //TODO add destroy to all created views
@@ -187,18 +177,18 @@ void Display_setDisplayType(DisplayType type)
 
 void Display_incDisplayType()
 {
-    views_all_delete[_Display.currentType](&_Display.currentview);
     _Display.currentType = (_Display.currentType + 1) % DISPLAYTYPELENGTH;
     assert(_Display.currentType >= 0 && _Display.currentType < DISPLAYTYPELENGTH);
-    _Display.currentview = views_all_new[_Display.currentType]();
+
+    views_all_new[_Display.currentType]();
 }
 
 void Display_decDisplayType()
 {
-    views_all_delete[_Display.currentType](&_Display.currentview);
     _Display.currentType = _Display.currentType > 0 ? (_Display.currentType - 1) : DISPLAYTYPELENGTH - 1;
     assert(_Display.currentType >= 0 && _Display.currentType < DISPLAYTYPELENGTH);
-    _Display.currentview = views_all_new[_Display.currentType]();
+
+    views_all_new[_Display.currentType]();
 }
 
 void Display_update()

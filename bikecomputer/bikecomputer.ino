@@ -26,7 +26,7 @@
 
 #include "addons/print.h"
 
-SensorData sensorData = {0, 0, 0, 0};
+SensorData sensorData;
 void setup()
 {
   Wire.begin();
