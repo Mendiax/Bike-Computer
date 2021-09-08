@@ -13,6 +13,8 @@
 
 #define MAX_NUMBER_OF_WINDOWS 2
 
+#include "view.h"
+
 enum DisplayType
 {
     graph,
@@ -20,46 +22,9 @@ enum DisplayType
     maxavg
 };
 
-
-
-
-/*
-    class setting up one view for display contaninig multiple windows
-*/
-typedef struct View
+uint8_t *mallocAllData()
 {
-    size_t numberOfWindows;
-    Window windows[MAX_NUMBER_OF_WINDOWS];
-} View;
-
-View *view_new(size_t numberOfWindows)
-{
-    View *newView = (View *)malloc(sizeof(View) + sizeof(Window) * numberOfWindows);
-    newView->numberOfWindows = numberOfWindows;
-    return newView;
-}
-
-void view_new_inAllocatedPlace(View *newView ,size_t numberOfWindows)
-{
-    newView->numberOfWindows = numberOfWindows;
-}
-
-void view_draw(View *this_p)
-{
-    for (size_t i = 0; i < this_p->numberOfWindows; i++)
-    {
-        Window_update(&this_p->windows[i]);
-    }
-}
-
-void view_delete(View **this_pp)
-{
-    free(*this_pp);
-    *this_pp = 0;
-}
-
-uint8_t* mallocAllData(){
-    uint16_t maxSettingsSize = max(sizeof(LastValSettings),sizeof(PlotFloatSettings));
+    uint16_t maxSettingsSize = max(sizeof(LastValSettings), sizeof(PlotFloatSettings));
     maxSettingsSize = max(maxSettingsSize, sizeof(LabelSettings));
     maxSettingsSize = max(maxSettingsSize, sizeof(ValSettings));
     return malloc(sizeof(View) + maxSettingsSize * MAX_NUMBER_OF_WINDOWS);
@@ -67,7 +32,7 @@ uint8_t* mallocAllData(){
 
 typedef struct Display
 {
-    uint8_t* dataAlloc;
+    uint8_t *dataAlloc;
     SensorData *data;
     View *currentview;
     uint8_t currentType;
@@ -84,10 +49,10 @@ void view1_new(void)
     PlotFloatSettings *plotSettings = (PlotFloatSettings *)(_Display.dataAlloc + sizeof(View));
     *plotSettings = {0, 30};
     Window_new_inPlace(&newView->windows[0],
-        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-        (void *)_Display.data->speedBuffer,
-        (void *)plotSettings,
-        PlotDoubleDraw);
+                       (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
+                       (void *)_Display.data->speedBuffer,
+                       (void *)plotSettings,
+                       PlotDoubleDraw);
 }
 
 void view2_new(void)
@@ -104,10 +69,10 @@ void view2_new(void)
         .offsetX = 2,
         .offsetY = 8};
     Window_new_inPlace(&newView->windows[0],
-        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-        (void *)_Display.data->speedBuffer,
-        (void *)lastValSettings,
-        LastValDraw);
+                       (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
+                       (void *)_Display.data->speedBuffer,
+                       (void *)lastValSettings,
+                       LastValDraw);
 
     /*top header*/
     LabelSettings *headerSettings = (LabelSettings *)(_Display.dataAlloc + sizeof(View) + sizeof(LastValSettings));
@@ -117,10 +82,10 @@ void view2_new(void)
         .offsetX = 2,
         .offsetY = 0};
     Window_new_inPlace(&newView->windows[1],
-        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-        (void *)0,
-        (void *)headerSettings,
-        LabelDraw);
+                       (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
+                       (void *)0,
+                       (void *)headerSettings,
+                       LabelDraw);
     return newView;
 }
 
@@ -136,10 +101,10 @@ void view3_new(void)
         .offsetX = 2,
         .offsetY = 8};
     Window_new_inPlace(&newView->windows[0],
-        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-        (void *)&(_Display.data->speedMax),
-        (void *)maxSpeedSettings,
-        ValDraw);
+                       (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
+                       (void *)&(_Display.data->speedMax),
+                       (void *)maxSpeedSettings,
+                       ValDraw);
 
     /*top header*/
     LabelSettings *header2Settings = (LabelSettings *)(_Display.dataAlloc + sizeof(View) + sizeof(LastValSettings));
@@ -149,10 +114,10 @@ void view3_new(void)
         .offsetX = 2,
         .offsetY = 0};
     Window_new_inPlace(&newView->windows[1],
-        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-        (void *)0,
-        (void *)header2Settings,
-        LabelDraw);
+                       (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
+                       (void *)0,
+                       (void *)header2Settings,
+                       LabelDraw);
 }
 
 view_new_func views_all_new[] = {view1_new, view2_new, view3_new};
@@ -165,10 +130,8 @@ void Display_init(SensorData *data)
 
     _Display.dataAlloc = mallocAllData();
     view1_new();
-    _Display.currentview = (View*)_Display.dataAlloc;//views_all_new[_Display.currentType]();
+    _Display.currentview = (View *)_Display.dataAlloc;
 }
-
-//TODO add destroy to all created views
 
 void Display_setDisplayType(DisplayType type)
 {
