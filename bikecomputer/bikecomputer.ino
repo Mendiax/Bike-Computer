@@ -1,15 +1,15 @@
 //#define NDEBUG
-#define SIM_INPUT
+//#define SIM_INPUT
 #include <MemoryFree.h>
 #include <Wire.h>
 #define PCDEBUG
 
-//#include "sensors/rearshock.h"
+#include "sensors/rearshock.h"
 
 //#include "GyroRead.h"
 
 #include "display/display.h"
-#define REFRESH_RATE_TARGET_HZ 10
+#define REFRESH_RATE_TARGET_HZ 30
 #define MIN_DELAY (1000 / REFRESH_RATE_TARGET_HZ)
 
 #include "sensors/data.h"
@@ -32,31 +32,36 @@ void setup()
   Wire.begin();
 #ifndef NDEBUG
   Serial.begin(115200);
-#endif
   DEBUG_PRINT(F("PCDEBUG is defined"));
+#endif
   /*sensors*/
 #ifdef gyro
   gyrosetup();
 #endif
-
-  sensorData.speedBuffer = ring_buffer_create(sizeof(float), SCREEN_WIDTH);
+  Serial.print("freeMemory()=");
+  Serial.println(freeMemory());
+  Display_init(&sensorData);
+  Display_setDisplayType(DisplayType::lastVal);
+  Serial.print("freeMemory()=");
+  Serial.println(freeMemory());
+  sensorData.rearShockBuffer = ring_buffer_create(sizeof(byte), SCREEN_WIDTH);
+  Serial.print("freeMemory()=");
+  Serial.println(freeMemory());
+  sensorData.speedBuffer = ring_buffer_create(sizeof(byte), SCREEN_WIDTH);
+  Serial.print("freeMemory()=");
+  Serial.println(freeMemory());
   sensorData.speedAvgCnt = 0.0;
   sensorData.speedAvgVal = 0.0;
   sensorData.speedMax = 0.0;
-
+  rearShock_init();
   speed_new();
-  Display_init(&sensorData);
-  Display_setDisplayType(DisplayType::lastVal);
-  //ShockSetup();
 
   //  qmc.init();
   //qmc.setMode(Mode_Continuous,ODR_200Hz,RNG_2G,OSR_256);
-  //Serial.print("MAX_TIME: ");
-  //Serial.println(max_time);
 }
-//Timer displayTimer("DISPLAY UPDATE");
 
 float velocity;
+double shockUsage;
 #ifdef SIM_INPUT
 double time = 0.0;
 #endif
@@ -71,11 +76,22 @@ void loop()
   start = millis();
   pressedButton = btnNone;
   velocity = speed_mps_to_kmph(speed_getSpeed());
+  shockUsage = rearShock_getShockUsage();
+  Serial.print(analogRead(volPIN));
+  Serial.print("\t");
+  Serial.println(shockUsage);
+#ifdef SIM_INPUT
+  velocity = (sin(time) + 1.0) * 15.0;
+  time += 0.1;
+#endif
   sensorData.speedMax = max(sensorData.speedMax, velocity);
   //update avg speed
-  sensorData.speedAvgCnt += 1.0;
-  sensorData.speedAvgVal *= (sensorData.speedAvgCnt - 1.0) / sensorData.speedAvgCnt;
-  sensorData.speedAvgVal += velocity / sensorData.speedAvgCnt;
+  if (velocity)
+  {
+    sensorData.speedAvgCnt += 1.0;
+    sensorData.speedAvgVal *= (sensorData.speedAvgCnt - 1.0) / sensorData.speedAvgCnt;
+    sensorData.speedAvgVal += velocity / sensorData.speedAvgCnt;
+  }
   do
   {
     // time for update data
@@ -91,10 +107,7 @@ void loop()
     }
     //delay(100);
   } while (millis() - start < MIN_DELAY);
-#ifdef SIM_INPUT
-  velocity = (sin(time) + 1.0) * 15.0;
-  time += 0.1;
-#endif
+
   switch (pressedButton)
   {
   case btnLeft:
@@ -105,11 +118,12 @@ void loop()
   default:
     break;
   }
+  byte bufferVelocity = (byte) velocity;
+  byte bufferShock = (byte) shockUsage;
 
-  ring_buffer_push_overwrite(sensorData.speedBuffer, (char *)&velocity);
-  //printMem(sensorData.velocity->data_pointer, sensorData.velocity->size_of_element * sensorData.velocity->max_queue_length);
-  //Serial.println(velocity);
-  //DEBUG_PRINT("display update");
+  ring_buffer_push_overwrite(sensorData.speedBuffer, (char *)&bufferVelocity);
+  ring_buffer_push_overwrite(sensorData.rearShockBuffer, (char *)&bufferShock);
+
   //displayTimer.start();
   Display_update();
   //displayTimer.stop();

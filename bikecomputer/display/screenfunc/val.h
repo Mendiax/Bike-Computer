@@ -8,7 +8,7 @@
 
 typedef struct ValSettings
 {
-    char* format;
+    char *format;
     unsigned maxLength;
     unsigned textSize;
     unsigned offsetX, offsetY;
@@ -23,22 +23,21 @@ typedef struct ValData
 void ValDraw(void *data, void *settings, Frame *plotFrame)
 {
     ValSettings *valSettings = (ValSettings *)settings;
-    ValData* plotData = (ValData*)data;
-    
+    ValData *plotData = (ValData *)data;
+
     int value = plotData->val;
-    
-    unsigned maxStrLen = valSettings->maxLength + 1; 
+
+    unsigned maxStrLen = valSettings->maxLength + 1;
     char buffer[maxStrLen + 1];
 
     int write = snprintf(&buffer[0], maxStrLen, valSettings->format, value);
 
-    maxStrLen = min(maxStrLen,write);
-    
+    maxStrLen = min(maxStrLen, write);
+
     display.setTextSize(valSettings->textSize);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(plotFrame->x + valSettings->offsetX, valSettings->offsetY);
     display.cp437(true);
-
 
     for (unsigned i = 0; i < maxStrLen; i++)
     {

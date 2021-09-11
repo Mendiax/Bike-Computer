@@ -6,7 +6,7 @@
 //defined wheel size [m]
 #define WHEEL_SIZE (0.6985 * PI)
 // [m/s]
-#define MIN_SPEED 2.0 
+#define MIN_SPEED 0.5 
 //time after speed is set to 0 [s]
 #define MAX_TIME (WHEEL_SIZE / MIN_SPEED * 1000.0)
 

@@ -75,6 +75,16 @@ float ring_buffer_get_element_at_float(RingBuffer *ring_buffer, int index)
     return *((float *)ring_buffer_get_element_pointer(ring_buffer, index));
 }
 
+byte ring_buffer_get_element_at_byte(RingBuffer *ring_buffer, int index)
+{
+    index += ring_buffer->current_index;
+    index = index % ring_buffer->max_queue_length;
+    if(index < 0){
+        index += ring_buffer->max_queue_length;
+    }
+    return *((byte *)ring_buffer_get_element_pointer(ring_buffer, index));
+}
+
 static char *ring_buffer_get_last_element_pointer(RingBuffer *ring_buffer)
 {
     if(ring_buffer_is_empty(ring_buffer)){
