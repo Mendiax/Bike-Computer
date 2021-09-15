@@ -1,5 +1,5 @@
 //#define NDEBUG
-//#define SIM_INPUT
+#define SIM_INPUT
 #include <MemoryFree.h>
 #include <Wire.h>
 #define PCDEBUG
