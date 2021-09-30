@@ -27,7 +27,7 @@ uint8_t *mallocAllData()
     uint16_t maxSettingsSize = max(sizeof(LastValSettings), sizeof(PlotSettings));
     maxSettingsSize = max(maxSettingsSize, sizeof(LabelSettings));
     maxSettingsSize = max(maxSettingsSize, sizeof(ValSettings));
-    return malloc(sizeof(View) + maxSettingsSize * MAX_NUMBER_OF_WINDOWS);
+    return (uint8_t *)malloc(sizeof(View) + maxSettingsSize * MAX_NUMBER_OF_WINDOWS);
 }
 
 typedef struct Display
@@ -85,7 +85,6 @@ void view2_new(void)
                        (void *)0,
                        (void *)headerSettings,
                        LabelDraw);
-    return newView;
 }
 
 void view3_new(void)

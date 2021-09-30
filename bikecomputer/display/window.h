@@ -32,13 +32,12 @@ void Window_new_inPlace(Window *this_p, Frame newFrame, void *dataSource, void *
 
 Window *Window_new(Frame newFrame, void *dataSource, void *drawSettings, drawFunc_p drawFunction)
 {
-    Window *this_p = malloc(sizeof(Window));
+    Window *this_p = (Window *)malloc(sizeof(Window));
     Window_new_inPlace(this_p, newFrame, dataSource, drawSettings, drawFunction);
     return this_p;
 }
 
-
-Window_delete(Window **this_pp)
+void Window_delete(Window **this_pp)
 {
     if ((*this_pp)->settings)
     {
@@ -46,12 +45,13 @@ Window_delete(Window **this_pp)
     }
     (*this_pp)->settings = (void *)0;
     free(*this_pp);
-    *this_pp = (void *)0;
+    *this_pp = (Window *)0;
 }
 
 void Window_update(Window *this_p)
 {
-    if(!this_p){
+    if (!this_p)
+    {
         return;
     }
     TRACE_FRAME_PRINT("Frame: " + String(this_p->frame.x) + "," + String(this_p->frame.y) + " update");

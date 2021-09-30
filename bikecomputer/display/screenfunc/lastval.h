@@ -8,7 +8,7 @@
 
 typedef struct LastValSettings
 {
-    char* format;
+    const char* format;
     unsigned maxLength;
     unsigned textSize;
     unsigned offsetX, offsetY;
@@ -34,7 +34,11 @@ void LastValDraw(void *data, void *settings, Frame *plotFrame)
 
     int write = snprintf(&buffer[0], maxStrLen, lastValSettings->format, value);
 
-    maxStrLen = min(maxStrLen,write);
+    if(write < 0){
+        return;
+    }
+
+    maxStrLen = min(maxStrLen, (unsigned)write);
     
     display.setTextSize(lastValSettings->textSize);
     display.setTextColor(SSD1306_WHITE);
