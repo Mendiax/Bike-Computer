@@ -1,10 +1,7 @@
-// ================================================================
-// ===                           shock                          ===
-// ================================================================
-#define externalVoltage
-#define volPIN 7
-#define posPIN 6
-#define multiplayer 3
+#ifndef __SHOCK_H__
+#define __SHOCK_H__
+
+#define posPIN 0
 
 // dane poczatkowe
 const double maxshock = 185.0, minshock = 132.5, rockarm = 67, height = 157;
@@ -22,7 +19,7 @@ float startTime = 0;
 double offsetAngle; // wartosc poczatkowa kata
 double travel_usage;
 
-double rearShock_readAngle(int loops);
+double rearShock_readAngle(size_t loops);
 void rearShock_init()
 {
   int loops = 50;
@@ -35,35 +32,49 @@ void rearShock_init()
   //offsetAngle = readAngle();
 }
 
-static inline double rearShock_getVoltage()
+#define k 1000
+
+//#define R_0 = 2.6
+//#define R_1 = 37.7 * k
+//#define R_2 = 114.4 * k
+#define R_MAX (465.0 * k)
+#define R3 (33.0 * k)
+
+#define U_MAX 5.0
+
+double rearShock_getResistance(double U1)
 {
-  return analogRead(volPIN) * multiplayer;
+  double U0 = (U_MAX / U1 - 1.0);
+  double a = U0;
+  double b = -1.0 * (R3 + U0 * (R3 + R_MAX));
+  double c = R3 * R_MAX;
+
+  double delta = b * b - 4.0 * a * c;
+
+  if (delta < 0.0){
+        return -1.0;
+  }
+  double x1 = (-1.0 * b - sqrt(delta)) / (2 * a);
+  double x2 = (-1.0 * b + sqrt(delta)) / (2 * a);
+  double ret = min(x1, x2);
+  Serial.print(ret);
+  return ret;
 }
 
 /*get avg angle of x loops*/
-double rearShock_readAngle(int loops)
+double rearShock_readAngle(size_t loops)
 {
-  double maxVoltage;
-  double aRead;
-#ifdef externalVoltage
-  maxVoltage = rearShock_getVoltage();
-#elif
-  maxVoltage = 1024;
-#endif
-  aRead = analogRead(posPIN);
-  for (int i = 1; i < loops; i++)
+  double aRead = analogRead(posPIN);
+  
+  for (size_t i = 1; i < loops; i++)
   {
-    maxVoltage += analogRead(volPIN) * multiplayer;
     aRead += analogRead(posPIN);
   }
-  maxVoltage /= loops;
   aRead /= loops;
 
-  //  Serial.print("read angle: ");
-  //  Serial.print(readAngle);
-  //  Serial.print("\t");
-  double readAngle = 220 //3.839724354388 //220st w radianach
-                     * aRead / maxVoltage;
+  double res = rearShock_getResistance((aRead * 5.0) / 1024.0) / R_MAX;
+  double readAngle = 220.0 * res ;
+
   return readAngle;
 }
 double rearShock_getShocklength()
@@ -74,12 +85,12 @@ double rearShock_getShocklength()
 
   double shockLength = b * angle + sqrt(b2 * sq(angle) + c4);
   shockLength /= 2;
-  //  Serial.print("shock length: ");
-  //  Serial.print(shockLength);
-  //  Serial.print("\t");
   return shockLength;
 }
 
-double rearShock_getShockUsage(){
-  return 100.0 - ((rearShock_getShocklength() - minshock)/travel) * 100.0;
+double rearShock_getShockUsage()
+{
+  return 100.0 - ((rearShock_getShocklength() - minshock) / travel) * 100.0;
 }
+
+#endif
