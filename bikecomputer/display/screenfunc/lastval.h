@@ -61,8 +61,7 @@ void LastValDrawByte(void *data, void *settings, Frame *plotFrame)
     LastValSettings *lastValSettings = (LastValSettings *)settings;
     LastValData plotData = {(RingBuffer *)data};
     
-    int value = *(byte*)ring_buffer_get_last_element_pointer(plotData.buffer);
-    //Serial.println(value);
+    int value = *(byte*)ring_buffer_get_last_element_pointer(plotData.buffer);//ring_buffer_get_last_element(plotData.buffer);
     
     unsigned maxStrLen = lastValSettings->maxLength + 1; 
     char buffer[maxStrLen + 1];

@@ -10,6 +10,7 @@ typedef struct SensorData
     float speedMax;
     float speedAvgVal;
     unsigned long speedAvgCnt;
+    unsigned speedDistance;
 } SensorData;
 
 

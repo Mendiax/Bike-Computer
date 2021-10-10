@@ -1,7 +1,19 @@
 #ifndef __RINGBUFFER_H__
 #define __RINGBUFFER_H__
 
-#define assert(X) do{if(!(X)) {while(1){Serial.print("ASSERT FAILED\n"); Serial.println(#X); delay(1000);}}}while(0);
+#define assert(X)                                \
+    do                                           \
+    {                                            \
+        if (!(X))                                \
+        {                                        \
+            while (1)                            \
+            {                                    \
+                Serial.print("ASSERT FAILED\n"); \
+                Serial.println(#X);              \
+                delay(1000);                     \
+            }                                    \
+        }                                        \
+    } while (0);
 
 typedef struct RingBuffer
 {
@@ -66,7 +78,8 @@ float ring_buffer_get_element_at_float(RingBuffer *ring_buffer, int index)
 {
     index += ring_buffer->current_index;
     index = index % ring_buffer->max_queue_length;
-    if(index < 0){
+    if (index < 0)
+    {
         index += ring_buffer->max_queue_length;
     }
     //assert(index >= 0);
@@ -79,15 +92,26 @@ byte ring_buffer_get_element_at_byte(RingBuffer *ring_buffer, int index)
 {
     index += ring_buffer->current_index;
     index = index % ring_buffer->max_queue_length;
-    if(index < 0){
+    if (index < 0)
+    {
         index += ring_buffer->max_queue_length;
     }
     return *((byte *)ring_buffer_get_element_pointer(ring_buffer, index));
 }
 
+byte ring_buffer_get_last_element(RingBuffer *ring_buffer)
+{
+    if (ring_buffer_is_empty(ring_buffer))
+    {
+        return 0;
+    }
+    return ring_buffer_get_element_at_byte(ring_buffer, ring_buffer->current_queue_length - 1);
+}
+
 static char *ring_buffer_get_last_element_pointer(RingBuffer *ring_buffer)
 {
-    if(ring_buffer_is_empty(ring_buffer)){
+    if (ring_buffer_is_empty(ring_buffer))
+    {
         return ring_buffer->data_pointer;
     }
     size_t nextFree = (ring_buffer->current_index + ring_buffer->current_queue_length - 1) % ring_buffer->max_queue_length;

@@ -68,6 +68,7 @@ double time = 0.0;
 
 bool isButtonPressed = false;
 unsigned long start;
+unsigned distance;
 Buttons pressedButton = btnNone;
 Buttons pressedButtonBuffer;
 void loop()
@@ -77,12 +78,12 @@ void loop()
   pressedButton = btnNone;
   velocity = speed_mps_to_kmph(speed_getSpeed());
   shockUsage = rearShock_getShockUsage();
-  Serial.print(analogRead(volPIN));
-  Serial.print("\t");
-  Serial.println(shockUsage);
+  distance = speed_getDistance();
+  //Serial.println(shockUsage);
 #ifdef SIM_INPUT
   velocity = (sin(time) + 1.0) * 15.0;
   time += 0.1;
+  speed_wheelCounter++;
 #endif
   sensorData.speedMax = max(sensorData.speedMax, velocity);
   //update avg speed

@@ -57,7 +57,7 @@ double rearShock_getResistance(double U1)
   double x1 = (-1.0 * b - sqrt(delta)) / (2 * a);
   double x2 = (-1.0 * b + sqrt(delta)) / (2 * a);
   double ret = min(x1, x2);
-  Serial.print(ret);
+  //Serial.print(ret);
   return ret;
 }
 

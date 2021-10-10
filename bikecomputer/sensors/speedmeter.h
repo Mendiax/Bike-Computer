@@ -14,12 +14,17 @@ static volatile unsigned long speed_lastupdate = 0;
 //[m/s]
 static volatile float speed_velocity = 0.0f;
 
+static volatile unsigned speed_wheelCounter = 0;
+
 //check if last value was read by speed_getSpeed() function
 static volatile bool read = true;
 
 float speed_mps_to_kmph(float speed_mps)
 {
     return speed_mps * 3.6;
+}
+unsigned speed_getDistance(){
+    return floor((double)speed_wheelCounter * WHEEL_SIZE * 3.6);
 }
 
 /*returns last read speed [m/s]*/
@@ -45,6 +50,7 @@ static void speed_update()
     {
         return;
     }
+    speed_wheelCounter++;
     speed_velocity = WHEEL_SIZE / ((float)delta_time / 1000.0);
     //TRACE_SPEED_PRINT("Interrupt time : " + String(update) + " speed : " + String(speed_velocity) + " delta time : " + String(delta_time));
 
