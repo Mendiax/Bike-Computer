@@ -4,7 +4,9 @@
 #include "../addons/ringbuffer.h"
 #define PIN_SPEED 2
 //defined wheel size [m]
-#define WHEEL_SIZE (0.6985 * PI)
+//hand measure r = 34.8cm -> d = 0.696m
+//from 27.5" -> d = 0.6985m
+#define WHEEL_SIZE (0.696 * PI)
 // [m/s]
 #define MIN_SPEED 0.5 
 //time after speed is set to 0 [s]
@@ -24,7 +26,7 @@ float speed_mps_to_kmph(float speed_mps)
     return speed_mps * 3.6;
 }
 unsigned speed_getDistance(){
-    return floor((double)speed_wheelCounter * WHEEL_SIZE * 3.6);
+    return floor((double)speed_wheelCounter * WHEEL_SIZE);
 }
 
 /*returns last read speed [m/s]*/

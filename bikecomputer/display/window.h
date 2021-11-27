@@ -54,7 +54,7 @@ void Window_update(Window *this_p)
     {
         return;
     }
-    TRACE_FRAME_PRINT("Frame: " + String(this_p->frame.x) + "," + String(this_p->frame.y) + " update");
+    //TRACE_FRAME_PRINT("Frame: " + String(this_p->frame.x) + "," + String(this_p->frame.y) + " update");
     this_p->updateFunc_p(this_p->data, this_p->settings, &this_p->frame);
 }
 

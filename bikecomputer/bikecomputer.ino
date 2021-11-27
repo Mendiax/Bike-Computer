@@ -1,5 +1,5 @@
 //#define NDEBUG
-#define SIM_INPUT
+//#define SIM_INPUT
 #include <MemoryFree.h>
 #include <Wire.h>
 #define PCDEBUG
@@ -26,7 +26,22 @@
 
 #include "addons/print.h"
 
-SensorData sensorData;
+//RingBuffer* rb = RING_BUFFER_CREATE(sizeof(byte), SCREEN_WIDTH);
+uint8_t allocatedMemory_rearShockBuffer[sizeof(byte)*SCREEN_WIDTH + sizeof(RingBuffer)] = {0};
+uint8_t allocatedMemory_speedBuffer[sizeof(byte)*SCREEN_WIDTH + sizeof(RingBuffer)] = {0};
+
+SensorData sensorData =  (SensorData){
+    .rearShockBuffer = ring_buffer_create_static(allocatedMemory_rearShockBuffer,sizeof(byte), SCREEN_WIDTH),
+    .speedBuffer = ring_buffer_create_static(allocatedMemory_speedBuffer,sizeof(byte), SCREEN_WIDTH),
+    .speedMax = 0.0,
+    .speedAvgVal = 0.0,
+    .speedAvgCnt = 0,
+    .speedDistance = 0,
+    .time = 0
+    };
+
+  
+//RING_BUFFER_CREATE(sizeof(byte), SCREEN_WIDTH);
 void setup()
 {
   Wire.begin();
@@ -38,16 +53,7 @@ void setup()
 #ifdef gyro
   gyrosetup();
 #endif
-  Serial.print("freeMemory()=");
-  Serial.println(freeMemory());
   Display_init(&sensorData);
-  Display_setDisplayType(DisplayType::lastVal);
-  Serial.print("freeMemory()=");
-  Serial.println(freeMemory());
-  sensorData.rearShockBuffer = ring_buffer_create(sizeof(byte), SCREEN_WIDTH);
-  Serial.print("freeMemory()=");
-  Serial.println(freeMemory());
-  sensorData.speedBuffer = ring_buffer_create(sizeof(byte), SCREEN_WIDTH);
   Serial.print("freeMemory()=");
   Serial.println(freeMemory());
   sensorData.speedAvgCnt = 0.0;
@@ -71,6 +77,8 @@ unsigned long start;
 unsigned distance;
 Buttons pressedButton = btnNone;
 Buttons pressedButtonBuffer;
+unsigned long stopTime = 0;
+unsigned long stopTimeCurrent = 0;
 void loop()
 {
   //DEBUG_PRINT(" update loop ");
@@ -78,7 +86,7 @@ void loop()
   pressedButton = btnNone;
   velocity = speed_mps_to_kmph(speed_getSpeed());
   shockUsage = rearShock_getShockUsage();
-  distance = speed_getDistance();
+  sensorData.speedDistance = speed_getDistance() / 1000;
   //Serial.println(shockUsage);
 #ifdef SIM_INPUT
   velocity = (sin(time) + 1.0) * 15.0;
@@ -87,12 +95,14 @@ void loop()
 #endif
   sensorData.speedMax = max(sensorData.speedMax, velocity);
   //update avg speed
-  if (velocity)
+  if (velocity == 0)
   {
-    sensorData.speedAvgCnt += 1.0;
+    /*sensorData.speedAvgCnt += 1.0;
     sensorData.speedAvgVal *= (sensorData.speedAvgCnt - 1.0) / sensorData.speedAvgCnt;
-    sensorData.speedAvgVal += velocity / sensorData.speedAvgCnt;
+    sensorData.speedAvgVal += velocity / sensorData.speedAvgCnt;*/
   }
+  sensorData.time = millis() / 1000;
+  sensorData.speedAvgVal = speed_getDistance() / sensorData.time;
   do
   {
     // time for update data
@@ -106,7 +116,7 @@ void loop()
     {
       isButtonPressed = false;
     }
-    //delay(100);
+    delay(10);
   } while (millis() - start < MIN_DELAY);
 
   switch (pressedButton)

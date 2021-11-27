@@ -63,12 +63,16 @@ void LastValDrawByte(void *data, void *settings, Frame *plotFrame)
     
     int value = *(byte*)ring_buffer_get_last_element_pointer(plotData.buffer);//ring_buffer_get_last_element(plotData.buffer);
     
-    unsigned maxStrLen = lastValSettings->maxLength + 1; 
+    int maxStrLen = lastValSettings->maxLength + 1; 
     char buffer[maxStrLen + 1];
 
     int write = snprintf(&buffer[0], maxStrLen, lastValSettings->format, value);
 
     maxStrLen = min(maxStrLen,write);
+
+    if(maxStrLen < 0){
+        return;
+    }
     
     display.setTextSize(lastValSettings->textSize);
     display.setTextColor(SSD1306_WHITE);
@@ -79,7 +83,7 @@ void LastValDrawByte(void *data, void *settings, Frame *plotFrame)
     //Serial.println(buffer);
 
 
-    for (unsigned i = 0; i < maxStrLen; i++)
+    for (unsigned i = 0; i < (unsigned)maxStrLen; i++)
     {
         display.write(buffer[i]);
     }

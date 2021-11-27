@@ -9,31 +9,22 @@
 #include "screenfunc/label.h"
 #include "screenfunc/val.h"
 
-#define DISPLAYTYPELENGTH 4
-
 #define MAX_NUMBER_OF_WINDOWS 3
 
 #include "view.h"
 
-enum DisplayType
-{
-    graph,
-    lastVal,
-    maxavg
-};
-#define SETTING_SIZE 24//max(max(max(sizeof(LastValSettings), sizeof(PlotSettings)), sizeof(LabelSettings)), sizeof(ValSettings))
+#define SETTING_SIZE max(max(max(sizeof(LastValSettings), sizeof(PlotSettings)), sizeof(LabelSettings)), sizeof(ValSettings))
+uint8_t allocData[SETTING_SIZE * MAX_NUMBER_OF_WINDOWS + sizeof(View)];
 
-typedef struct setting{
-    uint8_t setting[SETTING_SIZE];
-} setting;
+void* getSettings(unsigned id){
+    assert(id < MAX_NUMBER_OF_WINDOWS);
+    return allocData + sizeof(View) + id * SETTING_SIZE;
+}
 
 typedef struct Display
 {
-    View view;
-    //uint8_t settingBuffer[SETTING_SIZE * MAX_NUMBER_OF_WINDOWS];
-    setting settings[MAX_NUMBER_OF_WINDOWS];
+    const uint8_t *dataAlloc;
     SensorData *data;
-    View *currentview;
     uint8_t currentType;
 } Display;
 
@@ -41,25 +32,17 @@ Display _Display;
 
 typedef void (*view_new_func)(void);
 
-void view1_new(void)
-{
-    View *newView = &_Display.view;
-    view_new_inAllocatedPlace(newView, 1);
-    PlotSettings *plotSettings = (PlotSettings *)(&_Display.settings[0]);
-    *plotSettings = {0, 30};
-    Window_new_inPlace(&newView->windows[0],
-                       (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-                       (void *)_Display.data->speedBuffer,
-                       (void *)plotSettings,
-                       PlotDrawByte);
-}
 
-void view2_new(void)
+
+/*
+    speed, distance 
+*/
+void view0(void)
 {
-    View *newView = &_Display.view;
+    View *newView = (View *)_Display.dataAlloc;
     view_new_inAllocatedPlace(newView, 3);
 
-    LastValSettings *lastValSettings = (LastValSettings *)(&_Display.settings[0]);
+    LastValSettings *lastValSettings = (LastValSettings *)getSettings(0);
     *lastValSettings = (LastValSettings){
         .format = "%2d",
         .maxLength = 2,
@@ -71,32 +54,36 @@ void view2_new(void)
                        (void *)_Display.data->speedBuffer,
                        (void *)lastValSettings,
                        LastValDrawByte);
-
-    Window_new_inPlace(&newView->windows[0],
+    
+    Window_new_inPlace(&newView->windows[1],
                        (Frame){SCREEN_WIDTH/2, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
-                       (void *)_Display.data->speedDistance,
+                       (void *)&(_Display.data->speedDistance),
                        (void *)lastValSettings,
-                       ValDraw);
+                       ValDrawInt);
 
     /*top header*/
-    LabelSettings *headerSettings = (LabelSettings *)(&_Display.settings[1]);
+    LabelSettings *headerSettings = (LabelSettings *)getSettings(1);
     *headerSettings = (LabelSettings){
-        .string = "speed   distance",
+        .string = "speed     distance",
         .textSize = 1,
         .offsetX = 2,
         .offsetY = 0};
-    Window_new_inPlace(&newView->windows[1],
+    Window_new_inPlace(&newView->windows[2],
                        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
                        (void *)0,
                        (void *)headerSettings,
                        LabelDraw);
 }
 
-void view3_new(void)
+
+/* 
+    max, avg display
+*/
+void view1(void)
 {
-    View *newView = &_Display.view;
+    View *newView = (View *)_Display.dataAlloc;
     view_new_inAllocatedPlace(newView, 3);
-    ValSettings *maxSpeedSettings = (ValSettings *)(&_Display.settings[0]);
+    ValSettings *maxSpeedSettings = (ValSettings *)getSettings(0);
     *maxSpeedSettings = (ValSettings){
         .format = "%2d",
         .maxLength = 6,
@@ -115,7 +102,7 @@ void view3_new(void)
                        ValDraw);
 
     /*top header*/
-    LabelSettings *header2Settings = (LabelSettings *)(&_Display.settings[1]);
+    LabelSettings *header2Settings = (LabelSettings *)getSettings(1);
     *header2Settings = (LabelSettings){
         .string = " max        avg",
         .textSize = 1,
@@ -127,12 +114,38 @@ void view3_new(void)
                        (void *)header2Settings,
                        LabelDraw);
 }
-/*rear shock plot*/
-void view4_new(void)
+
+
+/*
+    speed plot
+*/
+void view2(void)
 {
-    View *newView = &_Display.view;
+    View *newView = (View *)_Display.dataAlloc;
+    view_new_inAllocatedPlace(newView, 1);
+    PlotSettings *plotSettings = (PlotSettings *)getSettings(0);
+    *plotSettings = {
+        .min = 0,
+        .max = 30,
+        .autoMax = true,
+        .autoMin = false,
+        .offset = 5};
+    Window_new_inPlace(&newView->windows[0],
+                       (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
+                       (void *)_Display.data->speedBuffer,
+                       (void *)plotSettings,
+                       PlotDrawByte);
+}
+
+
+/*
+    rear shock plot
+*/
+void view3(void)
+{
+    View *newView = (View *)_Display.dataAlloc;
     view_new_inAllocatedPlace(newView, 2);
-    LastValSettings *topBarSettings = (LastValSettings *)(&_Display.settings[0]);
+    LastValSettings *topBarSettings = (LastValSettings *)getSettings(0);
     *topBarSettings = (LastValSettings){
         .format = "rear shock: %2d",
         .maxLength = 15,
@@ -141,13 +154,18 @@ void view4_new(void)
         .offsetY = 0};
     Window_new_inPlace(&newView->windows[0],
                        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT_YELLOW},
-                       (void *)(_Display.data->rearShockBuffer),
+                       (void *)&(_Display.data->rearShockBuffer),
                        (void *)topBarSettings,
                        LastValDrawByte);
 
     
-    PlotSettings *plotSettings = (PlotSettings *)(&_Display.settings[1]);
-    *plotSettings = {0, 100};
+    PlotSettings *plotSettings = (PlotSettings *)getSettings(1);
+    *plotSettings = {
+        .min = 0,
+        .max = 100,
+        .autoMax = true,
+        .autoMin = true,
+        .offset = 5};
     Window_new_inPlace(&newView->windows[1],
                        (Frame){0, SCREEN_HEIGHT_YELLOW, SCREEN_WIDTH, SCREEN_HEIGHT_BLUE},
                        (void *)_Display.data->rearShockBuffer,
@@ -155,37 +173,55 @@ void view4_new(void)
                        PlotDrawByte);
 }
 
-view_new_func views_all_new[] = {view1_new, view2_new, view3_new,view4_new};
+void view4(void)
+{
+    View *newView = (View *)_Display.dataAlloc;
+    view_new_inAllocatedPlace(newView, 1);
+    ValSettings *topBarSettings = (ValSettings *)getSettings(0);
+    *topBarSettings = (ValSettings){
+        .format = "%2d:%2d:%2d",
+        .maxLength = 15,
+        .textSize = 3,
+        .offsetX = 0,
+        .offsetY = 10};
+    Window_new_inPlace(&newView->windows[0],
+                       (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT_YELLOW},
+                       (void *)&(_Display.data->time),
+                       (void *)topBarSettings,
+                       ValDrawTime);
+}
 
+view_new_func views_all[] = {view0, view1, view2, view3, view4};
+byte DISPLAY_TYPES_LENGTH = sizeof(views_all) / sizeof(view_new_func);
 void Display_init(SensorData *data)
 {
     _Display.data = data;
-    _Display.currentType = 1;
+    _Display.currentType = 0;
     Screen_setup();
 
-    //_Display.settings = &_Display.settingBuffer[0];
-    views_all_new[_Display.currentType]();
+    _Display.dataAlloc = allocData;
+    views_all[_Display.currentType]();
 }
 
-void Display_setDisplayType(DisplayType type)
+void Display_setDisplayType(uint8_t type)
 {
     _Display.currentType = (uint8_t)type;
 }
 
 void Display_incDisplayType()
 {
-    _Display.currentType = (_Display.currentType + 1) % DISPLAYTYPELENGTH;
-    assert(_Display.currentType >= 0 && _Display.currentType < DISPLAYTYPELENGTH);
+    _Display.currentType = (_Display.currentType + 1) % DISPLAY_TYPES_LENGTH;
+    assert(_Display.currentType >= 0 && _Display.currentType < DISPLAY_TYPES_LENGTH);
 
-    views_all_new[_Display.currentType]();
+    views_all[_Display.currentType]();
 }
 
 void Display_decDisplayType()
 {
-    _Display.currentType = _Display.currentType > 0 ? (_Display.currentType - 1) : DISPLAYTYPELENGTH - 1;
-    assert(_Display.currentType >= 0 && _Display.currentType < DISPLAYTYPELENGTH);
+    _Display.currentType = _Display.currentType > 0 ? (_Display.currentType - 1) : DISPLAY_TYPES_LENGTH - 1;
+    assert(_Display.currentType >= 0 && _Display.currentType < DISPLAY_TYPES_LENGTH);
 
-    views_all_new[_Display.currentType]();
+    views_all[_Display.currentType]();
 }
 
 void Display_update()
@@ -193,7 +229,7 @@ void Display_update()
     Screen_clear();
 
     //display data on screen
-    view_draw(&_Display.view);
+    view_draw((View*)_Display.dataAlloc);
 
     Screen_draw();
 }

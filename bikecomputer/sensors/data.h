@@ -3,6 +3,7 @@
 
 #include "../addons/ringbuffer.h"
 
+
 typedef struct SensorData
 {
     RingBuffer* rearShockBuffer;
@@ -11,6 +12,7 @@ typedef struct SensorData
     float speedAvgVal;
     unsigned long speedAvgCnt;
     unsigned speedDistance;
+    unsigned long time;
 } SensorData;
 
 

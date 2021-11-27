@@ -27,6 +27,24 @@ typedef struct RingBuffer
     char data_pointer[];
 } RingBuffer;
 
+#define RING_BUFFER_CREATE(size_of_element, buffer_length) ( \
+    uint8_t allocatedMemory[size_of_element * buffer_length], \
+    ring_buffer_create_static(allocatedMemory,size_of_element,buffer_length)\
+    )
+
+RingBuffer *ring_buffer_create_static(uint8_t allocatedMemory[],  size_t size_of_element, size_t buffer_length)
+{
+    RingBuffer *ring_buffer = (RingBuffer *)&allocatedMemory[0];
+    ring_buffer->min = (char *)calloc(1, size_of_element);
+    ring_buffer->max = (char *)calloc(1, size_of_element);
+    ring_buffer->avg = (char *)calloc(1, size_of_element);
+    ring_buffer->max_queue_length = buffer_length;
+    ring_buffer->size_of_element = size_of_element;
+    ring_buffer->current_queue_length = 0;
+    ring_buffer->current_index = 0;
+    return ring_buffer;
+}
+
 RingBuffer *ring_buffer_create(size_t size_of_element, size_t buffer_length)
 {
     RingBuffer *ring_buffer = (RingBuffer *)calloc(sizeof(RingBuffer) + size_of_element * buffer_length, 1);
@@ -48,6 +66,8 @@ void ring_buffer_destroy(RingBuffer *ring_buffer)
 {
     free(ring_buffer);
 }
+
+
 
 /*
  * returns 1 if queue is full
@@ -97,6 +117,26 @@ byte ring_buffer_get_element_at_byte(RingBuffer *ring_buffer, int index)
         index += ring_buffer->max_queue_length;
     }
     return *((byte *)ring_buffer_get_element_pointer(ring_buffer, index));
+}
+
+/* for byte only*/
+static byte ring_buffer_get_max(RingBuffer *ring_buffer){
+    byte maxVal = 0;
+    for(size_t i = 0; i < ring_buffer->current_queue_length; i++){
+        byte newVal = ring_buffer_get_element_at_byte(ring_buffer, i);
+        maxVal = max(newVal, maxVal);
+    }
+    return maxVal;
+}
+
+/* for byte only*/
+static byte ring_buffer_get_min(RingBuffer *ring_buffer){
+    byte minVal = 0;
+    for(size_t i = 0; i < ring_buffer->current_queue_length; i++){
+        byte newVal = ring_buffer_get_element_at_byte(ring_buffer, i);
+        minVal = max(newVal, minVal);
+    }
+    return minVal;
 }
 
 byte ring_buffer_get_last_element(RingBuffer *ring_buffer)

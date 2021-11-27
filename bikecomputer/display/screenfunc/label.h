@@ -20,7 +20,6 @@ typedef struct LabelData
 /*print string*/
 void LabelDraw(void *data, void *settings, Frame *plotFrame)
 {   
-    data = 0;
     LabelSettings *labelSettings = (LabelSettings *)settings;
     
     unsigned maxStrLen = strlen(labelSettings->string);

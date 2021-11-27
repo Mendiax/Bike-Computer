@@ -20,14 +20,9 @@ void printOnPC(double data)
 #ifdef NDEBUG
     #define DEBUG_PRINT(X) (void*) 0
 #else
-    #define DEBUG_PRINT(X) Serial.println(String(__FILE__) + " line: " + String(__LINE__) + " " + X)
+    #define DEBUG_PRINT(X) Serial.println(X)
 #endif
 
-#ifdef DEBUG_PRINT
-    #define DEBUG_PRINT(X) Serial.println(X)   
-#else
-    #define DEBUG_PRINT(X) (void*) 0
-#endif
 
 #ifdef TRACE_DISPLAY
     #define TRACE_DISPLAY_PRINT(X) Serial.println(String(__FILE__) + " line: " + String(__LINE__) + " " + X)   
