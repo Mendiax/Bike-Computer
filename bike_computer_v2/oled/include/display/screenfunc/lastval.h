@@ -1,16 +1,15 @@
 #ifndef __SCREEN_FUNC_LASTVAL_H__
 #define __SCREEN_FUNC_LASTVAL_H__
 
-#include "../../addons/ringbuffer.h"
 #include "../screen.h"
-#include "../../addons/print.h"
 #include <stdio.h>
 
 typedef struct LastValSettings
 {
     const char* format;
     unsigned maxLength;
-    unsigned textSize;
+    sFONT* textSize;
+    uint8_t textScale;
     unsigned offsetX, offsetY;
 } LastValSettings;
 
@@ -38,21 +37,9 @@ void LastValDraw(void *data, void *settings, Frame *plotFrame)
         return;
     }
 
-    maxStrLen = min(maxStrLen, (unsigned)write);
-    
-    display.setTextSize(lastValSettings->textSize);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(plotFrame->x + lastValSettings->offsetX, lastValSettings->offsetY);
-    display.cp437(true);
-
-    //Serial.println(maxStrLen);
-    //Serial.println(buffer);
-
-
-    for (unsigned i = 0; i < maxStrLen; i++)
-    {
-        display.write(buffer[i]);
-    }
+    int x = plotFrame->x + lastValSettings->offsetX;
+    int y = plotFrame->y + lastValSettings->offsetY;
+    Paint_Println(&__display, x, y, buffer, lastValSettings->textSize, 0x0f, 0x00, lastValSettings->textScale);
 }
 
 void LastValDrawByte(void *data, void *settings, Frame *plotFrame)
@@ -61,31 +48,19 @@ void LastValDrawByte(void *data, void *settings, Frame *plotFrame)
     LastValSettings *lastValSettings = (LastValSettings *)settings;
     LastValData plotData = {(RingBuffer *)data};
 
-    int value = *(byte*)ring_buffer_get_last_element_pointer(plotData.buffer);//ring_buffer_get_last_element(plotData.buffer);
+    int value = *(char*)ring_buffer_get_last_element_pointer(plotData.buffer);//ring_buffer_get_last_element(plotData.buffer);
 
     int maxStrLen = lastValSettings->maxLength + 1; 
     char buffer[maxStrLen + 1];
 
     int write = snprintf(&buffer[0], maxStrLen, lastValSettings->format, value);
 
-    maxStrLen = min(maxStrLen,write);
-
-    if(maxStrLen < 0){
+    if(write < 0){
         return;
     }
 
-    display.setTextSize(lastValSettings->textSize);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(plotFrame->x + lastValSettings->offsetX, lastValSettings->offsetY);
-    display.cp437(true);
-
-    //Serial.println(maxStrLen);
-    //Serial.println(buffer);
-
-
-    for (unsigned i = 0; i < (unsigned)maxStrLen; i++)
-    {
-        display.write(buffer[i]);
-    }
+    int x = plotFrame->x + lastValSettings->offsetX;
+    int y = plotFrame->y + lastValSettings->offsetY;
+    Paint_Println(&__display, x, y, buffer, lastValSettings->textSize, 0x0f, 0x00, lastValSettings->textScale);
 }
 #endif

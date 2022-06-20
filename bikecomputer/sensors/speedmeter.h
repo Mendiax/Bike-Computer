@@ -1,8 +1,11 @@
 #ifndef __SPEEDMETER_H__
 #define __SPEEDMETER_H__
 
+#include "../hardware/pinout.h"
+
 #include "../addons/ringbuffer.h"
-#define PIN_SPEED 2
+#include "../hardware/power.h"
+
 //defined wheel size [m]
 //hand measure r = 34.8cm -> d = 0.696m
 //from 27.5" -> d = 0.6985m
@@ -45,7 +48,7 @@ float speed_getSpeed()
 
 static void speed_update()
 {
-
+    updateTimer();
     unsigned long update = millis();
     unsigned long delta_time = update - speed_lastupdate;
     if (delta_time < 79)

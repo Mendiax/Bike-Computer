@@ -1,16 +1,17 @@
 #ifndef __SCREEN_FUNC_VAL_H__
 #define __SCREEN_FUNC_VAL_H__
 
-#include "../../addons/ringbuffer.h"
+
 #include "../screen.h"
-#include "../../addons/print.h"
 #include <stdio.h>
+#include <fonts.h>
 
 typedef struct ValSettings
 {
     const char *format;
     unsigned maxLength;
-    unsigned textSize;
+    sFONT* textSize;
+    uint8_t textScale;
     unsigned offsetX, offsetY;
 } ValSettings;
 
@@ -46,20 +47,12 @@ void ValDrawInt(void *data, void *settings, Frame *plotFrame)
         return;
     }
 
-    maxStrLen = min(maxStrLen, (unsigned)write);
-
-    display.setTextSize(valSettings->textSize);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(plotFrame->x + valSettings->offsetX, valSettings->offsetY);
-    display.cp437(true);
-
-    for (unsigned i = 0; i < maxStrLen; i++)
-    {
-        display.write(buffer[i]);
-    }
+    int x = plotFrame->x + valSettings->offsetX;
+    int y = plotFrame->y + valSettings->offsetY;
+    Paint_Println(&__display, x, y, buffer, valSettings->textSize, 0x0f, 0x00, valSettings->textScale);
 }
 
-/*draws last val from ring buffer*/
+
 void ValDraw(void *data, void *settings, Frame *plotFrame)
 {
     ValSettings *valSettings = (ValSettings *)settings;
@@ -76,17 +69,9 @@ void ValDraw(void *data, void *settings, Frame *plotFrame)
         return;
     }
 
-    maxStrLen = min(maxStrLen, (unsigned)write);
-
-    display.setTextSize(valSettings->textSize);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(plotFrame->x + valSettings->offsetX, valSettings->offsetY);
-    display.cp437(true);
-
-    for (unsigned i = 0; i < maxStrLen; i++)
-    {
-        display.write(buffer[i]);
-    }
+    int x = plotFrame->x + valSettings->offsetX;
+    int y = plotFrame->y + valSettings->offsetY;
+    Paint_Println(&__display, x, y, buffer, valSettings->textSize, 0x0f, 0x00, valSettings->textScale);
 }
 
 void ValDrawTime(void *data, void *settings, Frame *plotFrame)
@@ -94,9 +79,9 @@ void ValDrawTime(void *data, void *settings, Frame *plotFrame)
     ValSettings *valSettings = (ValSettings *)settings;
     ValDataULong* time = (ValDataULong *)data;
 
-    byte hours = time->val / 3600;
-    byte min = (time->val % 3600) / 60;
-    byte sec = time->val % 60; 
+    char hours = time->val / 3600;
+    char min = (time->val % 3600) / 60;
+    char sec = time->val % 60; 
 
 
     unsigned maxStrLen = valSettings->maxLength + 1;
@@ -108,16 +93,8 @@ void ValDrawTime(void *data, void *settings, Frame *plotFrame)
         return;
     }
 
-    maxStrLen = min(maxStrLen, (unsigned)write);
-
-    display.setTextSize(valSettings->textSize);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(plotFrame->x + valSettings->offsetX, valSettings->offsetY);
-    display.cp437(true);
-
-    for (unsigned i = 0; i < maxStrLen; i++)
-    {
-        display.write(buffer[i]);
-    }
+    int x = plotFrame->x + valSettings->offsetX;
+    int y = plotFrame->y +valSettings->offsetY;
+    Paint_Println(&__display, x, y, buffer, valSettings->textSize, 0x0f, 0x00, valSettings->textScale);
 }
 #endif

@@ -1,6 +1,8 @@
 #ifndef __BUTTONS_H__
 #define __BUTTONS_H__
 
+#include "../hardware/pinout.h"
+
 enum Buttons{
   btnNone, btnLeft, btnLeftMiddle, btnMiddle, btnRightMiddle, btnRight
 };

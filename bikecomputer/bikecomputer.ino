@@ -13,6 +13,7 @@
 #define MIN_DELAY (1000 / REFRESH_RATE_TARGET_HZ)
 
 #include "sensors/data.h"
+#include "hardware/power.h"
 
 //#include "addons/timer.h"
 
@@ -21,7 +22,6 @@
 
 //----------------------------------
 
-#define PIN_BUTTONS A3
 #include "sensors/buttons.h"
 
 #include "addons/print.h"
@@ -44,6 +44,8 @@ SensorData sensorData =  (SensorData){
 //RING_BUFFER_CREATE(sizeof(byte), SCREEN_WIDTH);
 void setup()
 {
+  powerUp();
+  setTimeOut(1000UL * 60UL * 5UL); // 5 min timeout
   Wire.begin();
 #ifndef NDEBUG
   Serial.begin(115200);
@@ -81,6 +83,10 @@ unsigned long stopTime = 0;
 unsigned long stopTimeCurrent = 0;
 void loop()
 {
+  if(checkTimeOut())
+  {
+    powerDown();
+  }
   //DEBUG_PRINT(" update loop ");
   start = millis();
   pressedButton = btnNone;
@@ -111,6 +117,7 @@ void loop()
     {
       pressedButton = pressedButtonBuffer;
       isButtonPressed = true;
+      updateTimer();
     }
     if (pressedButtonBuffer == btnNone)
     {

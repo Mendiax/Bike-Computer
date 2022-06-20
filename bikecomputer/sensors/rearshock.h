@@ -1,7 +1,7 @@
 #ifndef __SHOCK_H__
 #define __SHOCK_H__
 
-#define posPIN 0
+#include "../hardware/pinout.h"
 
 // dane poczatkowe
 const double maxshock = 185.0, minshock = 132.5, rockarm = 67, height = 157;
@@ -64,11 +64,11 @@ double rearShock_getResistance(double U1)
 /*get avg angle of x loops*/
 double rearShock_readAngle(size_t loops)
 {
-  double aRead = analogRead(posPIN);
+  double aRead = analogRead(PIN_SHOCK_METER);
   
   for (size_t i = 1; i < loops; i++)
   {
-    aRead += analogRead(posPIN);
+    aRead += analogRead(PIN_SHOCK_METER);
   }
   aRead /= loops;
 

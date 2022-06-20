@@ -154,7 +154,7 @@ void view3(void)
         .offsetY = 0};
     Window_new_inPlace(&newView->windows[0],
                        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT_YELLOW},
-                       (void *)&(_Display.data->rearShockBuffer),
+                       (void *)_Display.data->rearShockBuffer,
                        (void *)topBarSettings,
                        LastValDrawByte);
 
