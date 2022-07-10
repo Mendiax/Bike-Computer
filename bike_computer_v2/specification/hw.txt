@@ -1,0 +1,55 @@
+
+Potrzebne moduły
+    GPS/GSM albo bluetooth  uart ?
+    kompas                  i2c
+    obrót koła              interrupt pin
+    obrót pedałów           interrupt pin
+    barometr                i2c
+    karta SD                spi
+    żyroskop                i2c
+    termometr(hamulców)     adc x2 ?
+    wyświetlacz             spi
+    przyciski               gpio x3?
+
+podsumowanie:
+    3x i2c
+    2x IP
+    2x spi
+    1x uart
+    3x GPIO
+    2x ADC
+
+
+
+0-1   GSM/GPS
+2-3   btns
+//4-7   // SPI SD    // można wykorzystać piny od wyświetlacza
+4-5 GSM/GPS
+8-13  wyświetlacz
+14    GSM PWR
+15    btn
+16    int 2
+17    GSM DTR [btn wyświetlacz]
+18-19,21 Moduł     //może można 2 piny zabrać ?
+20    btn
+22    int 1
+26    temp hamulec przód
+27    aku napięcie ?
+28    [zawiecha ?]
+
+
+
+TODO
+siła hamowania (spowolnienei na podstawie zmiany prędkośći (uwzględnij wiatr (opory powietrza xd) i nacgylenie terenu))
+
+
+Ut=Us*(Rt+Rtw)/(Rt+Rtw+R)
+R = ok 3k
+
+U=3.28
+R series = 1 Ohm
+https://www.desmos.com/calculator/lnfegphqnf
+
+czarny kabel 0.7 Ohm
+
+LCD ma 20mA większy pobór prądu, ale też jest większe i inny test xd
