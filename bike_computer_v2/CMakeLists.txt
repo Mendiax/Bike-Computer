@@ -102,7 +102,7 @@ add_executable( ${PICO_MAIN_FILE} app/main.cpp)
 target_compile_definitions(${PICO_MAIN_FILE} PRIVATE PICO_MALLOC_PANIC=0)
 
 pico_enable_stdio_usb( ${PICO_MAIN_FILE} 1)
-pico_enable_stdio_uart( ${PICO_MAIN_FILE} 1)
+pico_enable_stdio_uart( ${PICO_MAIN_FILE} 0)
 
 pico_add_extra_outputs( ${PICO_MAIN_FILE})
 

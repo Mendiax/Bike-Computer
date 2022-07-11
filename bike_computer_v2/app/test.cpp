@@ -260,7 +260,13 @@ void test_atInternet()
     AT+CGDCONT? [ To return the current state of the PDP context]
     AT+CGACT=0  [ To deactivate a PDP context ] 
     */
+    sendCMD_waitResp("AT+CSQ?","OK",2000);
     sendCMD_waitResp("AT+CSQ","OK",2000);
+    sendCMD_waitResp("AT+CREG=1","OK",2000);
+    sendCMD_waitResp("AT+CREG?","OK",2000);
+    sendCMD_waitResp("AT+COPS=?","OK",2000);
+
+
 }
 
 int main(void)
@@ -289,9 +295,10 @@ int main(void)
     */
     //test_console();
     consoleLogInit();
+    test_atInternet();
 //     powerOn;
-// //    at_test();
-//     GPS_test();
+    //at_test();
+    //GPS_test();
     //test_gps();
     //HTTP_test();
 
