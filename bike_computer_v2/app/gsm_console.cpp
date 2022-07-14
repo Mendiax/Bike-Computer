@@ -131,8 +131,9 @@ void consoleGSM()
     // sendCMD_waitResp("AT+HTTPTERM", "OK", 2000);
 
 
-    AT+CLBSCFG=0,1
-    AT+CLBSCFG=0,2
+    // AT+CLBSCFG=0,1
+    // AT+CLBSCFG=0,2
+    // AT+CLBSCFG=0,3
 
     // sendCMD_waitResp("AT+CGNSPWR=1", "OK", 2000);
     // DEV_GSM_Delay_ms(2000);

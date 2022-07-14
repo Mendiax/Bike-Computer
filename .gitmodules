@@ -1,3 +1,3 @@
 [submodule "bike_computer_v2/external/no-OS-FatFS-SD-SPI-RPi-Pico"]
 	url = https://github.com/carlk3/no-OS-FatFS-SD-SPI-RPi-Pico.git
-	path = bike_computer_v2/bike_computer_v2/external/no-OS-FatFS-SD-SPI-RPi-Pic
+	path = bike_computer_v2/external/no-OS-FatFS-SD-SPI-RPi-Pico

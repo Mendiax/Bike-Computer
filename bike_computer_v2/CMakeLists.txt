@@ -63,7 +63,7 @@ add_subdirectory(lib2/Phone_Call)
 add_subdirectory(lib2/SMS)
 
 # SD
-add_subdirectory(external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI)
+# add_subdirectory(external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI)
 
 
 ############################# INCLUDE DIRECTORIES #############################

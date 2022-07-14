@@ -45,7 +45,10 @@ Display _Display;
 
 typedef void (*view_new_func)(void);
 
-
+#define WINDOW_CREATE_LASTVAL(originX,originY, maxWidth, maxHeight) \
+do { \
+\
+} while (0)
 
 /*
     speed, distance 
@@ -57,20 +60,6 @@ void view0(void)
     view_new_inAllocatedPlace(newView, numberOfWindows);
     uint8_t settingsId = 0;
     uint8_t windowId = 0;
-
-    /*ValSettings *lipoSettings = (ValSettings *)getSettings(settingsId++);
-    *lipoSettings = (ValSettings){
-        .format = "%d",
-        .maxLength = 6,
-        .textSize = &Font20,
-        .textScale = 1,
-        .offsetX = 0,
-        .offsetY = 0};
-    Window_new_inPlace(&newView->windows[windowId++],
-                       (Frame){0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
-                       (void *)&(_Display.data->lipoLevel),
-                       (void *)lipoSettings,
-                       ValDraw);*/
 
     LastValSettings *lastValSettings = (LastValSettings *)getSettings(settingsId++);
     *lastValSettings = (LastValSettings){
