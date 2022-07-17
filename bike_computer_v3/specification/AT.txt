@@ -1,0 +1,9 @@
+AT+CGDCONT=2,"IP","internetipv6" // konfiguracja proflu
+AT+CGACT?   // aktywacja
+AT+CREG?    // rejestracja
+AT+CGATT=0 // detach
+AT+CIPPING="www.google.com" // ping
+AT+CGPADDR=? // addres?
+AT+CSTT=? // APN
+AT+CSTT="internet","internet","internet" //SETUP
+AT+CGDCONT=1,"IP","internet"

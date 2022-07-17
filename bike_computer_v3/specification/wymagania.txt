@@ -1,0 +1,109 @@
+Wyjaśnienie oznaczeń w opisie wymagań:
+Źródło danych - skąd będą brane dane
+Funkcje - Wszystkie funkcjonalności
+Potrzebne algorytmy - funkcjonalności, które będą potrzebowały większej ilości przetwarzania danych (wymyślenie jakiegoś algorytmu do ich przetworzenia)
+Dodawkowe uwagi - Jakieś dodatkowe uwagii do danych funkcjonalności
+
+Wybrane wymagania:
+    Pogoda:
+        Źródło danych: Internet, kompas cyfrowy (https://open-meteo.com/en/docs#api_form)
+        Funkcje:
+        - pogoda dla danej pozycji
+        - pogoda w przewidywanym punkcie jazdy
+        - pogoda dla jazdy powrotnej
+        - poprzednie podunkty mogą zostać zastąpione jednym (Przewidywanie deszczu w danym otoczeniu od roweru)
+        - Wyznaczenie kierunku z którego nadchodzi deszcz (zalecany czas kiedy należy wracać, żeby ominąć deszcz)
+        - aktualny kierunek wiatru
+        - zmiana kierunku waitru (czas, nowy kierunek, siła)
+        Potrzebne algorytmy:
+        - wyznaczanie przewidywanej pozycji
+        - wyznaczanie kierunku nadchodzących opadów ( w którą stronę idzie deszcz)
+        - oblicznie jazdy powrotnej, czy nie zacznie wtedy w tych miejscach padać (prędkość na podstawie wiatru i średniej prędkości jazdy)
+        - wyznaczenie kiedy zmieni się kierunek wiatru
+    Prędkość jazdy:
+        Źródło danych: czujnik obrotu koła
+        Funkcje:
+        - prędkość aktualna/maksymalna/średnia
+        Dodawkowe uwagi:
+        Użycie akcelerometru do zwiększenia precyzji przy niskich prędkościach.
+    Kadencja:
+        Źródło danych: czujnik obrotu pedałów
+        Funkcje:
+        - wyświetlanie kadencji
+        - Obliczanie na podstawie prędkości oraz kadencji aktualne przełożenie (bieg)
+        Potrzebne algorytmy:
+        - obliczenie biegu (trzeba odfiltrować dane kadencji)
+    Wysokość:
+        Źródło danych: GPS / barometr
+        Funkcje:
+        - mierzenie wysokości n.p.m.
+    Pochylenie:
+        Źródło danych: żyroskop cyfrowy / zmiana wysokości
+        Funkcje:
+        - Wyświetlanie pochylenia
+        Potrzebne algorytmy:
+        - Implementacja filtru kalmana
+    Połączenie ze smartfonem:
+        Połączenie: bluetooth
+        Funkcje:
+        - źródło danych GPS
+        - połączenie z internetem (w celu pobrania prognozy)
+        - ustawienie rozmiaru koła
+        - edycja pulpitów z danymi (w zależności to może być wybór które strony mają być wyświetlane albo tworzenie własnych z bloków)
+        - zapisywanie przejechanej trasy na mapie (wraz z prędkością, wysokością n.p.m.)
+    Zapisa na karte SD:
+        Połaczenie: czytnik kart SD
+        Funkcje:
+        - Zapis trasy (położenia GPS, prędkość, wysokość n.p.m.)
+        Dodawkowe uwagi:
+        To wymaganie raczej tylko w przypadku braku smartfona
+
+
+Wymagania możliwe do dodania:
+    Moc:
+        Źródło danych: pochylenie, prędkość, kierunek i prędkośc wiatru
+        Funkcje:
+        - wyświetlanie aktualnej/średniej/maksymalnej mocy
+        Dodawkowe uwagi:
+        Mała dokładność pomiarów (duża liczba oszacowań i przybliżeń).
+    Temperatura hamulców:
+        Źródło danych: termometry przymocowane do zacisków / termometr na podczerwień
+        Funkcje:
+        - wyświetlanie temperatury
+        - ostrzeżenia o przegrzewaniu
+        - powiadamianie o optymalnej temperaturze
+        - statystyki z użycia hamulca ( na podstawie rosnacej temperatury)
+
+
+Architektura oprogramowania systemu licznika:
+    System liczika można podzielić na następujące obszary:
+    - Zbieranie danych z czujników
+    - Przetwarzanie danych
+    - Wyświetlanie danych na ekranie
+    - Przetwarzanie naciskanych przycisków
+    - Komunikacja smartfon <-> licznik przez bluetooth
+    Programistyczne wyzwania:
+    - podział działania na dwa rdzenie
+    - postarać się zoptymalizować zużycie prądu
+    - sprawna komunikacja smartfon <-> licznik
+
+
+
+Połączenie ze smartfonem vs moduły GPS/GSM:
+    Smartfon:
+    Plusy:
+    - niższe zużycie prądu na liczniku (moduły GPS/GSM są prądożerne)
+    - brak potrzeby kupna nowej karty sim
+    - miejsce do przechowywania danych
+    Minusy:
+    - potrzeba podłączania telefonu do pełnego działania systemu
+    - pisanie aplikacji na Androida
+
+    Moduły GPS/GSM:
+    Plusy:
+    - mniejsze skomplikowanie system (oprogramowanie)
+    - prosta komunikacja
+    Minusy:
+    - dodatkowe moduły, które zwiększają zużycie energii
+    - rozmieszczenie anten
+    - zasięga raczej gorszy niż w telefnie (niepotwierdzone)
