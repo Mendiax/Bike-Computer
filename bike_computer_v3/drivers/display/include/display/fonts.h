@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
+
 
 #define MAX_HEIGHT_FONT         41
 #define MAX_WIDTH_FONT          32
@@ -43,7 +45,7 @@ extern const sFONT Font12;
 /*8, Height */
 extern const sFONT Font8;
 
-void assert(bool val)
+static void my_assert(bool val)
 {
   if(!val)
   {
@@ -58,7 +60,7 @@ static inline void getFontSize(uint16_t width, uint16_t height, const sFONT** fo
 {
   /*5  Width */
   /*8 Height */
-  assert(width >= 5 && height >= 8);
+  my_assert(width >= 5 && height >= 8);
   const sFONT* fonts[] = {
     &Font8,
     &Font12,
@@ -67,7 +69,7 @@ static inline void getFontSize(uint16_t width, uint16_t height, const sFONT** fo
     &Font24
   };
   uint16_t spaceLeft = UINT16_MAX;
-  *scale = 1
+  *scale = 1;
   *font = fonts[0];
   for(size_t i = 0; i < sizeof(fonts)/sizeof(*fonts); i++)
   {
@@ -93,7 +95,7 @@ static inline void getFontSize(uint16_t width, uint16_t height, const sFONT** fo
       *scale = newScale;
     }
   }
-  assert(font->width * *scale <= width && font->height * *scale <= height);
+  my_assert((*font)->width * *scale <= width && (*font)->height * *scale <= height);
 }
 
 
