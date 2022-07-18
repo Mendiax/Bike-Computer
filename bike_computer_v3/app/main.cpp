@@ -17,6 +17,8 @@
 
 
 #include "speedometer/speedometer.h"
+#include <interrupts/interrupts.hpp>
+
 
 #include <traces.h>
 
@@ -40,20 +42,11 @@ int main()
     tracesSetup();
 
     stdio_init_all();
-#if 1
-        int startX;
-        sleep_ms(1000);
-        printf("3\n");
-        sleep_ms(1000);
-        printf("2\n");
-        sleep_ms(1000);
-        printf("1\n");
-        sleep_ms(1000);
-        printf("0\n");
-        printf("pico waiting for input\n");
-        std::cin >> startX;
-#endif
     printf("pico ON\n");
+
+
+    interruptSetup();
+
     //turn of power led
     gpio_init(25); //power led
     gpio_set_dir(25, GPIO_OUT);

@@ -1,13 +1,12 @@
-aux_source_directory(./src DIR_Speedometer_SRCS)
+aux_source_directory(. DIR_bcTest_SRCS)
+include_directories(./)
 
-include_directories(include)
-include_directories(../interrupts/include)
-
-
-
-add_library(Speedometer ${DIR_Speedometer_SRCS})
-target_link_libraries(Speedometer PUBLIC pico_stdlib)
-
+add_library(bcTest ${DIR_bcTest_SRCS})
+target_include_directories(bcTest PUBLIC include)
+target_link_libraries(bcTest PUBLIC
+    pico_time
+    pico_stdlib
+)
 # if (NOT TARGET pico_stdlib_headers)
 #     add_library(pico_stdlib_headers INTERFACE)
 #     target_include_directories(pico_stdlib_headers INTERFACE include)

@@ -1,4 +1,5 @@
 #include <speedometer/speedometer.h>
+#include <interrupts/interrupts.hpp>
 
 #include <math.h>
 #include <pico/time.h>
@@ -16,16 +17,21 @@
 #define MAX_TIME (WHEEL_SIZE / MIN_SPEED * 1000.0)
 #define MAX_TIME_INTERR (WHEEL_SIZE)
 
+
+ // static variables definitions
 static volatile absolute_time_t speed_lastupdate = {0};
 //[m/s]
 static volatile float speed_velocity = 0.0f;
-
 static volatile unsigned speed_wheelCounter = 0;
-
 // check if last value was read by speed_getSpeed() function
 static volatile bool read = true;
 
-static void speed_update(uint gpio, uint32_t events);
+// static declarations
+static void speed_update();
+
+
+// global definitions
+interrupt interruptSpeed = {PIN_SPEED, speed_update, GPIO_IRQ_EDGE_FALL};
 
 float speed_mps_to_kmph(float speed_mps)
 {
@@ -60,49 +66,10 @@ float speed_getSpeed()
     return speed_velocity;
 }
 
-static char event_str[128];
 
-void gpio_event_string(char *buf, uint32_t events);
-
-void gpio_callback(uint gpio, uint32_t events) {
-    // Put the GPIO event(s) that just happened into event_str
-    // so we can print it
-    gpio_event_string(event_str, events);
-    printf("GPIO %d %s\n", gpio, event_str);
-}
-
-static const char *gpio_irq_str[] = {
-        "LEVEL_LOW",  // 0x1
-        "LEVEL_HIGH", // 0x2
-        "EDGE_FALL",  // 0x4
-        "EDGE_RISE"   // 0x8
-};
-
-void gpio_event_string(char *buf, uint32_t events) {
-    for (uint i = 0; i < 4; i++) {
-        uint mask = (1 << i);
-        if (events & mask) {
-            // Copy this event string into the user string
-            const char *event_str = gpio_irq_str[i];
-            while (*event_str != '\0') {
-                *buf++ = *event_str++;
-            }
-            events &= ~mask;
-
-            // If more events add ", "
-            if (events) {
-                *buf++ = ',';
-                *buf++ = ' ';
-            }
-        }
-    }
-    *buf++ = '\0';
-}
-
-static void speed_update(uint gpio, uint32_t events)
+// static definitions
+static void speed_update()
 {
-    if (gpio == PIN_SPEED &&  gpio_get(PIN_SPEED) == 0)
-    {
         absolute_time_t update_us = get_absolute_time();
         absolute_time_t last_update_us; // TODO
         #ifdef NDEBUG
@@ -128,20 +95,4 @@ static void speed_update(uint gpio, uint32_t events)
             #endif
             read = false;
         }
-    }
-}
-
-void speed_new()
-{
-    gpio_init(PIN_SPEED);
-    gpio_set_dir(PIN_SPEED, GPIO_IN);
-    gpio_pull_up(PIN_SPEED);
-
-    gpio_set_irq_enabled_with_callback(PIN_SPEED, GPIO_IRQ_EDGE_FALL, true, &speed_update);
-    // attachInterrupt(digitalPinToInterrupt(PIN_SPEED), speed_update, FALLING);
-}
-
-void speed_delete()
-{
-    // detachInterrupt(digitalPinToInterrupt(PIN_SPEED));
 }

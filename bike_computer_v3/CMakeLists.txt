@@ -1,25 +1,26 @@
 cmake_minimum_required(VERSION 3.12)
-
+include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+project(pico
+        VERSION 3.0
+        LANGUAGES CXX ASM C)
+pico_sdk_init()
 
 if( NOT CMAKE_BUILD_TYPE ) 
         SET(CMAKE_BUILD_TYPE Debug)
         message("BUILD TYPE NOT SPECIFIED set to ${CMAKE_BUILD_TYPE} on default")
 endif()
 
-include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
-project(pico)
-pico_sdk_init()
 
 
-add_compile_options(-Wint-to-pointer-cast 
-                    -Wl,-print-memory-usage 
-                    #-Wall 
-                    #-Wextra 
-                    -Wstack-usage=128
-                    -Wformat-overflow=2
-                    -Wformat=2
-                    -Wfatal-errors
-                    )
+# add_compile_options(-Wint-to-pointer-cast 
+#                     -Wl,-print-memory-usage 
+#                     #-Wall 
+#                     #-Wextra 
+#                     -Wstack-usage=128
+#                     -Wformat-overflow=2
+#                     -Wformat=2
+#                     -Wfatal-errors
+#                     )
 
 
 ################################ SUBDIRECTORY #################################
@@ -38,6 +39,9 @@ include_directories(drivers/speedometer/include)
 
 add_subdirectory(lib/Console)
 include_directories(lib/Console)
+
+add_subdirectory(drivers/interrupts)
+include_directories(drivers/interrupts/include)
 
 
 
@@ -91,6 +95,11 @@ include_directories(./lib_DOF/MPU9250)
 
 include_directories(./lib_DOF/BMP280_pico)
 
+
+add_subdirectory(tests/bc_test)
+include_directories(tests/bc_test)
+
+
 #################################### MAIN #####################################
 
 message("PICO_MAIN_FILE=${PICO_MAIN_FILE}")
@@ -114,6 +123,7 @@ target_link_libraries( ${PICO_MAIN_FILE}
         Display
         Tools
         Speedometer
+        Interrupts
 )
 
 #################################### TEST #####################################
@@ -124,7 +134,8 @@ if( NOT PICO_TEST_FILE )
         SET(PICO_TEST_FILE pico_test)
         message("SET PICO_TEST_FILE = ${PICO_TEST_FILE}")
 endif()
-add_executable(${PICO_TEST_FILE} app/test.cpp)
+# add_executable(${PICO_TEST_FILE} app/test.cpp)
+add_executable(${PICO_TEST_FILE} tests/test.cpp)
 
 pico_enable_stdio_usb(${PICO_TEST_FILE} 1)
 pico_enable_stdio_uart(${PICO_TEST_FILE} 0)
@@ -148,7 +159,7 @@ target_link_libraries( ${PICO_TEST_FILE}
 
         IMU I2C
         BMP280_pico
-        FatFs_SPI
+        #FatFs_SPI
 )
 
 #################################### Console #####################################
@@ -181,3 +192,6 @@ target_link_libraries( ${PICO_GSM_CONSOLE_FILE}
         Infrared_GSM Config_GSM AT_TEST BT GPS HTTP Phone_Call SMS
         examples
 )
+
+
+
