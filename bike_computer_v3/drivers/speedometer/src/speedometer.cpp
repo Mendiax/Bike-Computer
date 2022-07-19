@@ -28,10 +28,11 @@ static volatile bool read = true;
 
 // static declarations
 static void speed_update();
+static absolute_time_t absolute_time_copy_volatile(volatile absolute_time_t* time);
 
 
 // global definitions
-interrupt interruptSpeed = {PIN_SPEED, speed_update, GPIO_IRQ_EDGE_FALL};
+interrupt interruptSpeed = {2, speed_update, GPIO_IRQ_EDGE_FALL};
 
 float speed_mps_to_kmph(float speed_mps)
 {
@@ -68,15 +69,27 @@ float speed_getSpeed()
 
 
 // static definitions
+static absolute_time_t absolute_time_copy_volatile(volatile absolute_time_t* time)
+{
+    #ifdef NDEBUG
+    return *time;
+    #else
+    return {time->_private_us_since_boot};
+    #endif
+}
+static void absolute_time_copy_to_volatile(volatile absolute_time_t& time, absolute_time_t timeToCopy)
+{
+    #ifdef NDEBUG
+    time = timeToCopy;
+    #else
+    time._private_us_since_boot = timeToCopy._private_us_since_boot;
+    #endif
+}
 static void speed_update()
 {
         absolute_time_t update_us = get_absolute_time();
         absolute_time_t last_update_us; // TODO
-        #ifdef NDEBUG
-        last_update_us = speed_lastupdate;
-        #else
-        last_update_us._private_us_since_boot = speed_lastupdate._private_us_since_boot;
-        #endif
+        last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
         int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
         if (delta_time < 50) // less than 10 ms so max speed is not bigger than 787km/h with 27.5 // 100 >
         {
@@ -88,11 +101,7 @@ static void speed_update()
         DEBUG_SPEED("interrupt : %lu speed : %f delta : %lld last : %lu\n", to_ms_since_boot(update_us), speed_velocity, delta_time,  to_ms_since_boot(last_update_us));
         if (read || 1)
         {
-            #ifdef NDEBUG
-            speed_lastupdate = update_us;
-            #else
-            speed_lastupdate._private_us_since_boot = update_us._private_us_since_boot;
-            #endif
+            absolute_time_copy_to_volatile(speed_lastupdate, update_us);
             read = false;
         }
 }

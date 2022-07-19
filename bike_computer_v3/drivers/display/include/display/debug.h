@@ -13,7 +13,7 @@
 #define __DEBUG_OLED_H
 
 #include "stdio.h"
-#include "display/driver.hpp"
+#include "display/print.h"
 #include <stdlib.h>
 
 #if 0

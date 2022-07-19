@@ -12,6 +12,8 @@ endif()
 
 
 
+add_compile_options(-Wfatal-errors)
+
 # add_compile_options(-Wint-to-pointer-cast 
 #                     -Wl,-print-memory-usage 
 #                     #-Wall 
@@ -124,6 +126,9 @@ target_link_libraries( ${PICO_MAIN_FILE}
         Tools
         Speedometer
         Interrupts
+        Views
+
+        pico_multicore
 )
 
 #################################### TEST #####################################

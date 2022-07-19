@@ -15,20 +15,30 @@
 //veiws
 #include "views/display.h"
 
-
 #include "speedometer/speedometer.h"
 #include <interrupts/interrupts.hpp>
 
+#include <pico/multicore.h>
+#include <pico/sync.h>
 
 #include <traces.h>
 
+mutex_t sensorDataMutex;
+
 static SensorData sensorData = {0};
+
 //#include <RingBuffer.h>
 // copied
 // #include <display/display.h>
 // #include <display/screen.h>
 
-#define BTN 2
+
+#define BTN0 15
+#define BTN1 21
+#define BTN2 2 // speed emulation
+#define BTN3 3
+
+#define BTN BTN1
 #define LIPO 29
 
 static void loop();
@@ -38,6 +48,7 @@ static void loop();
 */
 int main()
 {
+    mutex_init(&sensorDataMutex);
     //traces setup
     tracesSetup();
 
@@ -71,6 +82,20 @@ int main()
     {
         loop();
     }
+}
+
+void displayThread(void)
+{
+    while (1)
+    {
+        // TODO
+        mutex_enter_blocking(&sensorDataMutex);
+        SensorData sensorDataDisplay = sensorData;
+        mutex_exit(&sensorDataMutex);
+
+
+    }
+    
 }
 
 static bool isBtnPressed(uint gpio);
