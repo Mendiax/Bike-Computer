@@ -24,4 +24,7 @@ void speed_new();
 
 void speed_delete();
 
+void speed_emulate();
+
+
 #endif

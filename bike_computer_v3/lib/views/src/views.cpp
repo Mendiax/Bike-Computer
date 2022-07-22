@@ -9,6 +9,8 @@
 #include <algorithm>
 #include "display/debug.h"
 
+// TODO create simple way of creating window of given size and whit should be printing
+
 #define SETTING_SIZE std::max(std::max(std::max(sizeof(LastValSettings), sizeof(PlotSettings)), sizeof(LabelSettings)), sizeof(ValSettings))
 uint8_t allocData[SETTING_SIZE * MAX_NUMBER_OF_WINDOWS + sizeof(View)];
 
@@ -38,7 +40,7 @@ void view0(void)
         .offsetY = 0};
     Window_new_inPlace(&newView->windows[windowId++],
                        (Frame){0, 20, SCREEN_WIDTH/2, SCREEN_HEIGHT/2},
-                       (void *)_Display.data->speedBuffer,
+                       (void *)_Display.data->speed.speedBuffer,
                        (void *)lastValSettings,
                        LastValDrawByte);
 
@@ -96,7 +98,7 @@ void view0(void)
         .offsetY = 0};
     Window_new_inPlace(&newView->windows[windowId++],
                        (Frame){0, offset, SCREEN_WIDTH/2, SCREEN_HEIGHT/2},
-                       (void *)&(_Display.data->speedDistance),
+                       (void *)&(_Display.data->speed.speedDistance),
                        (void *)valSettings,
                        ValDrawInt);
     
@@ -113,7 +115,7 @@ void view0(void)
         .offsetY = 0};
     Window_new_inPlace(&newView->windows[windowId++],
                        km,
-                       (void *)&(_Display.data->speedDistanceHundreth),
+                       (void *)&(_Display.data->speed.speedDistanceHundreth),
                        (void *)valSettings1,
                        ValDrawInt);
 
@@ -160,12 +162,12 @@ void view1(void)
         .offsetY = 44};
     Window_new_inPlace(&newView->windows[windowId++],
                        (Frame){0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
-                       (void *)&(_Display.data->speedMax),
+                       (void *)&(_Display.data->speed.speedMax),
                        (void *)maxSpeedSettings,
                        ValDraw);
     Window_new_inPlace(&newView->windows[windowId++],
                        (Frame){SCREEN_WIDTH/2, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
-                       (void *)&(_Display.data->speedAvgVal),
+                       (void *)&(_Display.data->speed.speedAvgVal),
                        (void *)maxSpeedSettings,
                        ValDraw);
 
@@ -236,7 +238,7 @@ void view2(void)
         .offset = 5};
     Window_new_inPlace(&newView->windows[0],
                        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-                       (void *)_Display.data->speedBuffer,
+                       (void *)_Display.data->speed.speedBuffer,
                        (void *)plotSettings,
                        PlotDrawByte);
 }

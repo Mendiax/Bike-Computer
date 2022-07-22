@@ -9,19 +9,7 @@
 // it must be declared before include of view
 #include "views/view.h"
 
-typedef struct SensorData
-{
-    RingBuffer* rearShockBuffer;
-    RingBuffer* speedBuffer;
-    float speedMax;
-    float speedAvgVal;
-    unsigned long speedAvgCnt;
-    unsigned speedDistance;
-    unsigned speedDistanceHundreth;
-    unsigned long time;
-    bool lipoCharging;
-    int lipoLevel; // in %
-} SensorData;
+#include <types.h>
 
 typedef struct Display
 {

@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#if 1
+//#define SIM_INPUT nie działa xd
+
+#if 0
 #define DEBUG_SPEED(__info, ...) printf("[DEBUG_SPEED] : " __info, ##__VA_ARGS__)
 #else
 #define DEBUG_SPEED(__info, ...)
@@ -29,8 +31,8 @@ static volatile bool read = true;
 // static declarations
 static void speed_update();
 static absolute_time_t absolute_time_copy_volatile(volatile absolute_time_t* time);
-
-
+static bool repeating_timer_callback(struct repeating_timer *t);
+static constexpr uint16_t speed_to_ms(uint16_t speed);
 // global definitions
 interrupt interruptSpeed = {2, speed_update, GPIO_IRQ_EDGE_FALL};
 
@@ -46,6 +48,12 @@ unsigned speed_getDistance()
 /*returns last read speed [m/s]*/
 float speed_getSpeed()
 {
+    // #if SIM_INPUT
+    // static float speed;
+    // static float acc;
+    // if(speed = 0)
+
+    // speed += acc;
     // TODO if speed is not updated between 2 reads and speed is lower than last speed return speed that it would read if next update occured at time of read
     // (smoother transition into lower speeds)
     // i.e. 20 -> 10 should looks like 20 19 28 ... 10 not 20 10
@@ -66,9 +74,30 @@ float speed_getSpeed()
     DEBUG_SPEED("getSpeed : %ul speed : %f\n", to_ms_since_boot(update_us), speed_velocity);
     return speed_velocity;
 }
+void speed_emulate()
+{
+    #ifdef SIM_INPUT
+    static struct repeating_timer timer;
+    add_repeating_timer_ms(-speed_to_ms(19), repeating_timer_callback, NULL, &timer);
+    #endif
+}
 
 
 // static definitions
+
+// speed in km/h
+constexpr static uint16_t speed_to_ms(uint16_t speed)
+{
+    const float speed_mps = (float)speed * 3.6;
+    // t = s/v
+    return WHEEL_SIZE / speed_mps * 1000.0;
+}
+
+bool repeating_timer_callback(struct repeating_timer *t) {
+    speed_update();
+    return true;
+}
+
 static absolute_time_t absolute_time_copy_volatile(volatile absolute_time_t* time)
 {
     #ifdef NDEBUG
@@ -97,7 +126,6 @@ static void speed_update()
         }
         speed_wheelCounter++;
         speed_velocity = WHEEL_SIZE / ((float)delta_time / 1000.0);
-        // TRACE_SPEED_PRINT("Interrupt time : " + String(update) + " speed : " + String(speed_velocity) + " delta time : " + String(delta_time));
         DEBUG_SPEED("interrupt : %lu speed : %f delta : %lld last : %lu\n", to_ms_since_boot(update_us), speed_velocity, delta_time,  to_ms_since_boot(last_update_us));
         if (read || 1)
         {

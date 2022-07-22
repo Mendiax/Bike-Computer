@@ -3,6 +3,7 @@ include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 project(pico
         VERSION 3.0
         LANGUAGES CXX ASM C)
+        
 pico_sdk_init()
 
 if( NOT CMAKE_BUILD_TYPE ) 
@@ -27,25 +28,27 @@ add_compile_options(-Wfatal-errors)
 
 ################################ SUBDIRECTORY #################################
 #sub
-add_subdirectory(drivers/display)
+include_directories(common/include)
 include_directories(drivers/display/include)
-
-add_subdirectory(lib/tools)
 include_directories(lib/tools/include)
-
-add_subdirectory(lib/views)
 include_directories(lib/views/include)
-
-add_subdirectory(drivers/speedometer)
 include_directories(drivers/speedometer/include)
-
-add_subdirectory(lib/Console)
-include_directories(lib/Console)
-
-add_subdirectory(drivers/interrupts)
 include_directories(drivers/interrupts/include)
+include_directories(lib/Console)
+include_directories(drivers/buttons/include)
+include_directories(drivers/battery/include)
 
 
+
+add_subdirectory(common)
+add_subdirectory(drivers/display)
+add_subdirectory(lib/tools)
+add_subdirectory(lib/views)
+add_subdirectory(drivers/speedometer)
+add_subdirectory(lib/Console)
+add_subdirectory(drivers/interrupts)
+add_subdirectory(drivers/buttons)
+add_subdirectory(drivers/battery)
 
 
 #DOF
@@ -121,14 +124,16 @@ target_link_libraries( ${PICO_MAIN_FILE}
         pico_stdlib
         hardware_spi
         hardware_adc
+        pico_multicore
 
         Display
         Tools
         Speedometer
         Interrupts
         Views
-
-        pico_multicore
+        Buttons
+        Common
+        Battery
 )
 
 #################################### TEST #####################################
@@ -139,8 +144,8 @@ if( NOT PICO_TEST_FILE )
         SET(PICO_TEST_FILE pico_test)
         message("SET PICO_TEST_FILE = ${PICO_TEST_FILE}")
 endif()
-# add_executable(${PICO_TEST_FILE} app/test.cpp)
-add_executable(${PICO_TEST_FILE} tests/test.cpp)
+add_executable(${PICO_TEST_FILE} app/test.cpp)
+#add_executable(${PICO_TEST_FILE} tests/test.cpp)
 
 pico_enable_stdio_usb(${PICO_TEST_FILE} 1)
 pico_enable_stdio_uart(${PICO_TEST_FILE} 0)

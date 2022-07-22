@@ -298,11 +298,11 @@ int main(void)
     */
     //test_console();
     consoleLogInit();
-    test_atInternet();
+    //test_atInternet();
 //     powerOn;
     //at_test();
-    //GPS_test();
-    //test_gps();
+    GPS_test();
+    test_gps();
     //HTTP_test();
 
 

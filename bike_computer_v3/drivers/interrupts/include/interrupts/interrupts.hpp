@@ -13,6 +13,7 @@ struct interrupt
     gpio_irq_level event;
 };
 
-void interruptSetup(void);
+void interruptSetupCore0(void);
+void interruptSetupCore1(void);
 
 #endif

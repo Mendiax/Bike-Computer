@@ -106,20 +106,27 @@ void consoleGSM()
     // sendCMD_waitResp("AT+BTSTATUS?", "OK", 3000);
     // sendCMD_waitResp("AT+BTSCAN=1,10", "OK", 8000);
     
-    // GSM setup
-    sendCMD_waitResp("AT+CSQ","OK",1000);
-    sendCMD_waitResp("AT+CSTT=\"internet\",\"internet\",\"internet\"", "OK", 8000);
-    //should be CGDCONT: 1,"IP","internet","0.0.0.0",0,0
-    sendCMD_waitResp("AT+CIICR", "OK", 1000);
-    sendCMD_waitResp("AT+CIFSR", "OK", 1000);
-    sendCMD_waitResp("AT+CIPPING=\"www.google.com\"", "OK", 8000);
 
-    // bearer config
-    sendCMD_waitResp("AT+SAPBR=3,1,\"APN\",\"internet\"","OK", 2000);
-    sendCMD_waitResp("AT+SAPBR=3,1,\"USER\",\"internet\"","OK", 2000);
-    sendCMD_waitResp("AT+SAPBR=3,1,\"PWD\",\"internet\"","OK", 2000);
-    sendCMD_waitResp("AT+SAPBR=1,1", "OK",2000);
-    sendCMD_waitResp("AT+SAPBR=2,1", "OK",2000);
+
+
+
+
+    // GSM setup
+    // sendCMD_waitResp("AT+CSQ","OK",1000);
+    // sendCMD_waitResp("AT+CSTT=\"internet\",\"internet\",\"internet\"", "OK", 8000);
+    // //should be CGDCONT: 1,"IP","internet","0.0.0.0",0,0
+    // sendCMD_waitResp("AT+CIICR", "OK", 1000);
+    // sendCMD_waitResp("AT+CIFSR", "OK", 1000);
+    // sendCMD_waitResp("AT+CIPPING=\"www.google.com\"", "OK", 8000);
+
+    // // bearer config
+    // sendCMD_waitResp("AT+SAPBR=3,1,\"APN\",\"internet\"","OK", 2000);
+    // sendCMD_waitResp("AT+SAPBR=3,1,\"USER\",\"internet\"","OK", 2000);
+    // sendCMD_waitResp("AT+SAPBR=3,1,\"PWD\",\"internet\"","OK", 2000);
+    // sendCMD_waitResp("AT+SAPBR=1,1", "OK",2000);
+    // sendCMD_waitResp("AT+SAPBR=2,1", "OK",2000);
+
+
 
     // sendCMD_waitResp("AT+HTTPINIT", "OK", 2000);
     // sendCMD_waitResp("AT+HTTPPARA=\"CID\",1", "OK", 2000);
@@ -135,39 +142,47 @@ void consoleGSM()
     // AT+CLBSCFG=0,2
     // AT+CLBSCFG=0,3
 
-    // sendCMD_waitResp("AT+CGNSPWR=1", "OK", 2000);
-    // DEV_GSM_Delay_ms(2000);
-    // for (int i = 1; i < 10; i++)
-    // {
-    //     if (sendCMD_waitResp("AT+CGNSINF", ",,,,", 2000) == 1)
-    //     {
-    //         consolep("GPS is not ready\r\n");
-    //         if (i >= 9)
-    //         {
-    //             consolep("GPS positioning failed, please check the GPS antenna!\r\n");
-    //             sendCMD_waitResp("AT+CGNSPWR=0", "OK", 2000);
-    //         }
-    //         else
-    //         {
-    //             consolep("wait...\r\n");
-    //             DEV_GSM_Delay_ms(2000);
-    //             continue;
-    //         }
-    //     }
-    //     else
-    //     {
-    //         if (count <= 3)
-    //         {
-    //             count++;
-    //             consolep("GPS info:\r\n");
-    //         }
-    //         else
-    //         {
-    //             sendCMD_waitResp("AT+CGNSPWR=0", "OK", 2000);
-    //             break;
-    //         }
-    //     }
-    // }
+
+
+
+
+
+
+
+ int count = 0;
+    sendCMD_waitResp("AT+CGNSPWR=1", "OK", 2000);
+    DEV_GSM_Delay_ms(2000);
+    for (int i = 1; i < 10; i++)
+    {
+        if (sendCMD_waitResp("AT+CGNSINF", ",,,,", 2000) == 1)
+        {
+            consolep("GPS is not ready\r\n");
+            if (i >= 9)
+            {
+                consolep("GPS positioning failed, please check the GPS antenna!\r\n");
+                sendCMD_waitResp("AT+CGNSPWR=0", "OK", 2000);
+            }
+            else
+            {
+                consolep("wait...\r\n");
+                DEV_GSM_Delay_ms(2000);
+                continue;
+            }
+        }
+        else
+        {
+            if (count <= 3)
+            {
+                count++;
+                consolep("GPS info:\r\n");
+            }
+            else
+            {
+                sendCMD_waitResp("AT+CGNSPWR=0", "OK", 2000);
+                break;
+            }
+        }
+    }
 
     
     //http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m

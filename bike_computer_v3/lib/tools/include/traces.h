@@ -1,6 +1,8 @@
 #ifndef TRACES_H
 #define TRACES_H
 
+#include <stdint.h>
+#include <pico/sync.h>
 
 // #if 1
 // 	#define DEBUG_OLED(__info,...) printf("[DEBUG_OLED] : " __info,##__VA_ARGS__)
@@ -9,24 +11,33 @@
 // #endif
 
 #define TRACES_ON(id, name) \
-    do{\
-        tracesOn[name] |= (1 << id);\
-    }while (0)
+        tracesOn[name] |= (1 << id)
+#define TRACES_ON_ALL(name) \
+        tracesOn[name] = ~0UL
 
+/**
+ * @brief Traces types
+ * Each trace must have been assigned to one type
+ * Each type can hold 32 traces and those do not need to be assigned
+ * but there is no checks if 2 traces hold the same id, so few traces can
+ * share the same id
+ */
 enum tracesE{
-    mainE,
+    TRACE_MAIN,
     BUTTONS,
     NO_TRACES
 };
 
 
-int tracesOn[NO_TRACES] = {0};
+extern uint32_t tracesOn[];
+extern mutex_t tracesMutex;
 
 static inline void tracesSetup()
 {
-    //TRACES_ON(1, mainE); 
-    TRACES_ON(0, BUTTONS);
-    TRACES_ON(1, BUTTONS);
+    mutex_init(&tracesMutex);
+    TRACES_ON(0, TRACE_MAIN); 
+    //TRACES_ON(0, BUTTONS);
+    //TRACES_ON(1, BUTTONS);
 
 }
 
@@ -59,11 +70,13 @@ namespace utility {
     do{\
     if (tracesOn[name] & (1 << id))\
     {\
+        mutex_enter_blocking(&tracesMutex); \
         printf("[" #name ".%2u]<%s:%d> " __info,\
             id,\
             &__FILE__[UTILITY_CONST_EXPR_VALUE(utility::get_file_name_offset(__FILE__))],\
             __LINE__,\
             ##__VA_ARGS__);\
+        mutex_exit(&tracesMutex); \
     }\
     }while(0)
 
