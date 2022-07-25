@@ -154,7 +154,7 @@ void Hexstr_To_str(const char *source, unsigned char *dest, int sourceLen)
 }
 
 /*********UART**********/
-bool sendCMD_waitResp(char *str, char *back,int timeout)
+bool sendCMD_waitResp(const char *str,const char *back,int timeout)
 {
     int i = 0;
     uint64_t t = 0;
@@ -173,6 +173,16 @@ bool sendCMD_waitResp(char *str, char *back,int timeout)
                 goto CHECK;
         }
     }
+    // debuging no LCD console
+    printf("number of bytes read: %d\n", i);
+    printf("=====\n");
+    for(int j = 0; j < i; j++)
+    {
+        printf("\'%d\' ", (int)b[j]);
+    }
+    printf("\n=====\n");
+
+
     CHECK:
     b[i] = '\0';
     if (strstr(b, back) == NULL)

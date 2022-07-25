@@ -15,6 +15,9 @@
 
 #include "Pico-SIM868-Test.h"
 
+#include "speedometer/speedometer.hpp"
+
+#include "sim868/interface.hpp"
 // TODO split tests into files
 
 
@@ -271,6 +274,31 @@ void test_atInternet()
 
 
 }
+void test_sim868_interface(void)
+{
+    sim868::boot();
+    sim868::sendRequestLong("AT+CGNSPWR=1",2000);
+    for (int i = 1; i < 10;)
+    {
+        sim868::sendRequestGetGpsPos();
+        //sim868::sendRequestLong("AT+CGNSINF", 2000);
+        sleep_ms(1000);
+    }
+    sim868::sendRequestLong("AT+CGNSPWR=0",2000);
+    sim868::turnOff();
+}
+
+void test_speedData()
+{
+    // setup
+    speed_emulate(20);
+    // do updates in loop
+    // check avg speed
+
+    // after stop
+    // check current speed
+    // check distance
+}
 
 int main(void)
 {
@@ -298,11 +326,13 @@ int main(void)
     */
     //test_console();
     consoleLogInit();
+
+    test_sim868_interface();
     //test_atInternet();
 //     powerOn;
     //at_test();
-    GPS_test();
-    test_gps();
+    //GPS_test();
+    //test_gps();
     //HTTP_test();
 
 

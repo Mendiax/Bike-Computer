@@ -89,7 +89,7 @@ void DEV_GSM_GPIO_Mode(UWORD Pin, UWORD Mode);
 void DEV_GSM_Digital_Write(UWORD Pin, UBYTE Value);
 UBYTE DEV_GSM_Digital_Read(UWORD Pin);
 
-bool sendCMD_waitResp(char *str,char *back,int timeout);
+bool sendCMD_waitResp(const char *str, const char *back,int timeout);
 bool sendCMD_waitRespTCP(char *str,int timeout);
 
 void Hexstr_To_str(const char *source, unsigned char *dest, int sourceLen);

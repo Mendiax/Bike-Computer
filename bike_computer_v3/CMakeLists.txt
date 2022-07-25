@@ -37,7 +37,7 @@ include_directories(drivers/interrupts/include)
 include_directories(lib/Console)
 include_directories(drivers/buttons/include)
 include_directories(drivers/battery/include)
-
+include_directories(drivers/gsm/include)
 
 
 add_subdirectory(common)
@@ -49,6 +49,7 @@ add_subdirectory(lib/Console)
 add_subdirectory(drivers/interrupts)
 add_subdirectory(drivers/buttons)
 add_subdirectory(drivers/battery)
+add_subdirectory(drivers/gsm)
 
 
 #DOF
@@ -134,6 +135,7 @@ target_link_libraries( ${PICO_MAIN_FILE}
         Buttons
         Common
         Battery
+        GSM
 )
 
 #################################### TEST #####################################
@@ -163,6 +165,7 @@ target_link_libraries( ${PICO_TEST_FILE}
         Tools
         Speedometer
         Console
+        GSM
 
         Infrared_GSM Config_GSM AT_TEST BT GPS HTTP Phone_Call SMS
         examples
