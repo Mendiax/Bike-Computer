@@ -5,7 +5,7 @@
 
 typedef struct Frame
 {
-    uint8_t x, y, width, height;
+    uint16_t x, y, width, height;
 } Frame;
 
 #endif

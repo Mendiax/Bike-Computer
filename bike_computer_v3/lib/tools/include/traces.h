@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <pico/sync.h>
+#include <stdio.h>
 
 // #if 1
 // 	#define DEBUG_OLED(__info,...) printf("[DEBUG_OLED] : " __info,##__VA_ARGS__)
@@ -26,6 +27,7 @@ enum tracesE{
     TRACE_MAIN,
     TRACE_SPEED,
     BUTTONS,
+    TRACE_VIEWS,
     NO_TRACES
 };
 
@@ -38,6 +40,17 @@ static inline void tracesSetup()
     mutex_init(&tracesMutex);
     TRACES_ON(0, TRACE_MAIN); 
     TRACES_ON_ALL(TRACE_SPEED);
+
+//    TRACES_ON_ALL(TRACE_VIEWS);
+    TRACES_ON(0,TRACE_VIEWS);
+    TRACES_ON(1,TRACE_VIEWS);
+    TRACES_ON(2,TRACE_VIEWS);
+    TRACES_ON(3,TRACE_VIEWS);
+    TRACES_ON(4,TRACE_VIEWS);
+    // 5 6 drawing windows
+    // TRACES_ON(5,TRACE_VIEWS);
+    // TRACES_ON(6,TRACE_VIEWS);
+
     //TRACES_ON(0, BUTTONS);
     //TRACES_ON(1, BUTTONS);
 

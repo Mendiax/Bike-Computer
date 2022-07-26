@@ -1,5 +1,6 @@
 #include <views/display.h>
 #include "views/frame.h"
+#include "traces.h"
 
 #include <views/screenfunc/plot.h>
 #include <views/screenfunc/lastval.h>
@@ -9,6 +10,8 @@
 #include <algorithm>
 #include "display/debug.h"
 #include <inttypes.h>
+#include <tuple>
+#include <typeinfo>
 
 // TODO create simple way of creating window of given size and whit should be printing
 
@@ -19,16 +22,130 @@ void* getSettings(unsigned id){
     assert(id < MAX_NUMBER_OF_WINDOWS);
     return allocData + sizeof(View) + id * SETTING_SIZE;
 }
-template<typename Settings>
-static void fitToSpace(Settings* settings, const Frame& frame)
+
+static void fitToSpace(ValSettings* settings, const Frame& frame)
 {
     // we need to calculate
     // font size and scale
     //  based on frame size and text length
     size_t length = settings->maxLength;
-    
-    // calculate settings
-    settings->textScale = 3;
+    u_int16_t widthPerChar = frame.width / length;
+    uint8_t scale = 0;
+
+    getFontSizePreferBiggerFonts(widthPerChar, frame.height, &settings->textSize, &settings->textScale);
+    TRACE_DEBUG(0, TRACE_VIEWS, "fitTiSpace chose %" PRIu8 "size\n", settings->textScale);
+}
+
+static void fitToSpace(LabelSettings* settings, const Frame& frame)
+{
+    // we need to calculate
+    // font size and scale
+    //  based on frame size and text length
+    size_t length = strlen(settings->string);
+    u_int16_t widthPerChar = frame.width / length;
+    uint8_t scale = 0;
+
+    getFontSize(widthPerChar, frame.height, &settings->textSize, &settings->scale);
+    TRACE_DEBUG(0, TRACE_VIEWS, "fitTiSpace for label chose %" PRIu8 "size\n", settings->scale);
+}
+
+/**
+ * @brief split frame into fram with len-1/len width and 1/len width
+ * 
+ * @param frame 
+ * @param len 
+ * @return auto 
+ */
+static auto splitFrame(const Frame& frame, size_t length, bool align_right=false)
+{
+    u_int16_t widthPerChar = frame.width / length;
+    const sFONT* char_font;
+    uint8_t char_scale;
+    getFontSize(widthPerChar, frame.height, &char_font, &char_scale);
+    uint16_t char_width = char_font->width * char_scale;
+
+    //auto offset = (frame.width / length);
+    Frame f1 = {frame.x, frame.y, char_width * (length - 1), frame.height};
+    Frame f2 = {f1.x + f1.width, frame.y, char_width, frame.height};
+
+    uint16_t offset = frame.width - (f1.width + f2.width);
+    f2.width += offset;
+    if(align_right)
+    {
+        f1.x += offset;
+        f2.x += offset;
+    }
+    return std::make_tuple(f1,f2);
+}
+
+// TODO fix unit scaling
+static void createUnit(const Frame& frame,
+                       const char* over, const char* under,
+                       uint8_t& settingsId, uint8_t& windowId)
+{
+    View *newView = (View *)_Display.dataAlloc;
+    //Frame kph = {17*3*2 - 2, 10 + 20, 0, 0};
+    //const sFONT* kphFont = &Font20;
+
+    const uint16_t str_len_max = std::max(strlen(over), strlen(under));
+    LabelSettings defaultSettings = {0};
+    defaultSettings.string = strlen(over) >= strlen(under) ? over : under;
+    Frame halfFrame = frame;
+    halfFrame.height /= 2;
+    fitToSpace(&defaultSettings, halfFrame);
+
+
+
+    const uint8_t line_offset = 1;
+    {
+        const uint8_t offset_x_axis = (frame.width - strlen(over) * defaultSettings.textSize->width) / 2;
+        LabelSettings *headerSettings0 = (LabelSettings *)getSettings(settingsId++);
+        *headerSettings0 = (LabelSettings){
+            .string = over,
+            .textSize = defaultSettings.textSize,
+            .scale = defaultSettings.scale,
+            .offsetX = 0,
+            .offsetY = 0};
+        Window_new_inPlace(&newView->windows[windowId++],
+                        frame,
+                        (void *)0,
+                        (void *)headerSettings0,
+                        LabelDraw);
+    }
+    {
+        const uint8_t offset_x_axis = (frame.width - strlen(over) * defaultSettings.textSize->width) / 2;
+        LabelSettings *headerSettings2 = (LabelSettings *)getSettings(settingsId++);
+        *headerSettings2 = (LabelSettings){
+            .string = under,
+            .textSize = defaultSettings.textSize,
+            .scale = defaultSettings.scale,
+            .offsetX = (unsigned)0,
+            .offsetY = (unsigned)defaultSettings.textSize->height + line_offset};
+        Window_new_inPlace(&newView->windows[windowId++],
+                        frame,
+                        (void *)0,
+                        (void *)headerSettings2,
+                        LabelDraw);
+    }
+    {
+        static const char* line_template = "_____";
+        static char line[6];
+        memcpy(line, line_template, sizeof(line));
+        line[str_len_max] = '\0'; 
+        const uint8_t offset_x_axis = (frame.width - strlen(over) * defaultSettings.textSize->width) / 2;
+        LabelSettings *headerSettings1 = (LabelSettings *)getSettings(settingsId++);
+        *headerSettings1 = (LabelSettings){
+            .string = line,
+            .textSize = defaultSettings.textSize,
+            .scale = defaultSettings.scale,
+            .offsetX = 0,
+            .offsetY = line_offset};
+        Window_new_inPlace(&newView->windows[windowId++],
+                            frame,
+                            (void *)0,
+                            (void *)headerSettings1,
+                            LabelDraw);
+    }
 }
 /*
 
@@ -42,61 +159,83 @@ void view0(void)
     uint8_t settingsId = 0;
     uint8_t windowId = 0;
 
+    
     ValSettings *valSettings = (ValSettings *)getSettings(settingsId++);
     *valSettings = (ValSettings){
         .format = "%2.0f",
         .maxLength = 2,
-        .textSize = &Font24,
-        .textScale = 3,
         .offsetX = 2,
         .offsetY = 0
     };
-    fitToSpace(valSettings, (Frame){0, 20, SCREEN_WIDTH/2, SCREEN_HEIGHT/2});
+    Frame speedFrame = {0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
+    auto [frameVal, frameUnit] = splitFrame(speedFrame, valSettings->maxLength + 1); // +1 for units
+    TRACE_DEBUG(1, TRACE_VIEWS, "Frame splited %s\n", "");
+
+    fitToSpace(valSettings, frameVal);
+    TRACE_DEBUG(2, TRACE_VIEWS, "Frame val scaled %s\n", "");
+    Window_new_inPlace(&newView->windows[windowId++],
+                frameVal,
+                (void *)&_Display.data->speed.velocity,
+                (void *)valSettings,
+                drawFormatFloat);
+
+    createUnit(frameUnit, "km","h",settingsId, windowId);
+    TRACE_DEBUG(3, TRACE_VIEWS, "unit created %s\n", "");
+
+    // ValSettings *valSettings = (ValSettings *)getSettings(settingsId++);
+    // *valSettings = (ValSettings){
+    //     .format = "%2.0f",
+    //     .maxLength = 2,
+    //     .textSize = &Font24,
+    //     .textScale = 3,
+    //     .offsetX = 2,
+    //     .offsetY = 0
+    // };
         
-    Window_new_inPlace(&newView->windows[windowId++],
-                    (Frame){0, 20, SCREEN_WIDTH/2, SCREEN_HEIGHT/2},
-                    (void *)&_Display.data->speed.velocity,
-                    (void *)valSettings,
-                    drawFormatFloat);
+    // Window_new_inPlace(&newView->windows[windowId++],
+    //                 (Frame){0, 20, SCREEN_WIDTH/2, SCREEN_HEIGHT/2},
+    //                 (void *)&_Display.data->speed.velocity,
+    //                 (void *)valSettings,
+    //                 drawFormatFloat);
 
-    Frame kph = {17*3*2 - 2, 10 + 20, 0, 0};
-    const sFONT* kphFont = &Font20;
+    // Frame kph = {17*3*2 - 2, 10 + 20, 0, 0};
+    // const sFONT* kphFont = &Font20;
 
-    LabelSettings *headerSettings1 = (LabelSettings *)getSettings(settingsId++);
-    *headerSettings1 = (LabelSettings){
-        .string = "__",
-        .textSize = kphFont,
-        .offsetX = 0,
-        .offsetY = 1};
-    Window_new_inPlace(&newView->windows[windowId++],
-                       kph,
-                       (void *)0,
-                       (void *)headerSettings1,
-                       LabelDraw);
+    // LabelSettings *headerSettings1 = (LabelSettings *)getSettings(settingsId++);
+    // *headerSettings1 = (LabelSettings){
+    //     .string = "__",
+    //     .textSize = kphFont,
+    //     .offsetX = 0,
+    //     .offsetY = 1};
+    // Window_new_inPlace(&newView->windows[windowId++],
+    //                    kph,
+    //                    (void *)0,
+    //                    (void *)headerSettings1,
+    //                    LabelDraw);
 
-    LabelSettings *headerSettings0 = (LabelSettings *)getSettings(settingsId++);
-    *headerSettings0 = (LabelSettings){
-        .string = "km",
-        .textSize = kphFont,
-        .offsetX = 0,
-        .offsetY = 0};
-    Window_new_inPlace(&newView->windows[windowId++],
-                       kph,
-                       (void *)0,
-                       (void *)headerSettings0,
-                       LabelDraw);
+    // LabelSettings *headerSettings0 = (LabelSettings *)getSettings(settingsId++);
+    // *headerSettings0 = (LabelSettings){
+    //     .string = "km",
+    //     .textSize = kphFont,
+    //     .offsetX = 0,
+    //     .offsetY = 0};
+    // Window_new_inPlace(&newView->windows[windowId++],
+    //                    kph,
+    //                    (void *)0,
+    //                    (void *)headerSettings0,
+    //                    LabelDraw);
 
-    LabelSettings *headerSettings2 = (LabelSettings *)getSettings(settingsId++);
-    *headerSettings2 = (LabelSettings){
-        .string = "h",
-        .textSize = kphFont,
-        .offsetX = (unsigned)kphFont->width/2,
-        .offsetY = (unsigned)kphFont->height + 1};
-    Window_new_inPlace(&newView->windows[windowId++],
-                       kph,
-                       (void *)0,
-                       (void *)headerSettings2,
-                       LabelDraw);
+    // LabelSettings *headerSettings2 = (LabelSettings *)getSettings(settingsId++);
+    // *headerSettings2 = (LabelSettings){
+    //     .string = "h",
+    //     .textSize = kphFont,
+    //     .offsetX = (unsigned)kphFont->width/2,
+    //     .offsetY = (unsigned)kphFont->height + 1};
+    // Window_new_inPlace(&newView->windows[windowId++],
+    //                    kph,
+    //                    (void *)0,
+    //                    (void *)headerSettings2,
+    //                    LabelDraw);
 
 
 
@@ -152,6 +291,8 @@ void view0(void)
     DEBUG_OLED_ASSERT(MAX_NUMBER_OF_WINDOWS >= numberOfWindows, 
                       "Increase macro MAX_NUMBER_OF_WINDOWS-> %u", 
                       numberOfWindows);
+
+    TRACE_DEBUG(4, TRACE_VIEWS, "view0 setup finished \n%s", "");
 }
 
 

@@ -10,6 +10,7 @@ typedef struct LabelSettings
 {
     const char* string;
     const sFONT* textSize;
+    uint8_t scale;
     unsigned offsetX, offsetY;
 } LabelSettings;
 
