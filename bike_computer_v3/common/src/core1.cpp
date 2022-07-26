@@ -36,6 +36,7 @@ static void setup(void)
     interruptSetupCore1();
 
     sensorDataDisplay = sensorData;
+    
     Display_init(&sensorDataDisplay);
 }
 static int loop(void)

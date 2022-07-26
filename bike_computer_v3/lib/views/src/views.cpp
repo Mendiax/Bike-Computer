@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include "display/debug.h"
+#include <inttypes.h>
 
 // TODO create simple way of creating window of given size and whit should be printing
 
@@ -17,6 +18,17 @@ uint8_t allocData[SETTING_SIZE * MAX_NUMBER_OF_WINDOWS + sizeof(View)];
 void* getSettings(unsigned id){
     assert(id < MAX_NUMBER_OF_WINDOWS);
     return allocData + sizeof(View) + id * SETTING_SIZE;
+}
+template<typename Settings>
+static void fitToSpace(Settings* settings, const Frame& frame)
+{
+    // we need to calculate
+    // font size and scale
+    //  based on frame size and text length
+    size_t length = settings->maxLength;
+    
+    // calculate settings
+    settings->textScale = 3;
 }
 /*
 
@@ -30,19 +42,22 @@ void view0(void)
     uint8_t settingsId = 0;
     uint8_t windowId = 0;
 
-    LastValSettings *lastValSettings = (LastValSettings *)getSettings(settingsId++);
-    *lastValSettings = (LastValSettings){
-        .format = "%2d",
+    ValSettings *valSettings = (ValSettings *)getSettings(settingsId++);
+    *valSettings = (ValSettings){
+        .format = "%2.0f",
         .maxLength = 2,
         .textSize = &Font24,
         .textScale = 3,
         .offsetX = 2,
-        .offsetY = 0};
+        .offsetY = 0
+    };
+    fitToSpace(valSettings, (Frame){0, 20, SCREEN_WIDTH/2, SCREEN_HEIGHT/2});
+        
     Window_new_inPlace(&newView->windows[windowId++],
-                       (Frame){0, 20, SCREEN_WIDTH/2, SCREEN_HEIGHT/2},
-                       (void *)_Display.data->speed.speedBuffer,
-                       (void *)lastValSettings,
-                       LastValDrawByte);
+                    (Frame){0, 20, SCREEN_WIDTH/2, SCREEN_HEIGHT/2},
+                    (void *)&_Display.data->speed.velocity,
+                    (void *)valSettings,
+                    drawFormatFloat);
 
     Frame kph = {17*3*2 - 2, 10 + 20, 0, 0};
     const sFONT* kphFont = &Font20;
@@ -87,10 +102,10 @@ void view0(void)
 
     
     // --- distance ---
-    uint8_t offset = lastValSettings->textSize->height * lastValSettings->textScale + 20;
-    ValSettings *valSettings = (ValSettings *)getSettings(settingsId++);
-    *valSettings = (ValSettings){
-        .format = "%3d",
+    uint8_t offset = valSettings->textSize->height * valSettings->textScale + 20;
+    ValSettings *valSettings2 = (ValSettings *)getSettings(settingsId++);
+    *valSettings2 = (ValSettings){
+        .format = "%3" PRIu16,
         .maxLength = 3,
         .textSize = &Font24,
         .textScale = 2,
@@ -98,16 +113,16 @@ void view0(void)
         .offsetY = 0};
     Window_new_inPlace(&newView->windows[windowId++],
                        (Frame){0, offset, SCREEN_WIDTH/2, SCREEN_HEIGHT/2},
-                       (void *)&(_Display.data->speed.speedDistance),
-                       (void *)valSettings,
-                       ValDrawInt);
+                       (void *)&(_Display.data->speed.distance),
+                       (void *)valSettings2,
+                       drawFormatInt16);
     
     Frame km = {17*3*2 - 2, offset, 0, 0};
     const sFONT* kmFont = &Font20;
 
     LastValSettings *valSettings1 = (LastValSettings *)getSettings(settingsId++);
     *valSettings1 = (LastValSettings){
-        .format = "%2d",
+        .format = "%02" PRIu8,
         .maxLength = 2,
         .textSize = kmFont,
         .textScale = 1,
@@ -115,9 +130,9 @@ void view0(void)
         .offsetY = 0};
     Window_new_inPlace(&newView->windows[windowId++],
                        km,
-                       (void *)&(_Display.data->speed.speedDistanceHundreth),
+                       (void *)&(_Display.data->speed.distanceDec),
                        (void *)valSettings1,
-                       ValDrawInt);
+                       drawFormatInt8);
 
     LabelSettings *headerSettings3 = (LabelSettings *)getSettings(settingsId++);
     *headerSettings3 = (LabelSettings){
@@ -154,7 +169,7 @@ void view1(void)
 
     ValSettings *maxSpeedSettings = (ValSettings *)getSettings(settingsId++);
     *maxSpeedSettings = (ValSettings){
-        .format = "%2d",
+        .format = "%2.0f",
         .maxLength = 6,
         .textSize = &Font24,
         .textScale = 2,
@@ -162,14 +177,14 @@ void view1(void)
         .offsetY = 44};
     Window_new_inPlace(&newView->windows[windowId++],
                        (Frame){0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
-                       (void *)&(_Display.data->speed.speedMax),
+                       (void *)&(_Display.data->speed.velocityMax),
                        (void *)maxSpeedSettings,
-                       ValDraw);
+                       drawFormatFloat);
     Window_new_inPlace(&newView->windows[windowId++],
                        (Frame){SCREEN_WIDTH/2, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
-                       (void *)&(_Display.data->speed.speedAvgVal),
+                       (void *)&(_Display.data->speed.avgGlobal),
                        (void *)maxSpeedSettings,
-                       ValDraw);
+                       drawFormatFloat);
 
     /*top header*/
     LabelSettings *header2Settings = (LabelSettings *)getSettings(settingsId++);
@@ -227,20 +242,20 @@ void view1(void)
 */
 void view2(void)
 {
-    View *newView = (View *)_Display.dataAlloc;
-    view_new_inAllocatedPlace(newView, 1);
-    PlotSettings *plotSettings = (PlotSettings *)getSettings(0);
-    *plotSettings = {
-        .min = 0,
-        .max = 30,
-        .autoMax = true,
-        .autoMin = false,
-        .offset = 5};
-    Window_new_inPlace(&newView->windows[0],
-                       (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-                       (void *)_Display.data->speed.speedBuffer,
-                       (void *)plotSettings,
-                       PlotDrawByte);
+    // View *newView = (View *)_Display.dataAlloc;
+    // view_new_inAllocatedPlace(newView, 1);
+    // PlotSettings *plotSettings = (PlotSettings *)getSettings(0);
+    // *plotSettings = {
+    //     .min = 0,
+    //     .max = 30,
+    //     .autoMax = true,
+    //     .autoMin = false,
+    //     .offset = 5};
+    // Window_new_inPlace(&newView->windows[0],
+    //                    (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
+    //                    (void *)_Display.data->speed.speedBuffer,
+    //                    (void *)plotSettings,
+    //                    PlotDrawByte);
 }
 
 

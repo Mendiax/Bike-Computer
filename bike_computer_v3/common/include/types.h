@@ -5,12 +5,13 @@
 
 struct SpeedData
 {
-    RingBuffer* speedBuffer;
-    float speedMax;
-    float speedAvgVal;
-    unsigned long speedAvgCnt;
-    unsigned speedDistance;
-    unsigned speedDistanceHundreth;
+    //RingBuffer* speedBuffer;
+    float velocity;
+    float velocityMax;
+    float avgGlobal;
+    int16_t distance;
+    int8_t distanceDec;
+    uint64_t driveTime;
 };
 
 

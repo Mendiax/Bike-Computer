@@ -14,7 +14,7 @@
 //veiws
 #include "views/display.h"
 
-#include "speedometer/speedometer.h"
+#include "speedometer/speedometer.hpp"
 #include <interrupts/interrupts.hpp>
 
 #include <pico/multicore.h>
@@ -38,32 +38,7 @@ static float getTemp();
 
 static void loop();
 
-void updateSpeedData(SensorData& sensorData)
-{
-    // get data for speed and distance
-    static float velocity;
-    speed_emulate();
-// #if SIM_INPUT
-//     velocity += 1;
-//     velocity = velocity > 30.0 ? 0.0 : velocity;
-//     sensorData.speedDistance += 10;
-//     sensorData.speedDistanceHundreth += velocity;
-//    sensorData.speedDistanceHundreth = sensorData.speedDistanceHundreth % 100;
-//#else
-    velocity = speed_mps_to_kmph(speed_getSpeed());
-    sensorData.speed.speedDistance = speed_getDistance() / 1000;
-    sensorData.speed.speedDistanceHundreth = (speed_getDistance() / 100) % 100;
-//#endif
 
-    // do some calculations
-    sensorData.speed.speedMax = std::max(sensorData.speed.speedMax, velocity);
-    sensorData.speed.speedAvgVal = sensorData.speed.speedDistance / ((double)sensorData.time / 3600.0);
-
-
-    // update buffer
-    uint8_t bufferVelocity = (uint8_t)velocity;
-    ring_buffer_push_overwrite(sensorData.speed.speedBuffer, (char *)&bufferVelocity);
-}
 
 //SensorData sensorData = {0};
 /*
@@ -74,33 +49,30 @@ int main()
     //traces setup
     tracesSetup();
 
+    // setup console
     stdio_init_all();
+    // wait for serial console
+    // coment out for normal use
     while (!stdio_usb_connected()){sleep_ms(100);}
     TRACE_DEBUG(0, TRACE_MAIN, "Main start\n");
 
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
 
-
-
     //turn of power led
     gpio_init(25); //power led
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 1);
-
-    // ui btn setup
-    // gpio_init(BTN);
-    // gpio_set_dir(BTN, GPIO_IN);
-    // gpio_pull_up(BTN);
 
     // battery setup
     adc_init();
     //adc_gpio_init(26); //temp
     batterySetup();
 
+    speedDataInit(sensorData.speed);
+    speed_emulate();
 
-    sensorData.rearShockBuffer = ring_buffer_create(sizeof(uint8_t), SCREEN_WIDTH);
-    sensorData.speed.speedBuffer = ring_buffer_create(sizeof(uint8_t), SCREEN_WIDTH);
+    //sensorData.rearShockBuffer = ring_buffer_create(sizeof(uint8_t), SCREEN_WIDTH);
     TRACE_DEBUG(0, TRACE_MAIN, "Launch core1\n");
 
     multicore_launch_core1(core1LaunchThread);
@@ -112,15 +84,12 @@ int main()
 
 void loop()
 {
-    TRACE_DEBUG(0, TRACE_MAIN, "Main loop() start\n");
     mutex_enter_blocking(&sensorDataMutex);
 
+    speedDataUpdate(sensorData.speed);
     sensorData.lipoLevel = getBatteryLevel();
 
-    updateSpeedData(sensorData);
-
-    absolute_time_t currentTime = get_absolute_time();
-    sensorData.time = to_ms_since_boot(currentTime) / 1000;
+    sensorData.time = to_ms_since_boot(get_absolute_time()) / 1000;
 
     mutex_exit(&sensorDataMutex);
 

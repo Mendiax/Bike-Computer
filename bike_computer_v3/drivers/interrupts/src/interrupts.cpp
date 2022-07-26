@@ -1,4 +1,4 @@
-#include <speedometer/speedometer.h>
+#include <speedometer/speedometer.hpp>
 
 #include <math.h>
 #include <pico/time.h>

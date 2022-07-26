@@ -15,24 +15,19 @@ typedef struct ValSettings
     unsigned offsetX, offsetY;
 } ValSettings;
 
-typedef struct ValData
-{
-    float val;
-} ValData;
-
-typedef struct ValDataInt
-{
-    int val;
-} ValDataInt;
-
 typedef struct ValDataULong
 {
     unsigned long val;
 } ValDataULong;
 
 /*draws last val from ring buffer*/
-void ValDrawInt(void *data, void *settings, Frame *plotFrame);
-void ValDraw(void *data, void *settings, Frame *plotFrame);
+void drawFormatInt8(void *data, void *settings, Frame *plotFrame);
+void drawFormatInt16(void *data, void *settings, Frame *plotFrame);
+void drawFormatInt32(void *data, void *settings, Frame *plotFrame);
+void drawFormatInt64(void *data, void *settings, Frame *plotFrame);
+void drawFormatFloat(void *data, void *settings, Frame *plotFrame);
+void drawFormatDouble(void *data, void *settings, Frame *plotFrame);
+
 void ValDrawTime(void *data, void *settings, Frame *plotFrame);
 
 #endif

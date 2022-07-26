@@ -24,6 +24,7 @@
  */
 enum tracesE{
     TRACE_MAIN,
+    TRACE_SPEED,
     BUTTONS,
     NO_TRACES
 };
@@ -36,6 +37,7 @@ static inline void tracesSetup()
 {
     mutex_init(&tracesMutex);
     TRACES_ON(0, TRACE_MAIN); 
+    TRACES_ON_ALL(TRACE_SPEED);
     //TRACES_ON(0, BUTTONS);
     //TRACES_ON(1, BUTTONS);
 

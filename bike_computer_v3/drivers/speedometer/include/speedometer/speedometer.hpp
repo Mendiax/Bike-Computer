@@ -3,6 +3,7 @@
 
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
+#include "types.h"
 
 #define PIN_SPEED 9
 
@@ -24,7 +25,11 @@ void speed_new();
 
 void speed_delete();
 
-void speed_emulate();
+void speed_emulate(int16_t speed = 20);
+
+void speedDataInit(SpeedData& speedData);
+
+void speedDataUpdate(SpeedData& speedData);
 
 
 #endif
