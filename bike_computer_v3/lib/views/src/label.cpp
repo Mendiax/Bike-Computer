@@ -12,6 +12,6 @@ void LabelDraw(void *data, void *settings, Frame *plotFrame)
 
     int x = plotFrame->x + labelSettings->offsetX;
     int y = plotFrame->y + labelSettings->offsetY;
-    Paint_Println(x, y, labelSettings->string, labelSettings->textSize, COLOR_WHITE);
+    Paint_Println(x, y, labelSettings->string, labelSettings->textSize, COLOR_WHITE, labelSettings->scale);
 }
 

@@ -9,10 +9,10 @@
 typedef struct ValSettings
 {
     const char *format;
-    unsigned maxLength;
+    uint16_t maxLength;
     const sFONT* textSize;
     uint8_t textScale;
-    unsigned offsetX, offsetY;
+    uint16_t offsetX, offsetY;
 } ValSettings;
 
 typedef struct ValDataULong

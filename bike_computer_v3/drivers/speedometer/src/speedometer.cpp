@@ -94,7 +94,7 @@ void speedDataUpdate(SpeedData& speedData)
     // get data for speed and distance
     speedData.velocity = speed_mps_to_kmph(speed_getSpeed());
     speedData.distance = speed_getDistance() / 1000;
-    speedData.distanceDec = (speedData.distance / 100) % 100;
+    speedData.distanceDec = (speed_getDistance() / 100) % 100;
 
     // do some calculations
     speedData.velocityMax = std::fmax(speedData.velocityMax, speedData.velocity);
