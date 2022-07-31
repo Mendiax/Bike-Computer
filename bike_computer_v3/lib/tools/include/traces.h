@@ -28,6 +28,7 @@ enum tracesE{
     TRACE_SPEED,
     BUTTONS,
     TRACE_VIEWS,
+    TRACE_DISPLAY_PRINT,
     NO_TRACES
 };
 
@@ -38,6 +39,11 @@ extern mutex_t tracesMutex;
 static inline void tracesSetup()
 {
     mutex_init(&tracesMutex);
+    // all 0 ids are for abnormal traces and tunrd on on default
+    for(size_t i = 0; i < NO_TRACES; i++) 
+    {
+        TRACES_ON(0, i); 
+    }
     TRACES_ON(0, TRACE_MAIN); 
     TRACES_ON_ALL(TRACE_SPEED);
 
@@ -48,11 +54,15 @@ static inline void tracesSetup()
     TRACES_ON(3,TRACE_VIEWS);
     TRACES_ON(4,TRACE_VIEWS);
     // 5 6 drawing windows
-    // TRACES_ON(5,TRACE_VIEWS);
-    // TRACES_ON(6,TRACE_VIEWS);
+    TRACES_ON(5,TRACE_VIEWS);
+    TRACES_ON(6,TRACE_VIEWS);
 
     //TRACES_ON(0, BUTTONS);
     //TRACES_ON(1, BUTTONS);
+
+    TRACES_ON(1, TRACE_DISPLAY_PRINT);
+    TRACES_ON(2, TRACE_DISPLAY_PRINT);
+
 
 }
 
@@ -81,6 +91,7 @@ namespace utility {
 #define UTILITY_CONST_EXPR_VALUE(exp) ::utility::const_expr_value<decltype(exp), exp>::value
 
 
+
 #define TRACE_DEBUG(id, name, __info,...) \
     do{\
     if (tracesOn[name] & (1 << id))\
@@ -94,5 +105,8 @@ namespace utility {
         mutex_exit(&tracesMutex); \
     }\
     }while(0)
+
+#define TRACE_ABNORMAL(name, __info, ...) \
+    TRACE_DEBUG(0, name, "ABNORMAL" __info, ##__VA_ARGS__)
 
 #endif

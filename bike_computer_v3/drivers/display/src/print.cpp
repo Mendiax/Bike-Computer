@@ -1,7 +1,7 @@
 #include "display/print.h"
 #include "display/debug.h"
 #include "display/driver.hpp"
-
+#include "traces.h"
 #include <string.h>
 
 #define GLOBAL_SCALE 1//240.0 / 128.0
@@ -44,6 +44,11 @@ void Paint_SetPixel(uint16_t x, uint16_t y, display::DisplayColor color)
    \/                               
     y
     */
+    if(x >= DISPLAY_WIDTH || y >= DISPLAY_HEIGHT)
+    {
+        //TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "write outside of window x=%" PRIu16 " y=%" PRIu16 "\n", x, y);
+        // no return so it can be optimised out when compiling without traces and have greater performance
+    }
     size_t index = 0;
     index += y * (display::width);
     index += x;
@@ -135,13 +140,13 @@ void Paint_Println_multilineBackground(uint16_t x, uint16_t y, const char *str,
 static void Paint_PrintlnGen(uint16_t x, uint16_t y, const char *str,
                              const sFONT *font, display::DisplayColor colorForeground, display::DisplayColor colorBackground, uint8_t scale, bool overwriteBackground)
 {
-    DEBUG_OLED("writing string \"%s\" \r\n", str);
+    TRACE_DEBUG(1, TRACE_DISPLAY_PRINT, "writing string \"%s\" \r\n", str);
 
     for (int charIdx = 0; charIdx < strlen(str); charIdx++)
     {
         if (x > display::width - font->width)
         {
-            DEBUG_OLED("line too long %s at %u", str, x);
+            TRACE_ABNORMAL(TRACE_DISPLAY_PRINT,"line too long %s at %u", str, x);
             return;
         }
         Paint_DrawCharGen(x, y, str[charIdx], font, colorForeground, colorBackground, scale, overwriteBackground);
@@ -152,7 +157,7 @@ static void Paint_PrintlnGen(uint16_t x, uint16_t y, const char *str,
 static void Paint_Println_multilineGen(uint16_t x, uint16_t y, const char *str,
                                        const sFONT *font, display::DisplayColor colorForeground, display::DisplayColor colorBackground, uint8_t scale, bool overwriteBackground)
 {
-    DEBUG_OLED("writing string \"%s\" \r\n", str);
+    TRACE_DEBUG(1, TRACE_DISPLAY_PRINT, "writing string \"%s\" \r\n", str);
 
     uint16_t startX = x;
     for (size_t charIdx = 0; charIdx < strlen(str); charIdx++)
@@ -190,11 +195,13 @@ static void Paint_DrawCharGen(uint16_t xPoint, uint16_t yPoint, const char chara
     yPoint *= GLOBAL_SCALE;
     scale *= GLOBAL_SCALE;
 
+    TRACE_DEBUG(2, TRACE_DISPLAY_PRINT, "writing char \"%c\" scale %" PRIu8 "\r\n", character, scale);
+
     //DEBUG_OLED("writing char\'%c\'\n", character);
     uint16_t page, column;
     if (xPoint > display::width || yPoint > display::height)
     {
-        DEBUG_OLED("[ERROR] Paint_DrawChar Input exceeds the normal display range\n");
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "[ERROR] Paint_DrawChar Input exceeds the normal display range\n");
         return;
     }
 

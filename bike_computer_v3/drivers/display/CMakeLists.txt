@@ -10,4 +10,5 @@ target_link_libraries(Display PUBLIC
     pico_stdlib
     hardware_spi
     hardware_pwm
+    Tools
 )

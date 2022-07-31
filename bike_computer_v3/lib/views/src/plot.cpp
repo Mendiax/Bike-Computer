@@ -2,6 +2,7 @@
 #include "views/frame.h"
 #include <display/fonts.h>
 #include <stdbool.h>
+#include "views/screenfunc/common.h"
 
 #include <display/print.h>
 

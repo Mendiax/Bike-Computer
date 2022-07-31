@@ -6,14 +6,7 @@
 #include "../../../../tools/include/RingBuffer.h"
 #include <display/fonts.h>
 
-typedef struct LastValSettings
-{
-    const char* format;
-    unsigned maxLength;
-    const sFONT* textSize;
-    uint8_t textScale;
-    unsigned offsetX, offsetY;
-} LastValSettings;
+
 
 typedef struct LastValData
 {

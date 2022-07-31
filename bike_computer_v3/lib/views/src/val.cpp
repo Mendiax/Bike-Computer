@@ -3,7 +3,7 @@
 #include "views/frame.h"
 #include <stdio.h>
 #include <display/print.h>
-
+#include "views/screenfunc/common.h"
 
 template<typename T>
 void drawFormatVariable(void *data, void *settings, Frame *plotFrame);
@@ -41,18 +41,18 @@ void drawFormatVariable(void *data, void *settings, Frame *plotFrame)
 
     T value = *((T *)data);
 
-    size_t maxStrLen = valSettings->maxLength + 1;
+    size_t maxStrLen = valSettings->text.str_len + 1;
     char buffer[maxStrLen + 1];
 
-    int write = snprintf(&buffer[0], maxStrLen, valSettings->format, value);
+    int write = snprintf(&buffer[0], maxStrLen, valSettings->text.string, value);
 
     if(write < 0){
         return;
     }
 
-    int x = plotFrame->x + valSettings->offsetX;
-    int y = plotFrame->y + valSettings->offsetY;
-    Paint_Println(x, y, buffer, valSettings->textSize, COLOR_WHITE, valSettings->textScale);
+    int x = plotFrame->x + valSettings->text.offsetX;
+    int y = plotFrame->y + valSettings->text.offsetY;
+    Paint_Println(x, y, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
 void ValDrawTime(void *data, void *settings, Frame *plotFrame)
@@ -65,16 +65,16 @@ void ValDrawTime(void *data, void *settings, Frame *plotFrame)
     char sec = time->val % 60; 
 
 
-    unsigned maxStrLen = valSettings->maxLength + 1;
+    unsigned maxStrLen = valSettings->text.str_len + 1;
     char buffer[maxStrLen + 1];
 
-    int write = snprintf(&buffer[0], maxStrLen, valSettings->format, hours, min, sec);
+    int write = snprintf(&buffer[0], maxStrLen, valSettings->text.string, hours, min, sec);
 
     if(write < 0){
         return;
     }
 
-    int x = plotFrame->x + valSettings->offsetX;
-    int y = plotFrame->y +valSettings->offsetY;
-    Paint_Println(x, y, buffer, valSettings->textSize, COLOR_WHITE, valSettings->textScale);
+    int x = plotFrame->x + valSettings->text.offsetX;
+    int y = plotFrame->y +valSettings->text.offsetY;
+    Paint_Println(x, y, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }

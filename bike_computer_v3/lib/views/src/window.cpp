@@ -2,9 +2,10 @@
 #include "views/frame.h"
 #include <stdlib.h>
 #include "views/window.h"
+#include "views/screenfunc/common.h"
 
 
-void Window_new_inPlace(Window *this_p, Frame newFrame, void *dataSource, void *drawSettings, drawFunc_p drawFunction)
+void Window_new_inPlace(Window *this_p, const Frame& newFrame, void *dataSource, void *drawSettings, drawFunc_p drawFunction)
 {
     this_p->frame = newFrame;
     this_p->data = dataSource;
@@ -15,6 +16,14 @@ void Window_new_inPlace(Window *this_p, Frame newFrame, void *dataSource, void *
     // assert(this_p->frame.width >= 0 && this_p->frame.width <= SCREEN_WIDTH);
     // assert(this_p->frame.y >= 0 && this_p->frame.y <= SCREEN_HEIGHT);
     // assert(this_p->frame.height >= 0 && this_p->frame.height <= SCREEN_HEIGHT);
+}
+
+void Window_new_inPlace(Window *this_p, const Frame& newFrame,const DisplayData &data, void *drawSettings)
+{
+    this_p->frame = newFrame;
+    this_p->data = data.data;
+    this_p->settings = drawSettings;
+    this_p->updateFunc_p = data.func;
 }
 
 Window *Window_new(Frame newFrame, void *dataSource, void *drawSettings, drawFunc_p drawFunction)

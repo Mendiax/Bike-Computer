@@ -6,13 +6,7 @@
 #include <display/fonts.h>
 #include <stdbool.h>
 
-typedef struct PlotSettings
-{
-    long min, max;
-    bool autoMax;
-    bool autoMin;
-    long offset;
-} PlotSettings;
+
 
 typedef struct PlotData
 {

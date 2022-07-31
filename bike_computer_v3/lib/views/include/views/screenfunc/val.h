@@ -6,15 +6,6 @@
 #include "../frame.h"
 #include <stdio.h>
 
-typedef struct ValSettings
-{
-    const char *format;
-    uint16_t maxLength;
-    const sFONT* textSize;
-    uint8_t textScale;
-    uint16_t offsetX, offsetY;
-} ValSettings;
-
 typedef struct ValDataULong
 {
     unsigned long val;

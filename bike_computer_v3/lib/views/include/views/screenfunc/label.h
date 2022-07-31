@@ -6,14 +6,6 @@
 #include "../../../../tools/include/RingBuffer.h"
 #include "display/fonts.h"
 
-typedef struct LabelSettings
-{
-    const char* string;
-    const sFONT* textSize;
-    uint8_t scale;
-    unsigned offsetX, offsetY;
-} LabelSettings;
-
 typedef struct LabelData
 {
     
