@@ -4,7 +4,14 @@
 #include "display/fonts.h"
 
 /* data ptr, additional data ptr, window(size) */
-typedef void (*drawFunc_p)(void *, void *, Frame *);
+typedef void (*drawFunc_p)(void *);
+
+enum class Align{
+    LEFT,
+    CENTER,
+    RIGHT
+};
+
 
 /* class containing part of data to draw */
 struct DisplayData
@@ -25,11 +32,25 @@ typedef struct TextSettings
     uint8_t scale;
 } TextSettings;
 
+
+
+
+
+// types for drawing funtions
+
 typedef struct LabelSettings
 {
     TextSettings text; // but str_len should be set only for scaling
 } LabelSettings;
 
+typedef struct ValSettings
+{
+    TextSettings text;
+    void *data;
+} ValSettings;
+
+
+// ========== unused =============
 typedef struct LastValSettings
 {
     TextSettings text;
@@ -43,9 +64,5 @@ typedef struct PlotSettings
     long offset;
 } PlotSettings;
 
-typedef struct ValSettings
-{
-    TextSettings text;
-} ValSettings;
 
 #endif

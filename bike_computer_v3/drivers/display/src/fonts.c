@@ -1,15 +1,13 @@
 #include "display/fonts.h"
 //#include "display/debug.h"
+#include "massert.h"
 
 // prefering delta
 void getFontSize(uint16_t width, uint16_t height, const sFONT** font, uint8_t* scale)
 {
   /*5  Width */
   /*8 Height */
-  if(width < 5 || height < 8)
-  {
-    return;
-  }
+  assert(width >= 5 || height >= 8);
   const sFONT* fonts[] = {
     &Font8,
     &Font12,
@@ -26,12 +24,14 @@ void getFontSize(uint16_t width, uint16_t height, const sFONT** font, uint8_t* s
     uint16_t fontHeight = fonts[i]->height;
     if (fontWidth > width && fontHeight > height)
       continue;
+
+
     uint8_t newScale = 1;
     while (fontWidth <= width && fontHeight <= height)
     {
+      newScale += 1;
       fontWidth = fonts[i]->width * newScale;
       fontHeight = fonts[i]->height * newScale;
-      newScale += 1;
     }
     newScale -= 1;
     fontWidth = fonts[i]->width * newScale;
@@ -44,7 +44,7 @@ void getFontSize(uint16_t width, uint16_t height, const sFONT** font, uint8_t* s
       *scale = newScale;
     }
   }
-  //my_assert((*font)->width * *scale <= width && (*font)->height * *scale <= height);
+  massert((*font)->width * *scale <= width && (*font)->height * *scale <= height, "hmmm\n");
 }
 
 void getFontSizePreferBiggerFonts(uint16_t width, uint16_t height, const sFONT** font, uint8_t* scale)

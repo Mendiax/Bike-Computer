@@ -1,1 +1,1 @@
-..\..\putty.exe -serial com5
+putty.exe -serial com13

@@ -46,7 +46,7 @@ void Paint_SetPixel(uint16_t x, uint16_t y, display::DisplayColor color)
     */
     if(x >= DISPLAY_WIDTH || y >= DISPLAY_HEIGHT)
     {
-        //TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "write outside of window x=%" PRIu16 " y=%" PRIu16 "\n", x, y);
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "write outside of window x=%" PRIu16 " y=%" PRIu16 "\n", x, y);
         // no return so it can be optimised out when compiling without traces and have greater performance
     }
     size_t index = 0;

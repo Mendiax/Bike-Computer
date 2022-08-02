@@ -29,7 +29,7 @@ extern uint8_t allocData[];
 
 //view_new_func views_all[] = {view0, view1, view2, view3, view4};
 view_new_func views_all[] = {view0, view1};
-char DISPLAY_TYPES_LENGTH = sizeof(views_all) / sizeof(view_new_func);
+#define DISPLAY_TYPES_LENGTH (sizeof(views_all) / sizeof(view_new_func))
 void Display_init(SensorData *data)
 {
     _Display.data = data;

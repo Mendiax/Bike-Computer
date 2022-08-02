@@ -54,14 +54,14 @@ static inline void tracesSetup()
     TRACES_ON(3,TRACE_VIEWS);
     TRACES_ON(4,TRACE_VIEWS);
     // 5 6 drawing windows
-    TRACES_ON(5,TRACE_VIEWS);
-    TRACES_ON(6,TRACE_VIEWS);
+    // TRACES_ON(5,TRACE_VIEWS);
+    // TRACES_ON(6,TRACE_VIEWS);
 
     //TRACES_ON(0, BUTTONS);
     //TRACES_ON(1, BUTTONS);
 
-    TRACES_ON(1, TRACE_DISPLAY_PRINT);
-    TRACES_ON(2, TRACE_DISPLAY_PRINT);
+    // RACES_ON(1, TRACE_DISPLAY_PRINT); // write string msg
+    // RACES_ON(2, TRACE_DISPLAY_PRINT); // wrtie char msg
 
 
 }

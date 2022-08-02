@@ -1,20 +1,20 @@
 #include <views/display.h>
 #include "views/frame.h"
 #include "traces.h"
+#include "display/debug.h"
+#include "massert.h"
 
 #include "views/screenfunc/common.h"
-#include <views/screenfunc/plot.h>
-#include <views/screenfunc/lastval.h>
-#include <views/screenfunc/label.h>
-#include <views/screenfunc/val.h>
+#include "views/screenfunc/plot.h"
+#include "views/screenfunc/lastval.h"
+#include "views/screenfunc/label.h"
+#include "views/screenfunc/val.h"
 
 #include <algorithm>
-#include "display/debug.h"
 #include <inttypes.h>
 #include <tuple>
 #include <typeinfo>
-
-// TODO create simple way of creating window of given size and whit should be printing
+#include <stdint.h>
 
 #define SETTING_SIZE std::max(std::max(std::max(sizeof(LastValSettings), sizeof(PlotSettings)), sizeof(LabelSettings)), sizeof(ValSettings))
 uint8_t allocData[SETTING_SIZE * MAX_NUMBER_OF_WINDOWS + sizeof(View)];
@@ -24,16 +24,76 @@ void* getSettings(unsigned id){
     return allocData + sizeof(View) + id * SETTING_SIZE;
 }
 
-static void fitToSpace(TextSettings* settings, const Frame& frame)
+void add_label(const char* string, const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT, size_t commonLength = 0)
 {
-    // we need to calculate
-    // font size and scale
-    //  based on frame size and text length
-    size_t length = settings->str_len;
-    u_int16_t widthPerChar = frame.width / length;
-    uint8_t scale = 0;
+    auto valSettings = (LabelSettings*)getSettings(settingsId++);
+    if(commonLength > 0)
+    {
+        labelSettingsNew(valSettings, frame, string, commonLength);
+    }
+    else
+    {
+        labelSettingsNew(valSettings, frame, string);
+    }
+    
+    labelSettingsAlign(valSettings, frame, align);
+    View *newView = (View *)_Display.dataAlloc;
+    Window_new_inPlace(&newView->windows[windowId++],
+                        valSettings,
+                        LabelDraw);
+}
 
-    getFontSizePreferBiggerFonts(widthPerChar, frame.height, &settings->font, &settings->scale);
+template<typename T>
+void add_value(const char* format, size_t commonLength, T* data, const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT)
+{
+    auto valSettings = (ValSettings*)getSettings(settingsId++);
+    labelSettingsNew((LabelSettings *)valSettings, frame, format, commonLength);
+    
+    labelSettingsAlign((LabelSettings *)valSettings, frame, align);
+    valSettings->data = data;
+    View *newView = (View *)_Display.dataAlloc;
+    Window_new_inPlace(&newView->windows[windowId++],
+                        valSettings,
+                        getDrawFunc(data));
+}
+
+void add_Vertical(const char* over, const char* under, const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT)
+{
+    const uint16_t str_len_max = std::max(strlen(over), strlen(under));
+
+    Frame unitTop =     {frame.x, frame.y, frame.width, frame.height/2};
+    add_label(over, unitTop, settingsId, windowId, align, str_len_max);
+
+    Frame unitBottom =  {frame.x, frame.y + labelSettingsGetHeight((LabelSettings *)getSettings(settingsId-1)), frame.width, frame.height/2};
+    add_label(under, unitBottom, settingsId, windowId, align, str_len_max);
+}
+
+template<typename T, typename Q>
+void add_Vertical(const char* overFormat, size_t overCommonLength, T* overData,
+                  const char* underFormat, size_t underCommonLength, Q* underData,
+                  const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT)
+{
+    const uint16_t str_len_max = std::max(overCommonLength, underCommonLength);
+
+    Frame unitTop =     {frame.x, frame.y, frame.width, frame.height/2};
+    add_value(overFormat, str_len_max, overData, unitTop, settingsId, windowId, align);
+
+    Frame unitBottom =  {frame.x, frame.y + labelSettingsGetHeight((LabelSettings *)getSettings(settingsId-1)), frame.width, frame.height/2};
+    add_value(underFormat, str_len_max, underData, unitBottom, settingsId, windowId, align);
+}
+
+void add_Units(const char* over, const char* under, const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT)
+{
+    const uint16_t str_len_max = std::max(strlen(over), strlen(under));
+
+    add_Vertical(over, under, frame, settingsId, windowId, align);
+
+    static const char* line_template = "_____";
+    static char line[6];
+    memcpy(line, line_template, sizeof(line));
+    line[str_len_max] = '\0'; 
+    Frame unitMid =     {frame.x, frame.y,   frame.width, frame.height/2};
+    add_label(line, unitMid, settingsId, windowId, align);
 }
 
 /**
@@ -45,19 +105,28 @@ static void fitToSpace(TextSettings* settings, const Frame& frame)
  */
 static auto splitFrame(const Frame& frame, uint16_t length, bool align_right=false)
 {
-    u_int16_t widthPerChar = frame.width / length;
+    massert(length > 1, "length should be greater than 1\n");
+    uint16_t widthPerChar = frame.width / length;
     const sFONT* char_font;
     uint8_t char_scale;
     getFontSize(widthPerChar, frame.height, &char_font, &char_scale);
     uint16_t char_width = char_font->width * char_scale;
+    massert(char_width <= widthPerChar, "char becomes bigger %d > %d\n", char_width, widthPerChar);
+    massert(length * char_width <= DISPLAY_WIDTH, "length outside of display width range %d > %d\n", length * char_width, DISPLAY_WIDTH);
 
+    uint16_t height = char_font->height * char_scale;
     //auto offset = (frame.width / length);
-    Frame f1 = {frame.x, frame.y, char_width * (length - 1), frame.height};
-    Frame f2 = {f1.x + f1.width, frame.y, char_width, frame.height};
+    Frame f1 = {frame.x, frame.y, char_width * (length - 1), height};
+    Frame f2 = {f1.x + f1.width, frame.y, char_width, height};
+    
+    TRACE_DEBUG(1, TRACE_VIEWS, "Frame splited %s and %s\n", frame_to_string(f1).c_str(), frame_to_string(f2).c_str());
 
+    //assert(frame.width >= (f1.width + f2.width);
+    massert(frame.width >= (f1.width + f2.width), "offset will be negative, f1 and f2 width are not correct\n");
     uint16_t offset = frame.width - (f1.width + f2.width);
     if(align_right)
     {
+        printf("offset = %" PRIu16 " \n", offset);
         f1.x += offset;
         f2.x += offset;
     }
@@ -65,373 +134,60 @@ static auto splitFrame(const Frame& frame, uint16_t length, bool align_right=fal
     {
         f2.width += offset;
     }
+    TRACE_DEBUG(1, TRACE_VIEWS, "Frame splited %s and %s\n", frame_to_string(f1).c_str(), frame_to_string(f2).c_str());
     return std::make_tuple(f1,f2);
 }
 
-static void createVertical(const Frame& frame,
-                           const DisplayData& value_over,
-                           const DisplayData& value_under,
-                           uint8_t& settingsId, uint8_t& windowId)
+template<typename T>
+void addValueUnitsVertical(const char* format, size_t commonLength, T* data,
+                           const char* over, const char* under,
+                           const Frame& frame, 
+                           uint8_t& settingsId, uint8_t& windowId,
+                           Align align = Align::LEFT, bool alignRight = true)
 {
-    View *newView = (View *)_Display.dataAlloc;
-    //Frame kph = {17*3*2 - 2, 10 + 20, 0, 0};
-    //const sFONT* kphFont = &Font20;
-
-    const uint16_t str_len_max = std::max(strlen(over), strlen(under));
-    TextSettings defaultSettings = {0};
-    defaultSettings.string = strlen(over) >= strlen(under) ? over : under;
-    defaultSettings.str_len = strlen(defaultSettings.string);
-    Frame halfFrame = frame;
-    halfFrame.height /= 4;
-    fitToSpace(&defaultSettings, halfFrame);
-    TRACE_DEBUG(3, TRACE_VIEWS, "halfFrame.height %" PRIu16 " .width %" PRIu16 " \n", halfFrame.height, halfFrame.width);
-    TRACE_DEBUG(3, TRACE_VIEWS, "font height %" PRIu16 " .width %" PRIu16 " \n", 
-                                defaultSettings.font->height * defaultSettings.scale,
-                                defaultSettings.font->width * defaultSettings.scale);
-    const uint16_t char_width = (defaultSettings.font->width * defaultSettings.scale);
-    const uint16_t label_width = str_len_max * (char_width);
-
-
-
-
-    const uint8_t line_offset = 0;
-    {
-        const uint8_t offset_x_axis = (label_width - strlen(over) * (char_width)) / 2;
-        LabelSettings *headerSettings0 = (LabelSettings *)getSettings(settingsId++);
-        *headerSettings0 = (LabelSettings){
-            .text = (TextSettings){
-                .string = over,
-                .font = defaultSettings.font,
-                .str_len = strlen(over),
-                .offsetX = offset_x_axis,
-                .offsetY = 0,
-                .scale = defaultSettings.scale
-                }
-            };
-        Window_new_inPlace(&newView->windows[windowId++],
-                        frame,
-                        (void *)0,
-                        (void *)headerSettings0,
-                        LabelDraw);
-    }
-    {
-        const uint8_t offset_x_axis = (label_width - strlen(under) * (char_width)) / 2;
-        LabelSettings *headerSettings2 = (LabelSettings *)getSettings(settingsId++);
-        *headerSettings2 = (LabelSettings){
-            .text = (TextSettings){
-                .string = under,
-                .font = defaultSettings.font,
-                .str_len = strlen(under),
-                .offsetX = offset_x_axis,
-                .offsetY = 0,
-                .scale = defaultSettings.font->height * defaultSettings.scale + line_offset
-            }
-        };
-        Window_new_inPlace(&newView->windows[windowId++],
-                        frame,
-                        (void *)0,
-                        (void *)headerSettings2,
-                        LabelDraw);
-    }
+    auto [frameValue, frameUnits] = splitFrame(frame, commonLength + 1, alignRight);
+    add_value(format, commonLength, data, frameValue, settingsId, windowId);
+    add_Units(over, under, frameUnits, settingsId, windowId, align);
 }
+template<typename T, typename Q, typename P>
+void addValueValuesVertical(const char* format, size_t commonLength, T* data,
+                            const char* overFormat, size_t overCommonLength, Q* overData,
+                            const char* underFormat, size_t underCommonLength, P* underData,
+                            const Frame& frame, 
+                            uint8_t& settingsId, uint8_t& windowId,
+                            Align align = Align::LEFT, bool alignRight = true)
 {
-    {
-    View *newView = (View *)_Display.dataAlloc;
-    //Frame kph = {17*3*2 - 2, 10 + 20, 0, 0};
-    //const sFONT* kphFont = &Font20;
-
-    const uint16_t str_len_max = std::max(value_over.format_length, value_under.format_length);
-    TextSettings defaultSettings = {0};
-    defaultSettings.str_len = str_len_max;
-    Frame halfFrame = frame;
-    halfFrame.height /= 4;
-    fitToSpace(&defaultSettings, halfFrame);
-    TRACE_DEBUG(3, TRACE_VIEWS, "halfFrame.height %" PRIu16 " .width %" PRIu16 " \n", halfFrame.height, halfFrame.width);
-    TRACE_DEBUG(3, TRACE_VIEWS, "font height %" PRIu16 " .width %" PRIu16 " \n", 
-                                defaultSettings.font->height * defaultSettings.scale,
-                                defaultSettings.font->width * defaultSettings.scale);
-    const uint16_t char_width = (defaultSettings.font->width * defaultSettings.scale);
-    const uint16_t label_width = str_len_max * (char_width);
-
-
-    TODO change it to make it first split inot windows and then fit inside them and it should be more generic
-
-    windos = split window ()
-    
-    write into window(seeting, window)
-    {
-        fit to space (settings, widnow)
-        add window
-
-    }
-
-
-    const uint8_t line_offset = 0;
-    {
-        const uint8_t offset_x_axis = (label_width - strlen(over) * (char_width)) / 2;
-        LabelSettings *headerSettings0 = (LabelSettings *)getSettings(settingsId++);
-        *headerSettings0 = (LabelSettings){
-            .text = (TextSettings){
-                .string = over,
-                .font = defaultSettings.font,
-                .str_len = strlen(over),
-                .offsetX = offset_x_axis,
-                .offsetY = 0,
-                .scale = defaultSettings.scale
-                }
-            };
-        Window_new_inPlace(&newView->windows[windowId++],
-                        frame,
-                        (void *)0,
-                        (void *)headerSettings0,
-                        LabelDraw);
-    }
-    {
-        const uint8_t offset_x_axis = (label_width - strlen(under) * (char_width)) / 2;
-        LabelSettings *headerSettings2 = (LabelSettings *)getSettings(settingsId++);
-        *headerSettings2 = (LabelSettings){
-                .text = (TextSettings){
-                .string = under,
-                .font = defaultSettings.font,
-                .str_len = strlen(under),
-                .offsetX = offset_x_axis,
-                .offsetY = defaultSettings.font->height * defaultSettings.scale + line_offset,
-                .scale = defaultSettings.scale
-                }
-        };
-        Window_new_inPlace(&newView->windows[windowId++],
-                        frame,
-                        (void *)0,
-                        (void *)headerSettings2,
-                        LabelDraw);
-    }
+    auto [frameValue, frameUnits] = splitFrame(frame, commonLength + 1, alignRight);
+    add_value(format, commonLength, data, frameValue, settingsId, windowId);
+    add_Vertical(overFormat, overCommonLength, overData,
+                 underFormat, underCommonLength, underData,
+                 frameUnits, settingsId, windowId, align);
 }
 
-static void createUnit(const Frame& frame,
-                       const char* over, const char* under,
-                       uint8_t& settingsId, uint8_t& windowId)
-{
-    View *newView = (View *)_Display.dataAlloc;
-    //Frame kph = {17*3*2 - 2, 10 + 20, 0, 0};
-    //const sFONT* kphFont = &Font20;
-
-    const uint16_t str_len_max = std::max(strlen(over), strlen(under));
-    TextSettings defaultSettings = {0};
-    //defaultSettings.string = strlen(over) >= strlen(under) ? over : under;
-    defaultSettings.str_len = str_len_max;
-    Frame halfFrame = frame;
-    halfFrame.height /= 4;
-    fitToSpace(&defaultSettings, halfFrame);
-    TRACE_DEBUG(3, TRACE_VIEWS, "halfFrame.height %" PRIu16 " .width %" PRIu16 " \n", halfFrame.height, halfFrame.width);
-    TRACE_DEBUG(3, TRACE_VIEWS, "font height %" PRIu16 " .width %" PRIu16 " \n", 
-                                defaultSettings.font->height * defaultSettings.scale,
-                                defaultSettings.font->width * defaultSettings.scale);
-    const uint16_t char_width = (defaultSettings.font->width * defaultSettings.scale);
-    const uint16_t label_width = str_len_max * (char_width);
-
-
-
-
-    const uint8_t line_offset = 0;
-    {
-        const uint8_t offset_x_axis = (label_width - strlen(over) * (char_width)) / 2;
-        LabelSettings *headerSettings0 = (LabelSettings *)getSettings(settingsId++);
-        *headerSettings0 = (LabelSettings){
-            .text = (TextSettings){
-                .string = over,
-                .font = defaultSettings.font,
-                .str_len = strlen(over),
-                .offsetX = offset_x_axis,
-                .offsetY = 0,
-                .scale = defaultSettings.scale
-                }
-            };
-        Window_new_inPlace(&newView->windows[windowId++],
-                        frame,
-                        (void *)0,
-                        (void *)headerSettings0,
-                        LabelDraw);
-    }
-    {
-        const uint8_t offset_x_axis = (label_width - strlen(under) * (char_width)) / 2;
-        LabelSettings *headerSettings2 = (LabelSettings *)getSettings(settingsId++);
-        *headerSettings2 = (LabelSettings){
-                .text = (TextSettings){
-                .string = under,
-                .font = defaultSettings.font,
-                .str_len = strlen(under),
-                .offsetX = offset_x_axis,
-                .offsetY = defaultSettings.font->height * defaultSettings.scale + line_offset,
-                .scale = defaultSettings.scale
-                }
-        };
-        Window_new_inPlace(&newView->windows[windowId++],
-                        frame,
-                        (void *)0,
-                        (void *)headerSettings2,
-                        LabelDraw);
-    }
-    {
-        static const char* line_template = "_____";
-        static char line[6];
-        memcpy(line, line_template, sizeof(line));
-        line[str_len_max] = '\0'; 
-        //const uint8_t offset_x_axis = (frame.width - strlen(line) * (char_width)) / 2;
-        LabelSettings *headerSettings1 = (LabelSettings *)getSettings(settingsId++);
-        *headerSettings1 = (LabelSettings){
-            .text = (TextSettings){
-                .string = line,
-                .font = defaultSettings.font,
-                .str_len = strlen(line),
-                .offsetX = 0,
-                .offsetY = line_offset,
-                .scale = defaultSettings.scale
-            }
-        };
-        Window_new_inPlace(&newView->windows[windowId++],
-                            frame,
-                            (void *)0,
-                            (void *)headerSettings1,
-                            LabelDraw);
-    }
-}
-
-void displayValueWithVerticalFraction(const Frame& frame,
-                                      const DisplayData& value,
-                                      const DisplayData& value_over,
-                                      const DisplayData& value_under,
-                                      bool align_right,
-                                      View *newView,
-                                      uint8_t& settingsId,
-                                      uint8_t& windowId
-                                      )
-{
-    ValSettings *valSettings = (ValSettings *)getSettings(settingsId++);
-    *valSettings = (ValSettings){
-        .text = (TextSettings){
-            .string = value.format,
-            .font = 0,
-            .str_len = value.format_length
-        }
-    }; 
-    auto [frame_val, frame_unit] = splitFrame(frame, valSettings->text.str_len + 1, align_right); // +1 for units
-    TRACE_DEBUG(1, TRACE_VIEWS, "Frame splited %s and %s\n", frame_to_string(frame_val).c_str(), frame_to_string(frame_unit).c_str());
-
-    fitToSpace(&valSettings->text, frame_val);
-    TRACE_DEBUG(2, TRACE_VIEWS, "Frame val scaled %s\n", "");
-    Window_new_inPlace(&newView->windows[windowId++],
-                        frame_val,
-                        value.data,
-                        valSettings,
-                        value.func);
-
-    createVertical(frame_unit, value_over, value_under, settingsId, windowId);
-    TRACE_DEBUG(3, TRACE_VIEWS, "unit created %s\n", "");
-}
-
-void displayValueUnitsFraction(const Frame& frame,
-                       const char* format,
-                       uint16_t format_length,
-                       bool align_right,
-                       void* data,
-                       drawFunc_p func,
-                       const char* unit_over,
-                       const char* unit_under,
-                       View *newView,
-                       uint8_t& settingsId,
-                       uint8_t& windowId
-                       )
-{
-    ValSettings *valSettings = (ValSettings *)getSettings(settingsId++);
-    *valSettings = (ValSettings){
-        .text = (TextSettings){
-            .string = format,
-            .font = 0,
-            .str_len = format_length
-        }
-    }; 
-    auto [frame_val, frame_unit] = splitFrame(frame, valSettings->text.str_len + 1, align_right); // +1 for units
-    TRACE_DEBUG(1, TRACE_VIEWS, "Frame splited %s and %s\n", frame_to_string(frame_val).c_str(), frame_to_string(frame_unit).c_str());
-
-    fitToSpace(&valSettings->text, frame_val);
-    TRACE_DEBUG(2, TRACE_VIEWS, "Frame val scaled %s\n", "");
-    Window_new_inPlace(&newView->windows[windowId++],
-                frame_val,
-                (void *)data,
-                (void *)valSettings,
-                func);
-
-    createUnit(frame_unit, unit_over,unit_under,settingsId, windowId);
-    TRACE_DEBUG(3, TRACE_VIEWS, "unit created %s\n", "");
-}
 /*
 
     speed, distance 
 */
 void view0(void)
 {
-    uint8_t numberOfWindows = 4;
+    
+    uint8_t numberOfWindows = 6;
     View *newView = (View *)_Display.dataAlloc;
     view_new_inAllocatedPlace(newView, 0); // TODO fix this xd no of windows is not needed here
     uint8_t settingsId = 0;
     uint8_t windowId = 0;
 
-    displayValueUnitsFraction((Frame){0,0,DISPLAY_WIDTH, DISPLAY_HEIGHT / 2},
-                              "%2.0f", 2,
-                              true,
-                              &_Display.data->speed.velocity,
-                              drawFormatFloat,
-                              "km", "h",
-                              newView,settingsId, windowId);
-    
-    
-    // // --- distance ---
-    // uint16_t offset =  DISPLAY_HEIGHT / 2;//valSettings->font->height * valSettings->textScale + 20;
-    // ValSettings *valSettings2 = (ValSettings *)getSettings(settingsId++);
-    // *valSettings2 = (ValSettings){
-    //     .text.string = "%3" PRIu16,
-    //     .text.str_len = 3,
-    //     .text.font = &Font24,
-    //     .text.scale = 2,
-    //     .text.offsetX = 2,
-    //     .text.offsetY = 0};
-    // Window_new_inPlace(&newView->windows[windowId++],
-    //                    (Frame){0, offset, SCREEN_WIDTH/2, SCREEN_HEIGHT/2},
-    //                    (void *)&(_Display.data->speed.distance),
-    //                    (void *)valSettings2,
-    //                    drawFormatInt16);
-    
-    // Frame km = {17*3*2 - 2, offset, 0, 0};
-    // const sFONT* kmFont = &Font20;
+    Frame unit = {0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT/2}; 
 
-    // LastValSettings *valSettings1 = (LastValSettings *)getSettings(settingsId++);
-    // *valSettings1 = (LastValSettings){
-    //     .text.string = "%02" PRIu8,
-    //     .text.str_len = 2,
-    //     .text.font = kmFont,
-    //     .text.scale = 1,
-    //     .text.offsetX = 0,
-    //     .text.offsetY = 0};
-    // Window_new_inPlace(&newView->windows[windowId++],
-    //                    km,
-    //                    (void *)&(_Display.data->speed.distanceDec),
-    //                    (void *)valSettings1,
-    //                    drawFormatInt8);
-
-    // LabelSettings *headerSettings3 = (LabelSettings *)getSettings(settingsId++);
-    // *headerSettings3 = (LabelSettings){
-    //     .text.string = "km",
-    //     .text.str_len = strlen(headerSettings3.text.string),
-    //     .text.font = kmFont,
-    //     .text.scale = 1,
-    //     .text.offsetX = 0,
-    //     .text.offsetY = kmFont->height
-    //     };
-    // Window_new_inPlace(&newView->windows[windowId++],
-    //                    km,
-    //                    (void *)0,
-    //                    (void *)headerSettings3,
-    //                    LabelDraw);
+    addValueUnitsVertical("%2.0f", 2, &_Display.data->speed.velocity, "km","h", unit, 
+                          settingsId, windowId, Align::CENTER, true);
+    
+    Frame distanceFrame = {0, DISPLAY_HEIGHT/2, DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
+    addValueValuesVertical("%3" PRIu16, 3, &_Display.data->speed.distance,
+                           "%2" PRIu8, 2, &_Display.data->speed.distanceDec,
+                           "km", 2, (void*)0,
+                           distanceFrame,
+                           settingsId, windowId, Align::CENTER, true);
     
     newView->numberOfWindows = windowId;
     //DEBUG_OLED_ASSERT(numberOfWindows == windowId, "Too many windows %u\n", windowId);
