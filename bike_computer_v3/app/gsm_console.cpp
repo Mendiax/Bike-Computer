@@ -12,6 +12,7 @@
 #define ROTATE
 //#include "display/print.h"
 #include "console/console.h"
+#include "sim868/interface.hpp"
 #include "Pico-SIM868-Test.h"
 
 auto_init_mutex(uart_mutex);
@@ -143,13 +144,7 @@ void consoleGSM()
     // AT+CLBSCFG=0,3
 
 
-
-
-
-
-
-
- int count = 0;
+    int count = 0;
     sendCMD_waitResp("AT+CGNSPWR=1", "OK", 2000);
     DEV_GSM_Delay_ms(2000);
     for (int i = 1; i < 10; i++)

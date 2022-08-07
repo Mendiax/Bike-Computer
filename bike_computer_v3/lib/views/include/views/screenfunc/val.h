@@ -19,11 +19,13 @@ DECLARE_FUNC(uint16_t)
 DECLARE_FUNC(int16_t)
 DECLARE_FUNC(uint32_t)
 DECLARE_FUNC(int32_t)
-DECLARE_FUNC(uint64_t)
+// DECLARE_FUNC(uint64_t)
 DECLARE_FUNC(int64_t)
 DECLARE_FUNC(float)
 DECLARE_FUNC(double)
 
+// void drawFormat_time_t(void *settings);
+drawFunc_p getDrawFunc(uint64_t* var);
 
 void drawFormat_void(void *settings);
 drawFunc_p getDrawFunc(void* var);

@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    I2C.h
+  * @file    IMU.h
   * @author  Waveshare Team
   * @version V1.0
   * @date    29-August-2014
-  * @brief   This file contains all the functions prototypes for the I2C firmware 
+  * @brief   This file contains all the functions prototypes for the IMU firmware 
   *          library.
 
   ******************************************************************************
@@ -21,19 +21,20 @@
   */
 
 
-#ifndef _I2C_H_
-#define _I2C_H_
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
+#ifndef __IMU_H
+#define __IMU_H
 
-void I2C_WriteOneByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t Data);//
-uint8_t I2C_ReadOneByte(uint8_t DevAddr, uint8_t RegAddr);//
-//bool I2C_WriteBuff(uint8_t DevAddr, uint8_t RegAddr, uint8_t Num, uint8_t *pBuff);
-bool I2C_ReadBuff(uint8_t DevAddr, uint8_t RegAddr, uint8_t Num, uint8_t *pBuff);//
+#include "MPU9250.hpp"
+#include "BMP280.hpp"
 
-void I2C_Init(void);
+
+//#define M_PI  (float)3.1415926535
+#define IMU_PRES_TYPE_BM180     1
+#define IMU_PRES_TYPE_BM280     2
+
+void IMU_Init(void); 
+
 
 #endif
 

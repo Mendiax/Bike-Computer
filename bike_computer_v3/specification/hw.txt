@@ -30,11 +30,11 @@ podsumowanie:
 15    btn
 16    int 2
 17    GSM DTR [btn wyświetlacz]
-18-19,21 Moduł     //może można 2 piny zabrać ?
-20    btn
+18-20 Moduł     //może można 2 piny zabrać ?
+21    btn
 22    int 1
 26    temp hamulec przód
-27    aku napięcie ?
+27    
 28    [zawiecha ?]
 
 

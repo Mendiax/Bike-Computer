@@ -11,6 +11,7 @@ if( NOT CMAKE_BUILD_TYPE )
         message("BUILD TYPE NOT SPECIFIED set to ${CMAKE_BUILD_TYPE} on default")
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 
 add_compile_options(-Wfatal-errors)
@@ -26,8 +27,8 @@ add_compile_options(-Wfatal-errors)
 #                     )
 
 
-################################ SUBDIRECTORY #################################
-#sub
+############################# INCLUDE DIRECTORIES #############################
+
 include_directories(common/include)
 include_directories(drivers/display/include)
 include_directories(lib/tools/include)
@@ -38,45 +39,6 @@ include_directories(lib/Console)
 include_directories(drivers/buttons/include)
 include_directories(drivers/battery/include)
 include_directories(drivers/gsm/include)
-
-
-add_subdirectory(common)
-add_subdirectory(drivers/display)
-add_subdirectory(lib/tools)
-add_subdirectory(lib/views)
-add_subdirectory(drivers/speedometer)
-add_subdirectory(lib/Console)
-add_subdirectory(drivers/interrupts)
-add_subdirectory(drivers/buttons)
-add_subdirectory(drivers/battery)
-add_subdirectory(drivers/gsm)
-
-
-#DOF
-add_subdirectory(lib_DOF/BMP280)
-add_subdirectory(lib_DOF/I2C)
-add_subdirectory(lib_DOF/IMU)
-add_subdirectory(lib_DOF/MPU9250)
-
-add_subdirectory(lib_DOF/BMP280_pico)
-
-
-
-#GSM
-add_subdirectory(lib2/Config)
-add_subdirectory(lib2/Infrared)
-add_subdirectory(lib2/AT_TEST)
-add_subdirectory(lib2/BT)
-add_subdirectory(lib2/GPS)
-add_subdirectory(lib2/HTTP)
-add_subdirectory(lib2/Phone_Call)
-add_subdirectory(lib2/SMS)
-
-# SD
-# add_subdirectory(external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI)
-
-
-############################# INCLUDE DIRECTORIES #############################
 
 #GSM
 include_directories(./lib2/Config)
@@ -94,12 +56,53 @@ add_subdirectory(./examples)
 
 
 #DOF
-include_directories(./lib_DOF/BMP280)
-include_directories(./lib_DOF/I2C)
-include_directories(./lib_DOF/IMU)
-include_directories(./lib_DOF/MPU9250)
+include_directories(./drivers/DOF/BMP280)
+include_directories(./drivers/DOF/I2C)
+include_directories(./drivers/DOF/IMU)
+include_directories(./drivers/DOF/MPU9250)
 
-include_directories(./lib_DOF/BMP280_pico)
+
+################################ SUBDIRECTORY #################################
+#sub
+
+
+
+add_subdirectory(common)
+add_subdirectory(drivers/display)
+add_subdirectory(lib/tools)
+add_subdirectory(lib/views)
+add_subdirectory(drivers/speedometer)
+add_subdirectory(lib/Console)
+add_subdirectory(drivers/interrupts)
+add_subdirectory(drivers/buttons)
+add_subdirectory(drivers/battery)
+add_subdirectory(drivers/gsm)
+
+
+#DOF
+add_subdirectory(drivers/DOF/BMP280)
+add_subdirectory(drivers/DOF/I2C)
+add_subdirectory(drivers/DOF/IMU)
+add_subdirectory(drivers/DOF/MPU9250)
+
+# add_subdirectory(lib_DOF/BMP280_pico)
+
+#GSM
+add_subdirectory(lib2/Config)
+add_subdirectory(lib2/Infrared)
+add_subdirectory(lib2/AT_TEST)
+add_subdirectory(lib2/BT)
+add_subdirectory(lib2/GPS)
+add_subdirectory(lib2/HTTP)
+add_subdirectory(lib2/Phone_Call)
+add_subdirectory(lib2/SMS)
+
+# SD
+# add_subdirectory(external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI)
+
+
+
+# include_directories(./lib_DOF/BMP280_pico)
 
 
 add_subdirectory(tests/bc_test)
@@ -171,7 +174,6 @@ target_link_libraries( ${PICO_TEST_FILE}
         examples
 
         IMU I2C
-        BMP280_pico
         #FatFs_SPI
 )
 

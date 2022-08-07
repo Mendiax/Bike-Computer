@@ -1,11 +1,10 @@
 /**
   ******************************************************************************
-  * @file    IMU.h
+  * @file    IMU.c
   * @author  Waveshare Team
   * @version V1.0
   * @date    29-August-2014
-  * @brief   This file contains all the functions prototypes for the IMU firmware 
-  *          library.
+  * @brief   This file provides all the IMU firmware functions.
 
   ******************************************************************************
   * @attention
@@ -22,24 +21,48 @@
 
 
 
-#ifndef __IMU_H
-#define __IMU_H
+#include "IMU.h"
+#include <math.h>
+#include <stdio.h>
+#include "console/console.h"
+#include "I2C.h"
 
-#include "MPU9250.h"
-#include "BMP280.h"
+uint8_t u8PressureType;
 
-#define M_PI  (float)3.1415926535
-#define IMU_PRES_TYPE_BM180     1
-#define IMU_PRES_TYPE_BM280     2
+/**
+  * @brief  invSqrt
+  * @param  
+  * @retval 
+  */
 
-extern int16_t accel[3], gyro[3];
-extern float angles[3];
-extern uint8_t u8PressureType;
+float invSqrt(float x) 
+{
+	float halfx = 0.5f * x;
+	float y = x;
+	
+	long i = *(long*)&y;                //get bits for floating value
+	i = 0x5f3759df - (i >> 1);          //gives initial guss you
+	y = *(float*)&i;                    //convert bits back to float
+	y = y * (1.5f - (halfx * y * y));   //newtop step, repeating increases accuracy
+	
+	return y;
+}
 
-void IMU_Init(void); 
-void IMU_GetYawPitchRoll(float *Angles) ;
 
-#endif
+/**
+  * @brief  initializes IMU
+  * @param  None
+  * @retval None
+  */
+void IMU_Init(void)
+{	
+	I2C_Init();
+  	consolep("IMU_Init()\n");
+    uint8_t u8Ret; 
+	mpu9250::init();
+    bmp280::init();
 
-/******************* (C) COPYRIGHT 2014 Waveshare *****END OF FILE*******************/
+
+}
+
 

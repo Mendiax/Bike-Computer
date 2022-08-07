@@ -7,3 +7,8 @@ AT+CGPADDR=? // addres?
 AT+CSTT=? // APN
 AT+CSTT="internet","internet","internet" //SETUP
 AT+CGDCONT=1,"IP","internet"
+
+
+
+
+AT+CBC // aku

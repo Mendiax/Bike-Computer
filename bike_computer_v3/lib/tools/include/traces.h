@@ -5,6 +5,19 @@
 #include <pico/sync.h>
 #include <stdio.h>
 
+// formats
+#define INS_ARR(arr) arr[0], arr[1], arr[2]
+
+#define FORMAT_CREATE_TEMPLATE(form) \
+    "[" form ", " form ", " form "]"
+
+#define FORMAT_INT16 "% 3d"
+#define FORMAT_INT16_ARR FORMAT_CREATE_TEMPLATE(FORMAT_INT16)
+
+//"[" FORMAT_INT16 "," FORMAT_INT16 "," FORMAT_INT16 "]"
+#define FORMAT_FLOAT "% 3.2f"
+#define FORMAT_FLOAT_ARR "[" FORMAT_FLOAT "," FORMAT_FLOAT "," FORMAT_FLOAT "]"
+
 // #if 1
 // 	#define DEBUG_OLED(__info,...) printf("[DEBUG_OLED] : " __info,##__VA_ARGS__)
 // #else
@@ -29,6 +42,10 @@ enum tracesE{
     BUTTONS,
     TRACE_VIEWS,
     TRACE_DISPLAY_PRINT,
+    TRACE_VIEW,
+    TRACE_CORE_1,
+    TRACE_MPU9250,
+    TRACE_BMP280,
     NO_TRACES
 };
 
@@ -57,11 +74,21 @@ static inline void tracesSetup()
     // TRACES_ON(5,TRACE_VIEWS);
     // TRACES_ON(6,TRACE_VIEWS);
 
+    TRACES_ON(7,TRACE_VIEWS); // adding new window
+
+    TRACES_ON(1,TRACE_CORE_1); // render time for scree
+
+
     //TRACES_ON(0, BUTTONS);
     //TRACES_ON(1, BUTTONS);
 
     // RACES_ON(1, TRACE_DISPLAY_PRINT); // write string msg
     // RACES_ON(2, TRACE_DISPLAY_PRINT); // wrtie char msg
+
+
+    TRACES_ON(1, TRACE_MPU9250); // mpu init
+    TRACES_ON(2, TRACE_MPU9250);  // reag gyro
+
 
 
 }
@@ -107,6 +134,6 @@ namespace utility {
     }while(0)
 
 #define TRACE_ABNORMAL(name, __info, ...) \
-    TRACE_DEBUG(0, name, "ABNORMAL" __info, ##__VA_ARGS__)
+    TRACE_DEBUG(0, name, "\x1b[1;31mABNORMAL" __info, ##__VA_ARGS__)
 
 #endif

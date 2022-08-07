@@ -8,6 +8,9 @@
 template<typename T>
 void drawFormatVariable(void *settings);
 
+void drawFormatVariableVoid(void *settings);
+
+
 #define CREATE_FUNC(type) \
     void drawFormat_##type(void *settings) \
     { \
@@ -25,12 +28,19 @@ CREATE_FUNC(uint16_t)
 CREATE_FUNC(int16_t)
 CREATE_FUNC(uint32_t)
 CREATE_FUNC(int32_t)
-CREATE_FUNC(uint64_t)
+// CREATE_FUNC(uint64_t)
 CREATE_FUNC(int64_t)
 CREATE_FUNC(float)
 CREATE_FUNC(double)
 
-void drawFormatVariableVoid(void *settings);
+// void drawFormat_time_t(void *settings)
+// { 
+//     ValDrawTime(settings); 
+// } 
+drawFunc_p getDrawFunc(uint64_t* var) 
+{ 
+    return ValDrawTime; 
+}
 
 void drawFormat_void(void *settings)
 { 
@@ -92,14 +102,14 @@ void drawFormatVariableVoid(void *settings)
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, valSettings->text.string, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
-void ValDrawTime(void *data, void *settings, Frame *plotFrame)
+void ValDrawTime(void *settings)
 {
     ValSettings *valSettings = (ValSettings *)settings;
-    uint32_t time = *((uint32_t *)data);
+    uint64_t time = *((uint64_t *)valSettings->data);
 
-    char hours = time / 3600;
-    char min = (time % 3600) / 60;
-    char sec = time % 60; 
+    int hours = time / 3600;
+    int min = (time % 3600) / 60;
+    int sec = time % 60; 
 
 
     unsigned maxStrLen = valSettings->text.str_len + 1;
@@ -111,7 +121,5 @@ void ValDrawTime(void *data, void *settings, Frame *plotFrame)
         return;
     }
 
-    int x = plotFrame->x + valSettings->text.offsetX;
-    int y = plotFrame->y +valSettings->text.offsetY;
-    Paint_Println(x, y, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }

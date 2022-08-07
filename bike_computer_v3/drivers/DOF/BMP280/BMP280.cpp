@@ -1,4 +1,4 @@
-#include "BMP280_pico.h"
+#include "BMP280.hpp"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -214,23 +214,44 @@ void bmp280_get_calib_params(struct bmp280_calib_param* params) {
     params->dig_p9 = (int16_t)(buf[23] << 8) | buf[22];
 }
 
-void init_i2c()
+// void init_i2c()
+// {
+//     stdio_init_all();
+//     sleep_ms(3000);
+//     // useful information for picotool
+//     bi_decl(bi_2pins_with_func(I2C_PIN_SDA, I2C_PIN_SCL, GPIO_FUNC_I2C));
+//     bi_decl(bi_program_description("BMP280 I2C example for the Raspberry Pi Pico"));
+
+//     printf("Hello, BMP280! Reading temperaure and pressure values from sensor...\n");
+
+//     // I2C is "open drain", pull ups to keep signal high when no data is being sent
+//     i2c_init(i2c1, 100 * 1000);
+//     gpio_set_function(I2C_PIN_SDA, GPIO_FUNC_I2C);
+//     gpio_set_function(I2C_PIN_SCL, GPIO_FUNC_I2C);
+//     gpio_pull_up(I2C_PIN_SDA);
+//     gpio_pull_up(I2C_PIN_SCL);
+// }
+
+struct bmp280_calib_param params;
+
+std::tuple<int32_t, int32_t> bmp280::get_temp_press()
 {
-    stdio_init_all();
-    sleep_ms(3000);
-    // useful information for picotool
-    bi_decl(bi_2pins_with_func(I2C_PIN_SDA, I2C_PIN_SCL, GPIO_FUNC_I2C));
-    bi_decl(bi_program_description("BMP280 I2C example for the Raspberry Pi Pico"));
 
-    printf("Hello, BMP280! Reading temperaure and pressure values from sensor...\n");
-
-    // I2C is "open drain", pull ups to keep signal high when no data is being sent
-    i2c_init(i2c1, 100 * 1000);
-    gpio_set_function(I2C_PIN_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_PIN_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_PIN_SDA);
-    gpio_pull_up(I2C_PIN_SCL);
+    int32_t raw_temperature;
+    int32_t raw_pressure;
+    bmp280_read_raw(&raw_temperature, &raw_pressure);
+    int32_t temperature = bmp280_convert_temp(raw_temperature, &params);
+    int32_t pressure = bmp280_convert_pressure(raw_pressure, raw_temperature, &params);
+    return std::make_tuple(temperature, pressure);
 }
+
+void bmp280::init()
+{
+    bmp280_init();
+    // retrieve fixed compensation params
+    bmp280_get_calib_params(&params);
+}
+
 
 int bmp_test() {
 
@@ -238,9 +259,7 @@ int bmp_test() {
     // configure BMP280
     bmp280_init();
 
-    // retrieve fixed compensation params
-    struct bmp280_calib_param params;
-    bmp280_get_calib_params(&params);
+
 
     int32_t raw_temperature;
     int32_t raw_pressure;
@@ -259,42 +278,5 @@ int bmp_test() {
     return 0;
 }
 
-bool reserved_addr(uint8_t addr) {
-    return (addr & 0x78) == 0 || (addr & 0x78) == 0x78;
-}
 
-int scan() {
-    printf("\nI2C Bus Scan\n");
-    printf("   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\n");
 
-    for (int addr = 0; addr < (1 << 7); ++addr) {
-        if (addr % 16 == 0) {
-            printf("%02x ", addr);
-        }
-
-        // Perform a 1-byte dummy read from the probe address. If a slave
-        // acknowledges this address, the function returns the number of bytes
-        // transferred. If the address byte is ignored, the function returns
-        // -1.
-
-        // Skip over any reserved addresses.
-        int ret;
-        uint8_t rxdata;
-        if (reserved_addr(addr))
-        {
-            ret = PICO_ERROR_GENERIC;
-            printf("R");
-
-        }
-        else
-        {
-            ret = i2c_read_blocking(i2c1, addr, &rxdata, 1, false);
-            printf(ret < 0 ? "." : "@");
-
-        }
-
-        printf(addr % 16 == 15 ? "\n" : "  ");
-    }
-    printf("Done.\n");
-    return 0;
-}

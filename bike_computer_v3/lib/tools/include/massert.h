@@ -7,9 +7,9 @@
 
 #define massert(check, format, ...) \
     do { \
-        if(!check) \
+        if(!(check)) \
         { \
-            printf(format, ##__VA_ARGS__); \
+            printf("\x1b[1;31m" format, ##__VA_ARGS__); \
             fflush(stdout); \
             assert(check); \
         } \

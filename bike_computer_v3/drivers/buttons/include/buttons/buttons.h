@@ -10,6 +10,7 @@
 
 extern interrupt button0;
 extern interrupt button1;
+extern interrupt button1rel;
 extern interrupt button2;
 extern interrupt button3;
 #endif

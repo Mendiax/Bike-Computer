@@ -13,6 +13,8 @@ enum class Align{
 };
 
 
+
+
 /* class containing part of data to draw */
 struct DisplayData
 {
@@ -48,6 +50,15 @@ typedef struct ValSettings
     TextSettings text;
     void *data;
 } ValSettings;
+
+
+struct Settings
+{
+    union{
+        LabelSettings label;
+        ValSettings val;
+    };
+};
 
 
 // ========== unused =============

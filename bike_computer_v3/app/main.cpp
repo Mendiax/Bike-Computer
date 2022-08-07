@@ -53,7 +53,7 @@ int main()
     stdio_init_all();
     // wait for serial console
     // coment out for normal use
-    while (!stdio_usb_connected()){sleep_ms(100);}
+    //while (!stdio_usb_connected()){sleep_ms(100);}
     TRACE_DEBUG(0, TRACE_MAIN, "Main start\n");
 
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
@@ -70,7 +70,7 @@ int main()
     batterySetup();
 
     speedDataInit(sensorData.speed);
-    speed_emulate();
+    //speed_emulate();
 
     //sensorData.rearShockBuffer = ring_buffer_create(sizeof(uint8_t), SCREEN_WIDTH);
     TRACE_DEBUG(0, TRACE_MAIN, "Launch core1\n");
@@ -94,37 +94,6 @@ void loop()
     mutex_exit(&sensorDataMutex);
 
     return;
-
-//     // lower refresh rate to save some energy
-//     static absolute_time_t lastDisplayUpdate;
-//     int64_t delta_time_ms = us_to_ms(absolute_time_diff_us(lastDisplayUpdate, currentTime));
-//     if (delta_time_ms < 100)
-//     {
-//         // TODO
-//         // add sleep time to save energy after creating interrupt for btn
-//         // int64_t timeLeft = 100 - delta_time_ms;
-//         return;
-//     }
-// #if PRINT_FRAME_TIME
-//     absolute_time_t updateStart = get_absolute_time();
-//     Display_update();
-//     absolute_time_t updateEnd = get_absolute_time();
-//     int64_t updateTime = us_to_ms(absolute_time_diff_us(updateStart, updateEnd));
-//     std::string log = "update:" + std::to_string(updateTime) + "ms";
-
-//     Paint_Println( 0, 0, log.c_str(), &Font8, 0x0f, 0x00);
-//     display::display();
-//     sleep_ms(100);
-// #else
-//     Display_update();
-//     getBatteryLevel();
-//     getTemp();
-    
-//     //std::string log = "btn:" + std::to_string(gpio_get(BTN));
-//     //Paint_Println(0 * Font8.width, 1 * Font8.height, log.c_str(), &Font8, 0x0f, 0x00);
-//     display::display();
-// #endif
-//     //Screen_draw();// TODO fix battery
 }
 
 // DO NOT REMOVE

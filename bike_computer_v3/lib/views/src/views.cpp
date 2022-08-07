@@ -16,84 +16,87 @@
 #include <typeinfo>
 #include <stdint.h>
 
-#define SETTING_SIZE std::max(std::max(std::max(sizeof(LastValSettings), sizeof(PlotSettings)), sizeof(LabelSettings)), sizeof(ValSettings))
-uint8_t allocData[SETTING_SIZE * MAX_NUMBER_OF_WINDOWS + sizeof(View)];
+//#define SETTING_SIZE std::max(std::max(std::max(sizeof(LastValSettings), sizeof(PlotSettings)), sizeof(LabelSettings)), sizeof(ValSettings))
+//uint8_t allocData[SETTING_SIZE * MAX_NUMBER_OF_WINDOWS + sizeof(View)];
+//
+//void* getSettings(unsigned id){
+//    assert(id < MAX_NUMBER_OF_WINDOWS);
+//    return allocData + sizeof(View) + id * SETTING_SIZE;
+//}
 
-void* getSettings(unsigned id){
-    assert(id < MAX_NUMBER_OF_WINDOWS);
-    return allocData + sizeof(View) + id * SETTING_SIZE;
-}
-
-void add_label(const char* string, const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT, size_t commonLength = 0)
+void add_label(const char* string, const Frame& frame,   Align align = Align::LEFT, size_t commonLength = 0)
 {
-    auto valSettings = (LabelSettings*)getSettings(settingsId++);
+    LabelSettings valSettings;
     if(commonLength > 0)
     {
-        labelSettingsNew(valSettings, frame, string, commonLength);
+        labelSettingsNew(&valSettings, frame, string, commonLength);
     }
     else
     {
-        labelSettingsNew(valSettings, frame, string);
+        labelSettingsNew(&valSettings, frame, string);
     }
     
-    labelSettingsAlign(valSettings, frame, align);
-    View *newView = (View *)_Display.dataAlloc;
-    Window_new_inPlace(&newView->windows[windowId++],
-                        valSettings,
-                        LabelDraw);
+    labelSettingsAlign(&valSettings, frame, align);
+    view_addNewWindow(&_Display.view, {valSettings, LabelDraw});
+    
 }
 
 template<typename T>
-void add_value(const char* format, size_t commonLength, T* data, const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT)
+void add_value(const char* format, size_t commonLength, T* data, const Frame& frame, Align align = Align::LEFT)
 {
-    auto valSettings = (ValSettings*)getSettings(settingsId++);
-    labelSettingsNew((LabelSettings *)valSettings, frame, format, commonLength);
+    Window newWindow;
+    newWindow.updateFunc_p = getDrawFunc(data);
+    labelSettingsNew(&newWindow.settings.label, frame, format, commonLength);
     
-    labelSettingsAlign((LabelSettings *)valSettings, frame, align);
-    valSettings->data = data;
-    View *newView = (View *)_Display.dataAlloc;
-    Window_new_inPlace(&newView->windows[windowId++],
-                        valSettings,
-                        getDrawFunc(data));
+    labelSettingsAlign(&newWindow.settings.label, frame, align);
+    newWindow.settings.val.data = data;
+    view_addNewWindow(&_Display.view, newWindow);
+    
 }
 
-void add_Vertical(const char* over, const char* under, const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT)
+void add_Vertical(const char* over, const char* under, const Frame& frame, Align align = Align::LEFT)
 {
-    const uint16_t str_len_max = std::max(strlen(over), strlen(under));
+    const uint_fast16_t str_len_max = std::max(strlen(over), strlen(under));
+    const uint_fast16_t half_height = frame.height >> 1;
+    const Frame unitTop = {frame.x, frame.y, frame.width, (uint16_t)half_height};
+    add_label(over, unitTop,  align, str_len_max);
 
-    Frame unitTop =     {frame.x, frame.y, frame.width, frame.height/2};
-    add_label(over, unitTop, settingsId, windowId, align, str_len_max);
-
-    Frame unitBottom =  {frame.x, frame.y + labelSettingsGetHeight((LabelSettings *)getSettings(settingsId-1)), frame.width, frame.height/2};
-    add_label(under, unitBottom, settingsId, windowId, align, str_len_max);
+    const uint16_t top_unit_max_y = frame.y + labelSettingsGetHeight(&view_getPreviousWindow(&_Display.view)->settings.label);
+    const Frame unitBottom = {frame.x, top_unit_max_y,
+                              frame.width, (uint16_t)half_height};
+    add_label(under, unitBottom,  align, str_len_max);
 }
 
 template<typename T, typename Q>
 void add_Vertical(const char* overFormat, size_t overCommonLength, T* overData,
                   const char* underFormat, size_t underCommonLength, Q* underData,
-                  const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT)
+                  const Frame& frame,   Align align = Align::LEFT)
 {
-    const uint16_t str_len_max = std::max(overCommonLength, underCommonLength);
+    const uint_fast16_t str_len_max = std::max(overCommonLength, underCommonLength);
+    const uint_fast16_t half_height = frame.height >> 1;
 
-    Frame unitTop =     {frame.x, frame.y, frame.width, frame.height/2};
-    add_value(overFormat, str_len_max, overData, unitTop, settingsId, windowId, align);
+    const Frame unitTop =     {frame.x, frame.y, frame.width, (uint16_t)half_height};
+    add_value(overFormat, str_len_max, overData, unitTop,  align);
 
-    Frame unitBottom =  {frame.x, frame.y + labelSettingsGetHeight((LabelSettings *)getSettings(settingsId-1)), frame.width, frame.height/2};
-    add_value(underFormat, str_len_max, underData, unitBottom, settingsId, windowId, align);
+    const uint_fast16_t top_unit_height = labelSettingsGetHeight(&view_getPreviousWindow(&_Display.view)->settings.label);
+    const Frame unitBottom =  {frame.x, frame.y + (uint16_t)top_unit_height,
+                         frame.width, (uint16_t)half_height};
+    add_value(underFormat, str_len_max, underData, unitBottom,  align);
 }
 
-void add_Units(const char* over, const char* under, const Frame& frame, uint8_t& settingsId, uint8_t& windowId,  Align align = Align::LEFT)
+void add_Units(const char* over, const char* under, const Frame& frame, Align align = Align::LEFT)
 {
     const uint16_t str_len_max = std::max(strlen(over), strlen(under));
+    const uint_fast16_t half_height = frame.height >> 1;
 
-    add_Vertical(over, under, frame, settingsId, windowId, align);
+    add_Vertical(over, under, frame,  align);
 
     static const char* line_template = "_____";
     static char line[6];
     memcpy(line, line_template, sizeof(line));
     line[str_len_max] = '\0'; 
-    Frame unitMid =     {frame.x, frame.y,   frame.width, frame.height/2};
-    add_label(line, unitMid, settingsId, windowId, align);
+    const Frame unitMid =     {frame.x, frame.y,   frame.width, (uint16_t)half_height};
+    add_label(line, unitMid,  align);
 }
 
 /**
@@ -106,24 +109,26 @@ void add_Units(const char* over, const char* under, const Frame& frame, uint8_t&
 static auto splitFrame(const Frame& frame, uint16_t length, bool align_right=false)
 {
     massert(length > 1, "length should be greater than 1\n");
-    uint16_t widthPerChar = frame.width / length;
+    const uint16_t widthPerChar = frame.width / length;
     const sFONT* char_font;
     uint8_t char_scale;
     getFontSize(widthPerChar, frame.height, &char_font, &char_scale);
-    uint16_t char_width = char_font->width * char_scale;
+    const uint16_t char_width = char_font->width * char_scale;
     massert(char_width <= widthPerChar, "char becomes bigger %d > %d\n", char_width, widthPerChar);
     massert(length * char_width <= DISPLAY_WIDTH, "length outside of display width range %d > %d\n", length * char_width, DISPLAY_WIDTH);
 
     uint16_t height = char_font->height * char_scale;
     //auto offset = (frame.width / length);
-    Frame f1 = {frame.x, frame.y, char_width * (length - 1), height};
-    Frame f2 = {f1.x + f1.width, frame.y, char_width, height};
+    const uint_fast16_t f1_width = char_width * (length - 1u); 
+    Frame f1 = {frame.x, frame.y, (uint16_t)f1_width, height};
+    const uint_fast16_t f2_x_offset = f1.x + f1.width;  
+    Frame f2 = {(uint16_t) f2_x_offset, frame.y, char_width, height};
     
     TRACE_DEBUG(1, TRACE_VIEWS, "Frame splited %s and %s\n", frame_to_string(f1).c_str(), frame_to_string(f2).c_str());
 
     //assert(frame.width >= (f1.width + f2.width);
     massert(frame.width >= (f1.width + f2.width), "offset will be negative, f1 and f2 width are not correct\n");
-    uint16_t offset = frame.width - (f1.width + f2.width);
+    const uint16_t offset = frame.width - (f1.width + f2.width);
     if(align_right)
     {
         printf("offset = %" PRIu16 " \n", offset);
@@ -142,26 +147,24 @@ template<typename T>
 void addValueUnitsVertical(const char* format, size_t commonLength, T* data,
                            const char* over, const char* under,
                            const Frame& frame, 
-                           uint8_t& settingsId, uint8_t& windowId,
                            Align align = Align::LEFT, bool alignRight = true)
 {
     auto [frameValue, frameUnits] = splitFrame(frame, commonLength + 1, alignRight);
-    add_value(format, commonLength, data, frameValue, settingsId, windowId);
-    add_Units(over, under, frameUnits, settingsId, windowId, align);
+    add_value(format, commonLength, data, frameValue);
+    add_Units(over, under, frameUnits,  align);
 }
 template<typename T, typename Q, typename P>
 void addValueValuesVertical(const char* format, size_t commonLength, T* data,
                             const char* overFormat, size_t overCommonLength, Q* overData,
                             const char* underFormat, size_t underCommonLength, P* underData,
-                            const Frame& frame, 
-                            uint8_t& settingsId, uint8_t& windowId,
+                            const Frame& frame,                      
                             Align align = Align::LEFT, bool alignRight = true)
 {
     auto [frameValue, frameUnits] = splitFrame(frame, commonLength + 1, alignRight);
-    add_value(format, commonLength, data, frameValue, settingsId, windowId);
+    add_value(format, commonLength, data, frameValue);
     add_Vertical(overFormat, overCommonLength, overData,
                  underFormat, underCommonLength, underData,
-                 frameUnits, settingsId, windowId, align);
+                 frameUnits,  align);
 }
 
 /*
@@ -170,33 +173,19 @@ void addValueValuesVertical(const char* format, size_t commonLength, T* data,
 */
 void view0(void)
 {
-    
-    uint8_t numberOfWindows = 6;
-    View *newView = (View *)_Display.dataAlloc;
-    view_new_inAllocatedPlace(newView, 0); // TODO fix this xd no of windows is not needed here
-    uint8_t settingsId = 0;
-    uint8_t windowId = 0;
+    view_new_inAllocatedPlace(&_Display.view);
 
-    Frame unit = {0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT/2}; 
+    Frame speed = {0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT/2}; 
 
-    addValueUnitsVertical("%2.0f", 2, &_Display.data->speed.velocity, "km","h", unit, 
-                          settingsId, windowId, Align::CENTER, true);
+    addValueUnitsVertical("%2.0f", 2, &_Display.data->speed.velocity, "km","h", speed, 
+                           Align::CENTER, true);
     
     Frame distanceFrame = {0, DISPLAY_HEIGHT/2, DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
     addValueValuesVertical("%3" PRIu16, 3, &_Display.data->speed.distance,
-                           "%2" PRIu8, 2, &_Display.data->speed.distanceDec,
+                           "%02" PRIu8, 2, &_Display.data->speed.distanceDec,
                            "km", 2, (void*)0,
                            distanceFrame,
-                           settingsId, windowId, Align::CENTER, true);
-    
-    newView->numberOfWindows = windowId;
-    //DEBUG_OLED_ASSERT(numberOfWindows == windowId, "Too many windows %u\n", windowId);
-    //DEBUG_OLED_ASSERT(numberOfWindows == settingsId, "Too many settings %u\n", settingsId);
-
-    // TODO static assert
-    DEBUG_OLED_ASSERT(MAX_NUMBER_OF_WINDOWS >= numberOfWindows, 
-                      "Increase macro MAX_NUMBER_OF_WINDOWS-> %u", 
-                      numberOfWindows);
+                            Align::CENTER, true);
 
     TRACE_DEBUG(4, TRACE_VIEWS, "view0 setup finished \n%s", "");
 }
@@ -207,80 +196,23 @@ void view0(void)
 */
 void view1(void)
 {
-    uint8_t numberOfWindows = 4;
-    uint8_t settingsId = 0;
-    uint8_t windowId = 0;
+    view_new_inAllocatedPlace(&_Display.view);
+    Frame topLeft = {0,0, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/5};
+    Frame topRight = {DISPLAY_WIDTH/2,topLeft.y, DISPLAY_WIDTH/2, topLeft.height};
+    add_label("max",topLeft,Align::CENTER);
+    add_label("avg",topRight,Align::CENTER);
+    Frame bottomLeft ={0,topLeft.y + topLeft.height, topLeft.width, 100};
+    Frame bottomRight ={topRight.x,topRight.y + topRight.height, topRight.width, bottomRight.height};
+    add_value("%2.0f",2,&_Display.data->speed.velocityMax, bottomLeft, Align::CENTER);
+    add_value("%2.0f",2,&_Display.data->speed.avgGlobal, bottomRight, Align::CENTER);
 
-    // View *newView = (View *)_Display.dataAlloc;
-    // view_new_inAllocatedPlace(newView, numberOfWindows);
-
-    // ValSettings *maxSpeedSettings = (ValSettings *)getSettings(settingsId++);
-    // *maxSpeedSettings = (ValSettings){
-    //     .format = "%2.0f",
-    //     .maxLength = 6,
-    //     .font = &Font24,
-    //     .textScale = 2,
-    //     .offsetX = 0,
-    //     .offsetY = 44};
-    // Window_new_inPlace(&newView->windows[windowId++],
-    //                    (Frame){0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
-    //                    (void *)&(_Display.data->speed.velocityMax),
-    //                    (void *)maxSpeedSettings,
-    //                    drawFormatFloat);
-    // Window_new_inPlace(&newView->windows[windowId++],
-    //                    (Frame){SCREEN_WIDTH/2, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
-    //                    (void *)&(_Display.data->speed.avgGlobal),
-    //                    (void *)maxSpeedSettings,
-    //                    drawFormatFloat);
-
-    // /*top header*/
-    // LabelSettings *header2Settings = (LabelSettings *)getSettings(settingsId++);
-    // *header2Settings = (LabelSettings){
-    //     .string = "max   avg",
-    //     .font = &Font20,
-    //     .offsetX = 2,
-    //     .offsetY = 20};
-    // Window_new_inPlace(&newView->windows[windowId++],
-    //                    (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT},
-    //                    (void *)0,
-    //                    (void *)header2Settings,
-    //                    LabelDraw);
-
-    // ValSettings *topBarSettings = (ValSettings *)getSettings(settingsId++);
-    // *topBarSettings = (ValSettings){
-    //     .text.string = "%d:%02d:%02d",
-    //     .text.str_len = 15,
-    //     .text.font = &Font16,
-    //     .text.scale = 2,
-    //     .text.offsetX = 0,
-    //     .text.offsetY = 100};
-    // Window_new_inPlace(&newView->windows[windowId++],
-    //                    (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT_YELLOW},
-    //                    (void *)&(_Display.data->time),
-    //                    (void *)topBarSettings,
-    //                    ValDrawTime);
+    Frame time_passed = {0, bottomLeft.y + bottomLeft.height, DISPLAY_WIDTH, DISPLAY_HEIGHT - time_passed.y};
 
 
-    /*BAT LEVEL*/
-   /* ValSettings *lipoSettings = (ValSettings *)getSettings(settingsId++);
-    *lipoSettings = (ValSettings){
-        .format = "%d",
-        .maxLength = 6,
-        .font = &Font20,
-        .textScale = 1,
-        .offsetX = 0,
-        .offsetY = 0};
-    Window_new_inPlace(&newView->windows[windowId++],
-                       (Frame){0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT},
-                       (void *)&(_Display.data->lipoLevel),
-                       (void *)lipoSettings,
-                       ValDraw);*/
+    add_value("%2d:%02d:%02d", 8 ,&_Display.data->time, time_passed, Align::CENTER);
 
-    DEBUG_OLED_ASSERT(numberOfWindows >= windowId, "Too many windows %u", windowId);
-    DEBUG_OLED_ASSERT(numberOfWindows >= settingsId, "Too many settings %u", settingsId);
-    DEBUG_OLED_ASSERT(MAX_NUMBER_OF_WINDOWS >= numberOfWindows, 
-                      "Increase macro MAX_NUMBER_OF_WINDOWS-> %u", 
-                      numberOfWindows);
+
+    TRACE_DEBUG(4, TRACE_VIEWS, "view1 setup finished \n%s", "");
 }
 
 

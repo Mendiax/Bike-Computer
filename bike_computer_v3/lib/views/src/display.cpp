@@ -25,8 +25,6 @@ extern void view1(void);
 extern void view2(void);
 extern void view3(void);
 
-extern uint8_t allocData[];
-
 //view_new_func views_all[] = {view0, view1, view2, view3, view4};
 view_new_func views_all[] = {view0, view1};
 #define DISPLAY_TYPES_LENGTH (sizeof(views_all) / sizeof(view_new_func))
@@ -38,7 +36,6 @@ void Display_init(SensorData *data)
     // setup
     Screen_setup();
 
-    _Display.dataAlloc = allocData;
     views_all[_Display.currentType]();
 }
 
@@ -68,7 +65,7 @@ void Display_update()
     Screen_clear();
 
     //display data on screen
-    view_draw((View*)_Display.dataAlloc);
+    view_draw(&_Display.view);
 
     //Screen_draw();
 }

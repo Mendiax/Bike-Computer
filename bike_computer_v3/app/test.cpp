@@ -18,6 +18,7 @@
 #include "speedometer/speedometer.hpp"
 
 #include "sim868/interface.hpp"
+#include "traces.h"
 // TODO split tests into files
 
 
@@ -28,8 +29,7 @@
 // #include "ff.h"
 
 #include "IMU.h"
-// #include "I2C.h"
-#include "BMP280_pico.h"
+#include "I2C.h"
 
 // void test_SD()
 // {
@@ -39,7 +39,6 @@
 //     int ret;
 //     char buf[100];
 //     char filename[] = "test02.txt";
-
 // START_SD:
 //     // Wait for user to press 'enter' to continue
 //     printf("\r\nSD card test. Press 'enter' to start.\r\n");
@@ -51,14 +50,12 @@
 //             break;
 //         }
 //     }
-
 //     // Initialize SD card
 //     if (!sd_init_driver())
 //     {
 //         printf("ERROR: Could not initialize SD card\r\n");
 //         goto START_SD;
 //     }
-
 //     // Mount drive
 //     fr = f_mount(&fs, "0:", 1);
 //     if (fr != FR_OK)
@@ -66,7 +63,6 @@
 //         printf("ERROR: Could not mount filesystem (%d)\r\n", fr);
 //         goto START_SD;
 //     }
-
 //     // Open file for writing ()
 //     fr = f_open(&fil, filename, FA_WRITE | FA_CREATE_ALWAYS);
 //     if (fr != FR_OK)
@@ -74,7 +70,6 @@
 //         printf("ERROR: Could not open file (%d)\r\n", fr);
 //         goto START_SD;
 //     }
-
 //     // Write something to file
 //     ret = f_printf(&fil, "This is another test\r\n");
 //     if (ret < 0)
@@ -90,7 +85,6 @@
 //         f_close(&fil);
 //         goto START_SD;
 //     }
-
 //     // Close file
 //     fr = f_close(&fil);
 //     if (fr != FR_OK)
@@ -98,7 +92,6 @@
 //         printf("ERROR: Could not close file (%d)\r\n", fr);
 //         goto START_SD;
 //     }
-
 //     // Open file for reading
 //     fr = f_open(&fil, filename, FA_READ);
 //     if (fr != FR_OK)
@@ -106,7 +99,6 @@
 //         printf("ERROR: Could not open file (%d)\r\n", fr);
 //         goto START_SD;
 //     }
-
 //     // Print every line in file over serial
 //     printf("Reading from file '%s':\r\n", filename);
 //     printf("---\r\n");
@@ -115,7 +107,6 @@
 //         printf(buf);
 //     }
 //     printf("\r\n---\r\n");
-
 //     // Close file
 //     fr = f_close(&fil);
 //     if (fr != FR_OK)
@@ -123,10 +114,8 @@
 //         printf("ERROR: Could not close file (%d)\r\n", fr);
 //         goto START_SD;
 //     }
-
 //     // Unmount drive
 //     f_unmount("0:");
-
 //     // Loop forever doing nothing
 //     while (true)
 //     {
@@ -136,24 +125,42 @@
 
 void test_DOF()
 {
-    init_i2c();
-    scan();
+    //init_i2c();
+    I2C_Init();
+    //scan();
     // bmp_test();
     consolep("I2C init\n");
     IMU_Init();
     consolep("IMU init\n");
     float data[3];
-#define INS_ARR(arr) arr[0], arr[1], arr[2]
-#define FORMAT_INT16 "% 3d"
-#define FORMAT_INT16_ARR "[" FORMAT_INT16 "," FORMAT_INT16 "," FORMAT_INT16 "]"
-#define FORMAT_FLOAT "% 3.2f"
-#define FORMAT_FLOAT_ARR "[" FORMAT_FLOAT "," FORMAT_FLOAT "," FORMAT_FLOAT "]"
-    while (0)
+
+    while (1)
     {
         // int16_t magn[3], accel[3], gyro[3];
-        IMU_GetYawPitchRoll(data);
-        sleep_ms(1000);
-        consolef("YawPitchRoll" FORMAT_FLOAT_ARR " accel" FORMAT_INT16_ARR " magn" FORMAT_INT16_ARR " gyro" FORMAT_INT16_ARR "\n", INS_ARR(data), INS_ARR(accel), INS_ARR(magn), INS_ARR(gyro));
+        //IMU_GetYawPitchRoll(data);
+        //sleep_ms(1000);
+        Vector3 accel, mag, gyro;
+        mpu9250::read_accel(accel);
+        mpu9250::read_mag(mag);
+        mpu9250::read_gyro(gyro);
+
+        // accel.normalize();
+        // mag.normalize();
+        // gyro.normalize();
+
+        auto [temp, press] = bmp280::get_temp_press();
+
+        consolef(" accel " FORMAT_INT16_ARR "\t", INS_ARR(accel.arr));
+        consolef(" magn "  FORMAT_INT16_ARR "\t", INS_ARR(mag.arr));
+        consolef(" gyro "  FORMAT_INT16_ARR "\t", INS_ARR(gyro.arr));
+        consolef(" temp %" PRId32 "\tpress %" PRId32, temp, press);
+
+        //consolef("%" PRIi16 "\t%" PRIi16 "\t%" PRIi16, INS_ARR(gyro.arr));  // angle accel ???
+        consolep("\n");
+
+
+        //consolef("YawPitchRoll " FORMAT_FLOAT_ARR " gyro " FORMAT_INT16_ARR "\n", INS_ARR(data), INS_ARR(gyro));
+
     }
 }
 
@@ -326,6 +333,10 @@ int main(void)
     */
     //test_console();
     consoleLogInit();
+
+    //init_i2c();
+    //bmp_test();
+    test_DOF();
 
     test_sim868_interface();
     //test_atInternet();

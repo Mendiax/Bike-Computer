@@ -11,15 +11,20 @@ struct SpeedData
     float avgGlobal;
     int16_t distance;
     int8_t distanceDec;
-    uint64_t driveTime;
+    uint64_t driveTime; // in ms
 };
 
+// typedef struct mtime_t
+// {
+//     unsigned int t;
+//     char xddd[2];
+// } mtime_t;
 
 typedef struct SensorData
 {
     RingBuffer* rearShockBuffer;
     SpeedData speed;
-    unsigned long time;
+    uint64_t time;
     bool lipoCharging;
     int lipoLevel; // in %
 } SensorData;

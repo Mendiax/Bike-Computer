@@ -5,7 +5,7 @@
 #include "hardware/gpio.h"
 #include "types.h"
 
-#define PIN_SPEED 9
+#define PIN_SPEED 22
 
 //defined wheel size [m]
 //hand measure r = 34.8cm -> d = 0.696m

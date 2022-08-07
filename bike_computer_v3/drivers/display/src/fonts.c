@@ -1,6 +1,7 @@
 #include "display/fonts.h"
 //#include "display/debug.h"
 #include "massert.h"
+#include "inttypes.h"
 
 // prefering delta
 void getFontSize(uint16_t width, uint16_t height, const sFONT** font, uint8_t* scale)
@@ -44,7 +45,9 @@ void getFontSize(uint16_t width, uint16_t height, const sFONT** font, uint8_t* s
       *scale = newScale;
     }
   }
-  massert((*font)->width * *scale <= width && (*font)->height * *scale <= height, "hmmm\n");
+  massert((*font)->width * *scale <= width && (*font)->height * *scale <= height,
+          "fw=%" PRIu16 "> w=%" PRIu16 " or fh=%" PRIu16 "> h=%" PRIu16 "\n",
+          (*font)->width * *scale, width, (*font)->height * *scale, height);
 }
 
 void getFontSizePreferBiggerFonts(uint16_t width, uint16_t height, const sFONT** font, uint8_t* scale)

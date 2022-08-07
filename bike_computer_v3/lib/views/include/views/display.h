@@ -13,7 +13,7 @@
 
 typedef struct Display
 {
-    const uint8_t *dataAlloc;
+    View view;
     SensorData *data;
     uint8_t currentType;
 } Display;
