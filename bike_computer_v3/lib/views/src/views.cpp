@@ -51,7 +51,6 @@ void add_value(const char* format, size_t commonLength, T* data, const Frame& fr
     labelSettingsAlign(&newWindow.settings.label, frame, align);
     newWindow.settings.val.data = data;
     view_addNewWindow(&_Display.view, newWindow);
-    
 }
 
 void add_Vertical(const char* over, const char* under, const Frame& frame, Align align = Align::LEFT)
@@ -143,6 +142,23 @@ static auto splitFrame(const Frame& frame, uint16_t length, bool align_right=fal
     return std::make_tuple(f1,f2);
 }
 
+static constexpr auto split_vertical(const Frame& frame)
+{
+    const uint16_t half_width = frame.width / 2;
+    const Frame f1 = {frame.x, frame.y, half_width, frame.height};
+    const Frame f2 = {frame.x + half_width, frame.y, half_width, frame.height};
+    return std::make_tuple(f1,f2);
+}
+static constexpr auto split_horizontal(const Frame& frame)
+{
+    const uint16_t half_height = frame.height / 2;
+    const Frame f1 = {frame.x, frame.y, frame.width, half_height};
+    const Frame f2 = {frame.x, frame.y + half_height, frame.width, half_height};
+    return std::make_tuple(f1,f2);
+}
+
+
+
 template<typename T>
 void addValueUnitsVertical(const char* format, size_t commonLength, T* data,
                            const char* over, const char* under,
@@ -167,6 +183,19 @@ void addValueValuesVertical(const char* format, size_t commonLength, T* data,
                  frameUnits,  align);
 }
 
+#define TOP_BAR_HEIGHT (DISPLAY_HEIGHT / 10)
+
+void top_bar()
+{
+    Frame bar_frame = {0, 0, DISPLAY_WIDTH, TOP_BAR_HEIGHT};
+    add_value("/\\%3d" PRIu8, BAT_LEVEL_LABEL_LENGTH, &_Display.data->lipo, bar_frame, Align::RIGHT);
+}
+
+static constexpr Frame get_frame_bar()
+{
+    return {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT - TOP_BAR_HEIGHT};
+}
+
 /*
 
     speed, distance 
@@ -174,13 +203,18 @@ void addValueValuesVertical(const char* format, size_t commonLength, T* data,
 void view0(void)
 {
     view_new_inAllocatedPlace(&_Display.view);
+    top_bar();
 
-    Frame speed = {0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT/2}; 
+    // const auto frame = get_frame_bar();
+
+    // const auto [frame_speed, frame_distance] = split_horizontal(); 
+
+    Frame speed = {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
 
     addValueUnitsVertical("%2.0f", 2, &_Display.data->speed.velocity, "km","h", speed, 
                            Align::CENTER, true);
     
-    Frame distanceFrame = {0, DISPLAY_HEIGHT/2, DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
+    Frame distanceFrame = {0, (speed.y + speed.height), DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
     addValueValuesVertical("%3" PRIu16, 3, &_Display.data->speed.distance,
                            "%02" PRIu8, 2, &_Display.data->speed.distanceDec,
                            "km", 2, (void*)0,
@@ -197,7 +231,9 @@ void view0(void)
 void view1(void)
 {
     view_new_inAllocatedPlace(&_Display.view);
-    Frame topLeft = {0,0, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/5};
+    top_bar();
+
+    Frame topLeft = {0,TOP_BAR_HEIGHT, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/5};
     Frame topRight = {DISPLAY_WIDTH/2,topLeft.y, DISPLAY_WIDTH/2, topLeft.height};
     add_label("max",topLeft,Align::CENTER);
     add_label("avg",topRight,Align::CENTER);
@@ -213,6 +249,45 @@ void view1(void)
 
 
     TRACE_DEBUG(4, TRACE_VIEWS, "view1 setup finished \n%s", "");
+}
+
+void view2(void)
+{
+    view_new_inAllocatedPlace(&_Display.view);
+    top_bar();
+
+    Frame topLeft = {0,TOP_BAR_HEIGHT, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2};
+    Frame topRight = {DISPLAY_WIDTH/2,topLeft.y, DISPLAY_WIDTH/2, topLeft.height};
+    addValueUnitsVertical("%2.0f", 2, &_Display.data->gps_data.speed, "km","h", topLeft, 
+                           Align::CENTER, true);
+    add_value("%3.0f",3,&_Display.data->gps_data.msl, topRight, Align::CENTER);
+
+    Frame bottomLeft ={0,topLeft.y + topLeft.height, topLeft.width, DISPLAY_HEIGHT - bottomLeft.y};
+    Frame bottomRight ={topRight.x,topRight.y + topRight.height, topRight.width, bottomRight.height};
+    add_value("%6.3f",6,&_Display.data->gps_data.lat, bottomLeft, Align::CENTER);
+    add_value("%6.3f",6,&_Display.data->gps_data.lon, bottomRight, Align::CENTER);
+
+}
+
+void view3(void)
+{
+    view_new_inAllocatedPlace(&_Display.view);
+    top_bar();
+
+    auto frame  = get_frame_bar();
+    auto [frame_hour, frame_date] = split_horizontal(frame);
+    add_value("",TIMES_LABEL_LENGTH,&_Display.data->hour, frame_hour, Align::CENTER);
+    add_value("",TIMES_LABEL_LENGTH,&_Display.data->date, frame_date, Align::CENTER);
+}
+
+void view_charge(void)
+{
+
+}
+
+void view_main(void)
+{
+    
 }
 
 
@@ -272,23 +347,4 @@ void view1(void)
 //                        (void *)_Display.data->rearShockBuffer,
 //                        (void *)plotSettings,
 //                        PlotDrawByte);
-// }
-
-// void view4(void)
-// {
-//     View *newView = (View *)_Display.dataAlloc;
-//     view_new_inAllocatedPlace(newView, 1);
-//     ValSettings *topBarSettings = (ValSettings *)getSettings(0);
-//     *topBarSettings = (ValSettings){
-//         .format = "%d:%02d:%02d",
-//         .maxLength = 15,
-//         .textSize = &Font16,
-//         .textScale = 2,
-//         .offsetX = 0,
-//         .offsetY = 10};
-//     Window_new_inPlace(&newView->windows[0],
-//                        (Frame){0, 0, SCREEN_WIDTH, SCREEN_HEIGHT_YELLOW},
-//                        (void *)&(_Display.data->time),
-//                        (void *)topBarSettings,
-//                        ValDrawTime);
 // }

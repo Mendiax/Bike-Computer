@@ -43,9 +43,11 @@ enum tracesE{
     TRACE_VIEWS,
     TRACE_DISPLAY_PRINT,
     TRACE_VIEW,
+    TRACE_CORE_0,
     TRACE_CORE_1,
     TRACE_MPU9250,
     TRACE_BMP280,
+    TRACE_SIM868,
     NO_TRACES
 };
 
@@ -65,18 +67,26 @@ static inline void tracesSetup()
     TRACES_ON_ALL(TRACE_SPEED);
 
 //    TRACES_ON_ALL(TRACE_VIEWS);
-    TRACES_ON(0,TRACE_VIEWS);
-    TRACES_ON(1,TRACE_VIEWS);
-    TRACES_ON(2,TRACE_VIEWS);
-    TRACES_ON(3,TRACE_VIEWS);
-    TRACES_ON(4,TRACE_VIEWS);
+    // TRACES_ON(0,TRACE_VIEWS);
+    // TRACES_ON(1,TRACE_VIEWS);
+    // TRACES_ON(2,TRACE_VIEWS);
+    // TRACES_ON(3,TRACE_VIEWS);
+    // TRACES_ON(4,TRACE_VIEWS);
     // 5 6 drawing windows
     // TRACES_ON(5,TRACE_VIEWS);
     // TRACES_ON(6,TRACE_VIEWS);
 
-    TRACES_ON(7,TRACE_VIEWS); // adding new window
+    //TRACES_ON(7,TRACE_VIEWS); // adding new window
 
+    //TRACES_ON(1,TRACE_CORE_0); // bat info
+    //TRACES_ON(2, TRACE_CORE_0); // data update time
+    //TRACES_ON(3, TRACE_CORE_0); // gps update
+
+
+    
     TRACES_ON(1,TRACE_CORE_1); // render time for scree
+    TRACES_ON(2,TRACE_CORE_1); // pause btn
+
 
 
     //TRACES_ON(0, BUTTONS);
@@ -88,6 +98,11 @@ static inline void tracesSetup()
 
     TRACES_ON(1, TRACE_MPU9250); // mpu init
     TRACES_ON(2, TRACE_MPU9250);  // reag gyro
+
+    //TRACES_ON(1, TRACE_SIM868);  // send request log
+    TRACES_ON(2, TRACE_SIM868);  // send_request log
+
+
 
 
 
@@ -124,7 +139,7 @@ namespace utility {
     if (tracesOn[name] & (1 << id))\
     {\
         mutex_enter_blocking(&tracesMutex); \
-        printf("[" #name ".%2u]<%s:%d> " __info,\
+        printf("[" #name ".%u]<%s:%d> " __info,\
             id,\
             &__FILE__[UTILITY_CONST_EXPR_VALUE(utility::get_file_name_offset(__FILE__))],\
             __LINE__,\
@@ -134,6 +149,6 @@ namespace utility {
     }while(0)
 
 #define TRACE_ABNORMAL(name, __info, ...) \
-    TRACE_DEBUG(0, name, "\x1b[1;31mABNORMAL" __info, ##__VA_ARGS__)
+    TRACE_DEBUG(0, name, "\x1b[1;31mABNORMAL" __info "\x1b[0m", ##__VA_ARGS__)
 
 #endif

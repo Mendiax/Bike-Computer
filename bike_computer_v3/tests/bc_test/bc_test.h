@@ -16,6 +16,8 @@
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
 
+#define ERROR 1
+
 #define BC_TEST_START()                \
     do                                 \
     {                                  \
@@ -29,18 +31,18 @@
 #define BC_TEST(funcName)                                                                \
     do                                                                                   \
     {                                                                                    \
-        printf("[TEST]" #funcName "started\n");                                          \
+        printf("[TEST] " #funcName " started\n");                                          \
         absolute_time_t timeStart = get_absolute_time();                                 \
         int ret = funcName();                                                            \
         absolute_time_t timeEnd = get_absolute_time();                                   \
-        long long int timeTaken = absolute_time_diff_us(timeEnd, timeStart);             \
+        long long int timeTaken = absolute_time_diff_us(timeStart, timeEnd);             \
         if (ret != 0)                                                                    \
         {                                                                                \
-            printf("\x1b[1;31m[TEST]" #funcName " FAILED!   Took %lld us\n", timeTaken); \
+            printf("\x1b[1;31m[TEST] " #funcName " FAILED!   Took %lld us\n\x1b[0m", timeTaken); \
         }                                                                                \
         else                                                                             \
         {                                                                                \
-            printf("\x1b[1;32m[TEST]" #funcName " PASSED!   Took %lld us\n", timeTaken); \
+            printf("\x1b[1;32m[TEST] " #funcName " PASSED!   Took %lld us\n\x1b[0m", timeTaken); \
         }                                                                                \
     } while (0)
 

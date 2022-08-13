@@ -16,7 +16,7 @@
 */
 typedef struct View
 {
-    size_t currnetNumberOfWindows;
+    uint8_t currnetNumberOfWindows;
     Window windows[MAX_NUMBER_OF_WINDOWS];
 } View;
 

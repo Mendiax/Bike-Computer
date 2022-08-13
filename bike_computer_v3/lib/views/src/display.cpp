@@ -25,8 +25,12 @@ extern void view1(void);
 extern void view2(void);
 extern void view3(void);
 
+extern void view_charge(void);
+extern void view_main(void);
+
+
 //view_new_func views_all[] = {view0, view1, view2, view3, view4};
-view_new_func views_all[] = {view0, view1};
+view_new_func views_all[] = {view0, view1, view2, view3};
 #define DISPLAY_TYPES_LENGTH (sizeof(views_all) / sizeof(view_new_func))
 void Display_init(SensorData *data)
 {
@@ -50,6 +54,15 @@ void Display_incDisplayType()
     assert(_Display.currentType >= 0 && _Display.currentType < DISPLAY_TYPES_LENGTH);
 
     views_all[_Display.currentType]();
+}
+
+void Display_set_charge_display_type()
+{
+    view_charge();
+}
+void Display_set_main_display_type()
+{
+    view_main();
 }
 
 void Display_decDisplayType()

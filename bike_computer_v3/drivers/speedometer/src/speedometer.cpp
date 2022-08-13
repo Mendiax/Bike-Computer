@@ -25,10 +25,12 @@
 
 
  // static variables definitions
-static volatile absolute_time_t speed_lastupdate = {0};
+static volatile absolute_time_t speed_lastupdate_prev;
+static volatile absolute_time_t speed_lastupdate;
+
 //[m/s]
 static volatile float speed_velocity = 0.0f;
-static volatile unsigned speed_wheelCounter = 0;
+static volatile uint_fast64_t speed_wheelCounter = 0;
 // check if last value was read by speed_getSpeed() function
 static volatile bool dataReady = false;
 
@@ -46,9 +48,9 @@ float speed_mps_to_kmph(float speed_mps)
 {
     return speed_mps * 3.6;
 }
-unsigned speed_getDistance()
+float speed_getDistance()
 {
-    return floor((double)speed_wheelCounter * WHEEL_SIZE);
+    return (double)speed_wheelCounter * WHEEL_SIZE;
 }
 
 /*returns last read speed [m/s]*/
@@ -97,18 +99,20 @@ void speed_emulate(int16_t speed)
 void speedDataUpdate(SpeedData& speedData)
 {
     static uint64_t driveStartTime;
-    if(speed_getDistance() > 0)
-        speedData.driveTime = (to_ms_since_boot(get_absolute_time()) / 1000) - driveStartTime;
+    auto time_s = to_ms_since_boot(get_absolute_time()) / 1000;
+    auto distance = speed_getDistance(); 
+    if(distance > 0)
+        speedData.driveTime = time_s - driveStartTime;
     else
-        driveStartTime = (to_ms_since_boot(get_absolute_time()) / 1000);
+        driveStartTime = time_s;
     // get data for speed and distance
     speedData.velocity = speed_mps_to_kmph(speed_getSpeed());
-    speedData.distance = speed_getDistance() / 1000;
-    speedData.distanceDec = (speed_getDistance() / 100) % 100;
+    speedData.distance = distance / 1000.0;
+    speedData.distanceDec = (uint64_t)(distance / 100.0) % 100;
 
     // do some calculations
     speedData.velocityMax = std::fmax(speedData.velocityMax, speedData.velocity);
-    speedData.avgGlobal = ((double)speed_getDistance() /(double)speedData.driveTime) * 3.6;
+    speedData.avgGlobal = ((double)distance /(double)speedData.driveTime) * 3.6;
 
     
     // update buffer
@@ -170,9 +174,9 @@ static void speed_update()
             TRACE_ABNORMAL(TRACE_SPEED, "too fast speed updates delta time = %lld\n", delta_time);
             return;
         }
-        speed_wheelCounter++;
+        ++speed_wheelCounter;
         speed_velocity = speed_velocity_from_delta(delta_time);
-        DEBUG_SPEED("interrupt : %lu speed : %f delta : %lld last : %lu\n", to_ms_since_boot(update_us), speed_velocity, delta_time,  to_ms_since_boot(last_update_us));
+        //DEBUG_SPEED("interrupt : %lu speed : %f delta : %lld last : %lu\n", to_ms_since_boot(update_us), speed_velocity, delta_time,  to_ms_since_boot(last_update_us));
         absolute_time_copy_to_volatile(speed_lastupdate, update_us);
         dataReady = true;
 }

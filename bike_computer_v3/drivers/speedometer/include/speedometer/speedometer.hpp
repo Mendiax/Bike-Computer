@@ -3,7 +3,7 @@
 
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
-#include "types.h"
+#include "common_types.h"
 
 #define PIN_SPEED 22
 
@@ -16,7 +16,7 @@
 
 float speed_mps_to_kmph(float speed_mps);
 
-unsigned speed_getDistance();
+float speed_getDistance();
 
 /*returns last read speed [m/s]*/
 float speed_getSpeed();

@@ -2,11 +2,9 @@
 #define CORE1_H
 
 #include <pico/sync.h>
-#include "types.h"
+#include "common_types.h"
 
-// variables used for mutlicore
-extern mutex_t sensorDataMutex;
-extern SensorData sensorData; // volatile ???
+
 
 void core1LaunchThread(void);
 

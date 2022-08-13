@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <display/print.h>
 #include "views/screenfunc/common.h"
+#include <stdint.h>
 
 template<typename T>
 void drawFormatVariable(void *settings);
@@ -28,7 +29,7 @@ CREATE_FUNC(uint16_t)
 CREATE_FUNC(int16_t)
 CREATE_FUNC(uint32_t)
 CREATE_FUNC(int32_t)
-// CREATE_FUNC(uint64_t)
+CREATE_FUNC(uint64_t)
 CREATE_FUNC(int64_t)
 CREATE_FUNC(float)
 CREATE_FUNC(double)
@@ -37,9 +38,30 @@ CREATE_FUNC(double)
 // { 
 //     ValDrawTime(settings); 
 // } 
-drawFunc_p getDrawFunc(uint64_t* var) 
+drawFunc_p getDrawFunc(mtime_t* var) 
 { 
     return ValDrawTime; 
+}
+
+drawFunc_p getDrawFunc(TimeS* var)
+{
+    return drawFormat_TimeS;
+}
+
+
+drawFunc_p getDrawFunc(Time_HourS* var) 
+{ 
+    return drawFormat_Time_HourS; 
+}
+
+drawFunc_p getDrawFunc(Time_DateS* var) 
+{ 
+    return drawFormat_Time_DateS; 
+}
+
+drawFunc_p getDrawFunc(Battery* var) 
+{ 
+    return draw_battery_level; 
 }
 
 void drawFormat_void(void *settings)
@@ -84,10 +106,10 @@ void drawFormatVariable(void *settings)
 
     T value = *((T *)valSettings->data);
 
-    size_t maxStrLen = valSettings->text.str_len + 1;
-    char buffer[maxStrLen + 1];
+    size_t max_str_len = valSettings->text.str_len + 1;
+    char buffer[max_str_len + 1];
 
-    int write = snprintf(&buffer[0], maxStrLen, valSettings->text.string, value);
+    int write = snprintf(&buffer[0], max_str_len, valSettings->text.string, value);
 
     if(write < 0){
         return;
@@ -107,19 +129,114 @@ void ValDrawTime(void *settings)
     ValSettings *valSettings = (ValSettings *)settings;
     uint64_t time = *((uint64_t *)valSettings->data);
 
-    int hours = time / 3600;
-    int min = (time % 3600) / 60;
-    int sec = time % 60; 
+    const int hours = time / 3600;
+    const int min = (time % 3600) / 60;
+    const int sec = time % 60; 
 
 
-    unsigned maxStrLen = valSettings->text.str_len + 1;
-    char buffer[maxStrLen + 1];
+    unsigned max_str_len = valSettings->text.str_len + 1;
+    char buffer[max_str_len + 1];
 
-    int write = snprintf(&buffer[0], maxStrLen, valSettings->text.string, hours, min, sec);
+    int write = snprintf(&buffer[0], max_str_len, valSettings->text.string, hours, min, sec);
 
     if(write < 0){
         return;
     }
 
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+}
+
+void draw_battery_level(void *settings)
+{
+    const ValSettings *valSettings = (ValSettings *)settings;
+
+    const Battery& bat = *((Battery *)valSettings->data);
+
+    const size_t max_str_len = 6;
+    static char buffer[max_str_len + 1];
+    static uint_fast8_t last_bat;
+    // TODO macro
+    if(__builtin_expect(last_bat != bat.level, 0))
+    {
+        int write = -1;
+        if(__builtin_expect(bat.is_charging, 0))
+            write = snprintf(&buffer[0], max_str_len, "/\\%" PRIu8, bat.level);
+        else
+            write = snprintf(&buffer[0], max_str_len, "  %" PRIu8, bat.level);
+
+        if(__builtin_expect(write < 0, 0)){
+            return;
+        }
+        last_bat = bat.level;
+    }
+
+    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+}
+
+void drawFormat_Time_DateS(void *settings)
+{
+    const ValSettings *valSettings = (ValSettings *)settings;
+
+    const Time_DateS& time = *((Time_DateS *)valSettings->data);
+    const size_t max_str_len = 9;
+    char buffer[max_str_len];
+
+    if(snprintf(&buffer[0], max_str_len, "%02" PRIu8 ".""%02" PRIu8 ".""%02" PRIu16, time.day, time.month, time.year % 100 ) < 0){
+        return;
+    }
+    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+}
+
+void drawFormat_Time_HourS(void *settings)
+{
+    const ValSettings *valSettings = (ValSettings *)settings;
+
+    const Time_HourS& time = *((Time_HourS *)valSettings->data);
+    const size_t max_str_len = 9;
+    char buffer[max_str_len];
+
+    if(snprintf(&buffer[0], max_str_len,  "%02" PRIu8 ":""%02" PRIu8 ":""%02.0f", time.hour, time.minutes, time.seconds) < 0){
+        return;
+    }
+    Paint_Println(valSettings->text.offsetX, valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+}
+
+
+void drawFormat_TimeS(void *settings)
+{
+    const ValSettings *valSettings = (ValSettings *)settings;
+
+    const TimeS& time = *((TimeS *)valSettings->data);
+    const size_t max_str_len = 9;
+    char buffer[max_str_len];
+
+    if(snprintf(&buffer[0], max_str_len, "%02" PRIu8 ".""%02" PRIu8 ".""%02" PRIu16, time.day, time.month, time.year ) < 0){
+        return;
+    }
+    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+
+    const uint_fast16_t y_offset = valSettings->text.font->height * valSettings->text.scale;
+    if(snprintf(&buffer[0], max_str_len,  "%02" PRIu8 ":""%02" PRIu8 ":""%02" PRIu8, time.hour, time.minutes, time.seconds) < 0){
+        return;
+    }
+    Paint_Println(valSettings->text.offsetX, valSettings->text.offsetY + y_offset, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+
+    /*
+    13.08.22
+    15:32:12
+    */
+    
+    // TODO
+    // printf("%4" PRIu16 "\t"
+    //         "%2" PRIu8 "\t"
+    //         "%2" PRIu8 "\t"
+    //         "%2" PRIu8 "\t"
+    //         "%2" PRIu8 "\t"
+    //         "%6.3f \n",
+    //         time.year,
+    //         time.month,
+    //         time.day,
+    //         time.hour,
+    //         time.minutes,
+    //         time.seconds);
 }

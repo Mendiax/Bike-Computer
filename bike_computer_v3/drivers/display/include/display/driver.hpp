@@ -75,6 +75,7 @@ namespace display
     void fill(const DisplayColor color);
     void fill(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const DisplayColor color);
     void setPixel(const size_t idx, const DisplayColor color);
+    void set_pixel_row(const uint_fast32_t idx, const uint_fast32_t width, const display::DisplayColor color);
     void display();
 }
 #endif

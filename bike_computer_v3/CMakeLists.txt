@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
+# current pico sdk commit 2062372d203b372849d573f252cf7c6dc2800c0a (HEAD -> master, tag: 1.3.0, origin/master, origin/HEAD)
+# new commit 2e6142b15b8a75c1227dd3edbe839193b2bf9041 (HEAD -> master, tag: 1.4.0, origin/master, origin/HEAD)
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 project(pico
         VERSION 3.0
@@ -14,7 +16,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 
-add_compile_options(-Wfatal-errors)
+add_compile_options(-Wfatal-errors )
 
 # add_compile_options(-Wint-to-pointer-cast 
 #                     -Wl,-print-memory-usage 
@@ -40,18 +42,18 @@ include_directories(drivers/buttons/include)
 include_directories(drivers/battery/include)
 include_directories(drivers/gsm/include)
 
-#GSM
-include_directories(./lib2/Config)
-include_directories(./lib2/Infrared)
-include_directories(./lib2/AT_TEST)
-include_directories(./lib2/BT)
-include_directories(./lib2/GPS)
-include_directories(./lib2/HTTP)
-include_directories(./lib2/Phone_Call)
-include_directories(./lib2/SMS)
-
-include_directories(./examples/)
-add_subdirectory(./examples)
+# GSM
+# include_directories(./lib2/Config)
+# include_directories(./lib2/Infrared)
+# include_directories(./lib2/AT_TEST)
+# include_directories(./lib2/BT)
+# include_directories(./lib2/GPS)
+# include_directories(./lib2/HTTP)
+# include_directories(./lib2/Phone_Call)
+# include_directories(./lib2/SMS)
+# 
+# include_directories(./examples/)
+# add_subdirectory(./examples)
 
 
 
@@ -60,6 +62,10 @@ include_directories(./drivers/DOF/BMP280)
 include_directories(./drivers/DOF/I2C)
 include_directories(./drivers/DOF/IMU)
 include_directories(./drivers/DOF/MPU9250)
+
+#tests
+include_directories(tests/bc_test)
+include_directories(tests)
 
 
 ################################ SUBDIRECTORY #################################
@@ -79,7 +85,7 @@ add_subdirectory(drivers/battery)
 add_subdirectory(drivers/gsm)
 
 
-#DOF
+# DOF
 add_subdirectory(drivers/DOF/BMP280)
 add_subdirectory(drivers/DOF/I2C)
 add_subdirectory(drivers/DOF/IMU)
@@ -87,15 +93,15 @@ add_subdirectory(drivers/DOF/MPU9250)
 
 # add_subdirectory(lib_DOF/BMP280_pico)
 
-#GSM
-add_subdirectory(lib2/Config)
-add_subdirectory(lib2/Infrared)
-add_subdirectory(lib2/AT_TEST)
-add_subdirectory(lib2/BT)
-add_subdirectory(lib2/GPS)
-add_subdirectory(lib2/HTTP)
-add_subdirectory(lib2/Phone_Call)
-add_subdirectory(lib2/SMS)
+# GSM
+# add_subdirectory(lib2/Config)
+# add_subdirectory(lib2/Infrared)
+# add_subdirectory(lib2/AT_TEST)
+# add_subdirectory(lib2/BT)
+# add_subdirectory(lib2/GPS)
+# add_subdirectory(lib2/HTTP)
+# add_subdirectory(lib2/Phone_Call)
+# add_subdirectory(lib2/SMS)
 
 # SD
 # add_subdirectory(external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI)
@@ -104,9 +110,11 @@ add_subdirectory(lib2/SMS)
 
 # include_directories(./lib_DOF/BMP280_pico)
 
-
+# tests
 add_subdirectory(tests/bc_test)
-include_directories(tests/bc_test)
+add_subdirectory(tests)
+
+
 
 
 #################################### MAIN #####################################
@@ -170,11 +178,13 @@ target_link_libraries( ${PICO_TEST_FILE}
         Console
         GSM
 
-        Infrared_GSM Config_GSM AT_TEST BT GPS HTTP Phone_Call SMS
-        examples
+        # Infrared_GSM Config_GSM AT_TEST BT GPS HTTP Phone_Call SMS
+        # examples
 
         IMU I2C
         #FatFs_SPI
+
+        test_main # tests
 )
 
 #################################### Console #####################################
@@ -204,8 +214,9 @@ target_link_libraries( ${PICO_GSM_CONSOLE_FILE}
         Speedometer
         Console
 
-        Infrared_GSM Config_GSM AT_TEST BT GPS HTTP Phone_Call SMS
-        examples
+        GSM
+        # Infrared_GSM Config_GSM AT_TEST BT GPS HTTP Phone_Call SMS
+        # examples
 )
 
 

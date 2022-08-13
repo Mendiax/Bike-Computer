@@ -4,4 +4,6 @@ include_directories(include)
 
 
 add_library(Common ${DIR_Common_SRCS})
-target_link_libraries(Common PUBLIC Tools Display pico_multicore pico_stdlib Display Views)
+target_link_libraries(Common PUBLIC 
+                      pico_multicore pico_stdlib 
+                      Tools Display Buttons Display Views)

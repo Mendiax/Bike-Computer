@@ -9,5 +9,5 @@ target_include_directories(GSM PUBLIC ./include)
 target_link_libraries(GSM PUBLIC 
     pico_stdlib
     hardware_uart
-    Config_GSM
+    Console
 )

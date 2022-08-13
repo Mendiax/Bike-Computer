@@ -9,7 +9,7 @@
 // it must be declared before include of view
 #include "views/view.h"
 
-#include <types.h>
+#include <common_types.h>
 
 typedef struct Display
 {
@@ -28,6 +28,8 @@ void Display_setDisplayType(uint8_t type);
 void Display_incDisplayType();
 void Display_decDisplayType();
 void Display_update();
+void Display_set_charge_display_type();
+void Display_set_main_display_type();
 
 
 #endif

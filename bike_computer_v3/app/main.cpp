@@ -1,42 +1,26 @@
-#include <stdlib.h>
-#include <cstdint>
-#include <stdio.h>
-#include <iostream>
-#include <cmath>
-
+// pico includes
 #include <pico/stdlib.h>
 #include <hardware/adc.h>
-
-// display
-#include "display/print.h"
-#include "display/debug.h"
-
-//veiws
-#include "views/display.h"
-
-#include "speedometer/speedometer.hpp"
-#include <interrupts/interrupts.hpp>
-
 #include <pico/multicore.h>
-#include <pico/sync.h>
 
-#include <traces.h>
+// c/c++ includes
+
+// my includes
+#include "traces.h"
+#include "common_types.h"
+#include "core1.h"
+#include "core0.h"
+#include "speedometer/speedometer.hpp"
 
 
-#include <types.h>
-#include <core1.h>
-
-#include "battery/battery.h"
 
 
 //static bool isBtnPressed(uint gpio);
-static float getTemp();
-
-#define PRINT_FRAME_TIME 0
-#define PRINT_LIPO_DATA 1
+// static float getTemp();
 
 
-static void loop();
+
+// static void loop();
 
 
 
@@ -53,47 +37,33 @@ int main()
     stdio_init_all();
     // wait for serial console
     // coment out for normal use
-    //while (!stdio_usb_connected()){sleep_ms(100);}
+    // while (!stdio_usb_connected()){sleep_ms(100);}
     TRACE_DEBUG(0, TRACE_MAIN, "Main start\n");
 
-    TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
-    interruptSetupCore0();
-
-    //turn of power led
-    gpio_init(25); //power led
-    gpio_set_dir(25, GPIO_OUT);
-    gpio_put(25, 1);
 
     // battery setup
-    adc_init();
+    // adc_init();
     //adc_gpio_init(26); //temp
-    batterySetup();
+    //batterySetup();
 
+    TRACE_DEBUG(0, TRACE_MAIN, "Init common data\n");
     speedDataInit(sensorData.speed);
-    //speed_emulate();
-
     //sensorData.rearShockBuffer = ring_buffer_create(sizeof(uint8_t), SCREEN_WIDTH);
-    TRACE_DEBUG(0, TRACE_MAIN, "Launch core1\n");
+    sensorData.current_state = SystemState::TURNED_ON;
+    
 
+
+    TRACE_DEBUG(0, TRACE_MAIN, "Launch core1\n");
     multicore_launch_core1(core1LaunchThread);
+
+    TRACE_DEBUG(0, TRACE_MAIN, "Start core0 function\n");
+    core0_launch_thread();
+    // here we should only get if any error happens in core 0
     while(1)
     {
-        loop();
+        sleep_ms(1000);
+        TRACE_ABNORMAL(TRACE_MAIN, "core 0 failed \n%s", "");
     }
-}
-
-void loop()
-{
-    mutex_enter_blocking(&sensorDataMutex);
-
-    speedDataUpdate(sensorData.speed);
-    sensorData.lipoLevel = getBatteryLevel();
-
-    sensorData.time = to_ms_since_boot(get_absolute_time()) / 1000;
-
-    mutex_exit(&sensorDataMutex);
-
-    return;
 }
 
 // DO NOT REMOVE

@@ -13,12 +13,14 @@
 #include "console/console.h"
 #include "display/driver.hpp"
 
-#include "Pico-SIM868-Test.h"
+// #include "Pico-SIM868-Test.h"
 
 #include "speedometer/speedometer.hpp"
 
 #include "sim868/interface.hpp"
 #include "traces.h"
+
+#include "test.hpp"
 // TODO split tests into files
 
 
@@ -248,36 +250,36 @@ void test_console()
 void test_gps()
 {
   consoleLogInit();
-  GPS_test();
+  //GPS_test();
 }
 
 void test_atInternet()
 {
-    DEV_GSM_Module_Init();
-    powerOn;
-    led_blink();
-    DEV_GSM_Delay_ms(5000);
-    check_start();
-    /*
-    AT+CSQ      [ To measure the signal quality ]
-    AT+CREG=1   [ To enable network registration ]
-    AT+CREG?    [ To return the current state of the network registration : Attach/Detach ]
-    AT+COPS=?   [ To return the list of available operators ]
-    AT+COPS=    [ To manually select an available operator ]
-    AT+COPS?    [ To check the current network ]
-    AT+CGATT=1  [ to attach the terminal to GPRS service ] 
-    AT+CGATT?   [ To return the current state of GPRS service : Attach/Detach ]
-    AT+CGDCONT=1,"IP","em"    [ To define PDP Context ]
-    AT+CSQ      [ to measure signal quality ]  
-    AT+CGACT=1  [ To activate a PDP context ]  
-    AT+CGDCONT? [ To return the current state of the PDP context]
-    AT+CGACT=0  [ To deactivate a PDP context ] 
-    */
-    sendCMD_waitResp("AT+CSQ?","OK",2000);
-    sendCMD_waitResp("AT+CSQ","OK",2000);
-    sendCMD_waitResp("AT+CREG=1","OK",2000);
-    sendCMD_waitResp("AT+CREG?","OK",2000);
-    sendCMD_waitResp("AT+COPS=?","OK",2000);
+    // DEV_GSM_Module_Init();
+    // powerOn;
+    // led_blink();
+    // DEV_GSM_Delay_ms(5000);
+    // check_start();
+    // /*
+    // AT+CSQ      [ To measure the signal quality ]
+    // AT+CREG=1   [ To enable network registration ]
+    // AT+CREG?    [ To return the current state of the network registration : Attach/Detach ]
+    // AT+COPS=?   [ To return the list of available operators ]
+    // AT+COPS=    [ To manually select an available operator ]
+    // AT+COPS?    [ To check the current network ]
+    // AT+CGATT=1  [ to attach the terminal to GPRS service ] 
+    // AT+CGATT?   [ To return the current state of GPRS service : Attach/Detach ]
+    // AT+CGDCONT=1,"IP","em"    [ To define PDP Context ]
+    // AT+CSQ      [ to measure signal quality ]  
+    // AT+CGACT=1  [ To activate a PDP context ]  
+    // AT+CGDCONT? [ To return the current state of the PDP context]
+    // AT+CGACT=0  [ To deactivate a PDP context ] 
+    // */
+    // sendCMD_waitResp("AT+CSQ?","OK",2000);
+    // sendCMD_waitResp("AT+CSQ","OK",2000);
+    // sendCMD_waitResp("AT+CREG=1","OK",2000);
+    // sendCMD_waitResp("AT+CREG?","OK",2000);
+    // sendCMD_waitResp("AT+COPS=?","OK",2000);
 
 
 }
@@ -287,8 +289,8 @@ void test_sim868_interface(void)
     sim868::sendRequestLong("AT+CGNSPWR=1",2000);
     for (int i = 1; i < 10;)
     {
-        sim868::sendRequestGetGpsPos();
-        //sim868::sendRequestLong("AT+CGNSINF", 2000);
+        //sim868::sendRequestGetGpsPos();
+        sim868::sendRequestLong("AT+CGNSINF", 2000);
         sleep_ms(1000);
     }
     sim868::sendRequestLong("AT+CGNSPWR=0",2000);
@@ -316,6 +318,8 @@ int main(void)
     {
         sleep_ms(100);
     }
+
+    run_tests();
 
     /*
     display test

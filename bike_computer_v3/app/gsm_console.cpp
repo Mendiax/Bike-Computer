@@ -9,11 +9,11 @@
 #include <pico/sync.h>
 #include "hardware/uart.h"
 
-#define ROTATE
+// #define ROTATE
 //#include "display/print.h"
 #include "console/console.h"
 #include "sim868/interface.hpp"
-#include "Pico-SIM868-Test.h"
+// #include "Pico-SIM868-Test.h"
 
 auto_init_mutex(uart_mutex);
 
@@ -24,9 +24,9 @@ void core1_entry()
     while (1)
     {   
         mutex_enter_blocking(&uart_mutex);
-        while (uart_is_readable_within_us(UART_ID0, 100 * 1000)) // 100ms
+        while (uart_is_readable_within_us(UART_ID, 100 * 1000)) // 100ms
         {
-            buffer[i] = uart_getc(UART_ID0);
+            buffer[i] = uart_getc(UART_ID);
             if (buffer[i] == '\n' || buffer[i] == '\0')
             {
                 buffer[i] = '\0';
@@ -95,12 +95,14 @@ void core1_entry()
 
 void consoleGSM()
 {
-    DEV_GSM_Module_Init();
-    powerOn;
-    led_blink();
-    DEV_GSM_Delay_ms(5000);
+    // DEV_GSM_Module_Init();
+    // powerOn;
+    // led_blink();
+    // DEV_GSM_Delay_ms(5000);
 
-    check_start();
+    // check_start();
+
+    sim868::boot();
 
     // sendCMD_waitResp("AT+BTPOWER=1", "OK", 3000);
     // sendCMD_waitResp("AT+BTHOST?", "OK", 3000);
@@ -143,42 +145,6 @@ void consoleGSM()
     // AT+CLBSCFG=0,2
     // AT+CLBSCFG=0,3
 
-
-    int count = 0;
-    sendCMD_waitResp("AT+CGNSPWR=1", "OK", 2000);
-    DEV_GSM_Delay_ms(2000);
-    for (int i = 1; i < 10; i++)
-    {
-        if (sendCMD_waitResp("AT+CGNSINF", ",,,,", 2000) == 1)
-        {
-            consolep("GPS is not ready\r\n");
-            if (i >= 9)
-            {
-                consolep("GPS positioning failed, please check the GPS antenna!\r\n");
-                sendCMD_waitResp("AT+CGNSPWR=0", "OK", 2000);
-            }
-            else
-            {
-                consolep("wait...\r\n");
-                DEV_GSM_Delay_ms(2000);
-                continue;
-            }
-        }
-        else
-        {
-            if (count <= 3)
-            {
-                count++;
-                consolep("GPS info:\r\n");
-            }
-            else
-            {
-                sendCMD_waitResp("AT+CGNSPWR=0", "OK", 2000);
-                break;
-            }
-        }
-    }
-
     
     //http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m
 
@@ -195,12 +161,13 @@ void consoleGSM()
         //consolef("\nSending to GSM:\"%s\"\n", buffer);
         //sendCMD_waitResp(buffer, "OK", 8000);
         //printf("mutex enter\n");
-        uart_puts(UART_ID0, buffer);
-        uart_puts(UART_ID0, "\r\n");
+        uart_puts(UART_ID, buffer);
+        uart_puts(UART_ID, "\r\n");
         mutex_exit(&uart_mutex);
         //sendCMD_waitResp(buffer,"",2000);
     }
-    powerDown;
+    sim868::turnOff();
+    //powerDown;
     //at_test();
 }
 

@@ -49,7 +49,7 @@ void Paint_SetPixel(uint16_t x, uint16_t y, display::DisplayColor color)
         TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "write outside of window x=%" PRIu16 " y=%" PRIu16 "\n", x, y);
         // no return so it can be optimised out when compiling without traces and have greater performance
     }
-    size_t index = 0;
+    uint_fast32_t index = 0;
     index += y * (display::width);
     index += x;
     display::setPixel(index, color);
@@ -172,16 +172,23 @@ static void Paint_Println_multilineGen(uint16_t x, uint16_t y, const char *str,
     }
 }
 
-static void setpixelScale(uint16_t xPoint, uint16_t yPoint,  uint16_t page, uint16_t column, display::DisplayColor color, uint8_t scale)
+static void setpixelScale(uint_fast16_t xPoint, uint_fast16_t yPoint,  uint_fast16_t page, uint_fast16_t column, display::DisplayColor color, uint_fast8_t scale)
 {
-    for (uint16_t p = 0; p < scale; p++)
+    uint_fast16_t x = xPoint + column * scale;
+    uint_fast16_t y = yPoint + page * scale;
+
+    for (uint_fast16_t p2 = 0; p2 < scale; p2++)
     {
-        for (uint16_t p2 = 0; p2 < scale; p2++)
-        {
-            uint16_t x = xPoint + column * scale + p;
-            uint16_t y = yPoint + page * scale + p2;
-            Paint_SetPixel(x, y, color);
-        }
+        uint_fast32_t index = 0;
+        index += (y + p2) * (display::width);
+        index += x;
+        display::set_pixel_row(index, scale, color);
+        // for (uint16_t p = 0; p < scale; p++)
+        // {
+        //     // uint16_t x = xPoint + column * scale + p;
+        //     // uint16_t y = yPoint + page * scale + p2;
+        //     Paint_SetPixel(x + p, y + p2, color);
+        // }
     }
 }
 

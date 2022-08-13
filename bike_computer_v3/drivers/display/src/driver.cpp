@@ -396,12 +396,66 @@ void OLED_SetWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Ye
     spi::writeData((Yend - 1) & 0xff);
 }
 
-void display::setPixel(const size_t idx, const display::DisplayColor color)
+void display::set_pixel_row(const uint_fast32_t idx, uint_fast32_t width, const display::DisplayColor color)
+{
+    if ((idx + width) > DISPLAY_PIXEL_COUNT)
+    {
+        DEBUG_OLED("[ERROR] display::setPixel %" PRIuFAST32 " > DISPLAY_PIXEL_COUNT\n", idx);
+        return;
+    }
+    if (width == 0)
+    {
+        DEBUG_OLED("[ERROR] display::setPixel width cannot be 0. width == %" PRIuFAST32 " \n", width);
+        return;
+    }
+    struct pixel2
+    {
+        uint8_t rg;
+        uint8_t br;
+        uint8_t gb;
+    };
+    pixel2 *buffer_pixels = (pixel2 *)::display_buffer;
+
+    uint_fast32_t index_pixels = idx >> 1;
+    pixel2 * pixel_p = &buffer_pixels[index_pixels];
+
+    // align in memory if needed
+    if (idx & 1)
+    {
+        pixel_p->br = (pixel_p->br & 0xf0) | (color.r & 0x0f);
+        pixel_p->gb = (color.g << 4) | (color.b & 0x0f);
+        ++pixel_p;
+        --width;
+    }
+    uint_fast32_t pixels_left = width >> 1;
+    pixel2 filled_pixel;
+    filled_pixel.rg = (color.r << 4) | color.g;
+    filled_pixel.br = (color.b << 4) | color.r;
+    filled_pixel.gb = (color.g << 4) | color.b;
+
+    // file 2 pixels at time
+    while (pixels_left > 0)
+    {
+        *pixel_p = filled_pixel;
+        ++pixel_p;
+        --pixels_left;
+    }
+
+    // align end of line
+    if(width & 1)
+    {
+        pixel_p->rg = (color.r << 4) | (color.g & 0x0f);
+        pixel_p->br = (color.b << 4) | (pixel_p->br & 0x0f);
+    }
+}
+
+
+void display::setPixel(const uint_fast32_t idx, const display::DisplayColor color)
 {
     // assert_loop((idx) < DISPLAY_PIXEL_COUNT);
     if ((idx) > DISPLAY_PIXEL_COUNT)
     {
-        DEBUG_OLED("[ERROR] display::setPixel %zu > DISPLAY_PIXEL_COUNT\n", idx);
+        DEBUG_OLED("[ERROR] display::setPixel %" PRIuFAST32 " > DISPLAY_PIXEL_COUNT\n", idx);
         return;
     }
     struct pixel2
@@ -413,8 +467,8 @@ void display::setPixel(const size_t idx, const display::DisplayColor color)
     };
     pixel2 *buffer_pixels = (pixel2 *)::display_buffer;
 
-    const size_t index_pixels = idx / 2;
-    pixel2 *pixel_p = &buffer_pixels[index_pixels];
+    const uint_fast32_t index_pixels = idx >> 1;
+    pixel2 *const pixel_p = &buffer_pixels[index_pixels];
     if (idx & 1)
     {
         pixel_p->br = (pixel_p->br & 0xf0) | (color.r & 0x0f);
@@ -453,9 +507,8 @@ void display::fill(const display::DisplayColor color)
 {
     // 07:39:51.205 -> [DEBUG_OLED] : FILL 38400 sus
     DEBUG_OLED("FILL");
-    for (size_t i = 38000; i < DISPLAY_PIXEL_COUNT; i++)
+    for (uint_fast32_t i = 38000; i < DISPLAY_PIXEL_COUNT; i++)
     {
-
         display::setPixel(i, color);
     }
     DEBUG_OLED("FILL2\n");

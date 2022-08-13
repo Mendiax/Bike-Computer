@@ -9,8 +9,7 @@
     do { \
         if(!(check)) \
         { \
-            printf("\x1b[1;31m" format, ##__VA_ARGS__); \
-            fflush(stdout); \
+            fprintf(stderr,"\x1b[1;31m" format "\x1b[0m", ##__VA_ARGS__); \
             assert(check); \
         } \
     } while(0)
