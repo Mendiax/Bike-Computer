@@ -99,7 +99,7 @@ static inline void tracesSetup()
     TRACES_ON(1, TRACE_MPU9250); // mpu init
     TRACES_ON(2, TRACE_MPU9250);  // reag gyro
 
-    //TRACES_ON(1, TRACE_SIM868);  // send request log
+    //TRACES_ON(1, TRACE_SIM868);  // send request log long
     TRACES_ON(2, TRACE_SIM868);  // send_request log
 
 
@@ -149,6 +149,6 @@ namespace utility {
     }while(0)
 
 #define TRACE_ABNORMAL(name, __info, ...) \
-    TRACE_DEBUG(0, name, "\x1b[1;31mABNORMAL" __info "\x1b[0m", ##__VA_ARGS__)
+    TRACE_DEBUG(0, name, "\x1b[1;31mABNORMAL " __info "\x1b[0m", ##__VA_ARGS__)
 
 #endif

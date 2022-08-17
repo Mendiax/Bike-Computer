@@ -4,7 +4,7 @@ PICO_MAIN_FILE := pico_main
 PICO_TEST_FILE := pico_test
 PICO_GSM_CONSOLE_FILE := pico_gsm_console
 
-PICO_DRIVE_LETTER := H
+PICO_DRIVE_LETTER := I
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 

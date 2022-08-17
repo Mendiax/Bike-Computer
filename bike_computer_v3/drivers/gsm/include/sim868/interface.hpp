@@ -4,8 +4,13 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include "hardware/uart.h"
+#include <pico/stdlib.h>
+
+
 
 #define UART_ID uart0
+#define UART_IRQ UART0_IRQ
 #define BAUD_RATE 115200
 // #define DATA_BITS 8
 // #define STOP_BITS 1
@@ -50,6 +55,8 @@ public:
     }
 };
 
+
+
 enum class ResponseStatus
 {
     SENT,
@@ -59,6 +66,14 @@ enum class ResponseStatus
     RECEIVED
 };
 
+struct Response
+{
+    std::string response;
+    volatile ResponseStatus status;
+    absolute_time_t time_start;
+    uint64_t id;
+    long timeout; 
+};
 
 namespace sim868
 {
@@ -103,6 +118,9 @@ namespace sim868
                                 long timeout,
                                 size_t bufferSize = 100
                                 );
+
+    uint64_t send_request_httpread();
+
 
     /**
      * @brief Function for sending request to SIM868 with flexible buffer
@@ -149,6 +167,8 @@ namespace sim868
      * @return false 
      */
     bool is_respond_ok(const std::string& respond);
+    bool is_respond_error(const std::string& respond);
+
 
 
     /**

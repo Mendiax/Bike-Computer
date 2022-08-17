@@ -1,6 +1,4 @@
 cmake_minimum_required(VERSION 3.13)
-# current pico sdk commit 2062372d203b372849d573f252cf7c6dc2800c0a (HEAD -> master, tag: 1.3.0, origin/master, origin/HEAD)
-# new commit 2e6142b15b8a75c1227dd3edbe839193b2bf9041 (HEAD -> master, tag: 1.4.0, origin/master, origin/HEAD)
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 project(pico
         VERSION 3.0
@@ -104,7 +102,7 @@ add_subdirectory(drivers/DOF/MPU9250)
 # add_subdirectory(lib2/SMS)
 
 # SD
-# add_subdirectory(external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI)
+add_subdirectory(external/no-OS-FatFS/FatFs_SPI)
 
 
 
@@ -182,7 +180,7 @@ target_link_libraries( ${PICO_TEST_FILE}
         # examples
 
         IMU I2C
-        #FatFs_SPI
+        FatFs_SPI
 
         test_main # tests
 )

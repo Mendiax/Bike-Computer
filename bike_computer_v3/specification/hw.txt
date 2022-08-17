@@ -24,7 +24,7 @@ podsumowanie:
 0-1   GSM/GPS
 2-3   btns
 //4-7   // SPI SD    // można wykorzystać piny od wyświetlacza
-4-5 GSM/GPS
+4,5,6
 8-13  wyświetlacz
 14    GSM PWR
 15    btn

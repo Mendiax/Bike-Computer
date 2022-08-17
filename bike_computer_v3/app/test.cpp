@@ -1,22 +1,27 @@
+// SD
+#include <stdio.h>
+#include "pico/stdlib.h"
+#include "sd_card.h"
+#include "ff.h"
+
+
 
 #include <stdio.h>
 #include <string.h>
 //#include <stdarg.h>
+#include <inttypes.h>
 
 #include <pico/stdlib.h>
 #include <pico/multicore.h>
-
 #include "hardware/uart.h"
 
-//#define ROTATE
-#include "display/print.h"
-#include "console/console.h"
-#include "display/driver.hpp"
 
-// #include "Pico-SIM868-Test.h"
+// #include "display/print.h"
+ #include "console/console.h"
+// #include "display/driver.hpp"
+
 
 #include "speedometer/speedometer.hpp"
-
 #include "sim868/interface.hpp"
 #include "traces.h"
 
@@ -24,106 +29,105 @@
 // TODO split tests into files
 
 
-// SD
-//#include <stdio.h>
-//#include "pico/stdlib.h"
-// #include "sd_card.h"
-// #include "ff.h"
 
 #include "IMU.h"
 #include "I2C.h"
 
-// void test_SD()
-// {
-//     FRESULT fr;
-//     FATFS fs;
-//     FIL fil;
-//     int ret;
-//     char buf[100];
-//     char filename[] = "test02.txt";
-// START_SD:
-//     // Wait for user to press 'enter' to continue
-//     printf("\r\nSD card test. Press 'enter' to start.\r\n");
-//     while (true)
-//     {
-//         buf[0] = getchar();
-//         if ((buf[0] == '\r') || (buf[0] == '\n'))
-//         {
-//             break;
-//         }
-//     }
-//     // Initialize SD card
-//     if (!sd_init_driver())
-//     {
-//         printf("ERROR: Could not initialize SD card\r\n");
-//         goto START_SD;
-//     }
-//     // Mount drive
-//     fr = f_mount(&fs, "0:", 1);
-//     if (fr != FR_OK)
-//     {
-//         printf("ERROR: Could not mount filesystem (%d)\r\n", fr);
-//         goto START_SD;
-//     }
-//     // Open file for writing ()
-//     fr = f_open(&fil, filename, FA_WRITE | FA_CREATE_ALWAYS);
-//     if (fr != FR_OK)
-//     {
-//         printf("ERROR: Could not open file (%d)\r\n", fr);
-//         goto START_SD;
-//     }
-//     // Write something to file
-//     ret = f_printf(&fil, "This is another test\r\n");
-//     if (ret < 0)
-//     {
-//         printf("ERROR: Could not write to file (%d)\r\n", ret);
-//         f_close(&fil);
-//         goto START_SD;
-//     }
-//     ret = f_printf(&fil, "of writing to an SD card.\r\n");
-//     if (ret < 0)
-//     {
-//         printf("ERROR: Could not write to file (%d)\r\n", ret);
-//         f_close(&fil);
-//         goto START_SD;
-//     }
-//     // Close file
-//     fr = f_close(&fil);
-//     if (fr != FR_OK)
-//     {
-//         printf("ERROR: Could not close file (%d)\r\n", fr);
-//         goto START_SD;
-//     }
-//     // Open file for reading
-//     fr = f_open(&fil, filename, FA_READ);
-//     if (fr != FR_OK)
-//     {
-//         printf("ERROR: Could not open file (%d)\r\n", fr);
-//         goto START_SD;
-//     }
-//     // Print every line in file over serial
-//     printf("Reading from file '%s':\r\n", filename);
-//     printf("---\r\n");
-//     while (f_gets(buf, sizeof(buf), &fil))
-//     {
-//         printf(buf);
-//     }
-//     printf("\r\n---\r\n");
-//     // Close file
-//     fr = f_close(&fil);
-//     if (fr != FR_OK)
-//     {
-//         printf("ERROR: Could not close file (%d)\r\n", fr);
-//         goto START_SD;
-//     }
-//     // Unmount drive
-//     f_unmount("0:");
-//     // Loop forever doing nothing
-//     while (true)
-//     {
-//         sleep_ms(1000);
-//     }
-// }
+// #define consolef(...) printf(__VA_ARGS__)
+// #define consolep(...) printf(__VA_ARGS__)
+
+
+void test_SD()
+{
+    FRESULT fr;
+    FATFS fs;
+    FIL fil;
+    int ret;
+    char buf[100];
+    char filename[] = "test02.txt";
+START_SD:
+    // Wait for user to press 'enter' to continue
+    printf("\r\nSD card test. Press 'enter' to start.\r\n");
+    while (true)
+    {
+        buf[0] = getchar();
+        if ((buf[0] == '\r') || (buf[0] == '\n'))
+        {
+            break;
+        }
+    }
+    // Initialize SD card
+    if (!sd_init_driver())
+    {
+        printf("ERROR: Could not initialize SD card\r\n");
+        goto START_SD;
+    }
+    // Mount drive
+    fr = f_mount(&fs, "0:", 1);
+    if (fr != FR_OK)
+    {
+        printf("ERROR: Could not mount filesystem (%d)\r\n", fr);
+        goto START_SD;
+    }
+    // Open file for writing ()
+    fr = f_open(&fil, filename, FA_WRITE | FA_CREATE_ALWAYS);
+    if (fr != FR_OK)
+    {
+        printf("ERROR: Could not open file (%d)\r\n", fr);
+        goto START_SD;
+    }
+    // Write something to file
+    ret = f_printf(&fil, "This is another test\r\n");
+    if (ret < 0)
+    {
+        printf("ERROR: Could not write to file (%d)\r\n", ret);
+        f_close(&fil);
+        goto START_SD;
+    }
+    ret = f_printf(&fil, "of writing to an SD card.\r\n");
+    if (ret < 0)
+    {
+        printf("ERROR: Could not write to file (%d)\r\n", ret);
+        f_close(&fil);
+        goto START_SD;
+    }
+    // Close file
+    fr = f_close(&fil);
+    if (fr != FR_OK)
+    {
+        printf("ERROR: Could not close file (%d)\r\n", fr);
+        goto START_SD;
+    }
+    // Open file for reading
+    fr = f_open(&fil, filename, FA_READ);
+    if (fr != FR_OK)
+    {
+        printf("ERROR: Could not open file (%d)\r\n", fr);
+        goto START_SD;
+    }
+    // Print every line in file over serial
+    printf("Reading from file '%s':\r\n", filename);
+    printf("---\r\n");
+    while (f_gets(buf, sizeof(buf), &fil))
+    {
+        printf(buf);
+    }
+    printf("\r\n---\r\n");
+    // Close file
+    fr = f_close(&fil);
+    if (fr != FR_OK)
+    {
+        printf("ERROR: Could not close file (%d)\r\n", fr);
+        goto START_SD;
+    }
+    // Unmount drive
+    f_unmount("0:");
+    // Loop forever doing nothing
+    while (true)
+    {
+        sleep_ms(1000);
+    }
+}
 
 void test_DOF()
 {
@@ -165,7 +169,7 @@ void test_DOF()
 
     }
 }
-
+/*
 void test_driver()
 {
     display::init();
@@ -246,7 +250,7 @@ void test_console()
         sleep_ms(200);
     }
 }
-
+*/
 void test_gps()
 {
   consoleLogInit();
@@ -314,12 +318,15 @@ int main(void)
     asm volatile("nop");
     // Initialize chosen serial port
     stdio_init_all();
+    //time_init();
     while (!stdio_usb_connected())
     {
         sleep_ms(100);
     }
 
-    run_tests();
+    test_SD();
+
+    //run_tests();
 
     /*
     display test
@@ -343,60 +350,8 @@ int main(void)
     test_DOF();
 
     test_sim868_interface();
-    //test_atInternet();
-//     powerOn;
-    //at_test();
-    //GPS_test();
-    //test_gps();
-    //HTTP_test();
+    
 
-
-
-
-
-    // int x = 0;
-    // gpio_init(25);
-    // gpio_set_dir(25, GPIO_OUT);
-    // while (x < 2)
-    // {
-    //     printf("xd %d\n", x);
-    //     x += 2;
-    //     gpio_put(25,1);
-    //     sleep_ms(500);
-    //     gpio_put(25,0);
-    //     sleep_ms(500);
-    // }
-
-    // sleep_ms(1000);
-    // consoleLogInit();
-
-    // wait for intput
-    // while (true)
-    // {
-    //     char c = getchar();
-    //     if ((c == '\r') || (c == '\n'))
-    //     {
-    //         break;
-    //     }
-    // }
-    // sleep_ms(1000);
-
-    // test_SD();
-
-    // return 0;
-    //  gpio_init(14);
-    //  gpio_set_dir(14, GPIO_OUT);
-    //  gpio_put(14, 1);
-
-    // at_test();
-    // DEV_GSM_Module_Init();
-    // powerOn;
-    // led_blink();
-    //  BT_test();
-    // GPS_test();
-    //  HTTP_test();
-    //  phone_call_test();
-    //  SMS_test();
     while (1)
     {
         sleep_ms(1000);

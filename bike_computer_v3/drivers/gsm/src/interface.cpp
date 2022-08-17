@@ -19,22 +19,17 @@
 bool gps_on;
 bool sim_on;
 bool waiting_for_request_respond;
+volatile bool http_req_irq;
 
 static std::string rx_buffer;
 static volatile bool finished = false;
 
-struct Response
-{
-    std::string response;
-    volatile ResponseStatus status;
-    absolute_time_t time_start;
-    uint64_t id;
-    long timeout; 
-};
+extern void on_uart_rx_http(void);
+
 
 Response current_response;
 
-static void on_uart_rx(void);
+void on_uart_rx(void);
 
 bool sim868::is_on(void)
 {
@@ -67,8 +62,6 @@ void sim868::init(void)
     uart_set_fifo_enabled(UART_ID, true);
     // Set up a RX interrupt
     // We need to set up the handler first
-    // Select correct interrupt for the UART we are using
-    int UART_IRQ = UART_ID == uart0 ? UART0_IRQ : UART1_IRQ;
 
     // And set up and enable the interrupt handlers
     irq_set_exclusive_handler(UART_IRQ, on_uart_rx);
@@ -233,8 +226,13 @@ bool sim868::get_bat_level(bool& is_charging,
 
 StateStringMachine find_ok("OK\r\n");
 StateStringMachine find_error("ERROR\r\n");
-static void on_uart_rx(void)
+void on_uart_rx(void)
 {
+    if(http_req_irq)
+    {
+        on_uart_rx_http();
+        return;
+    }
     switch (current_response.status)
     {
     case ResponseStatus::SENT:
@@ -274,6 +272,8 @@ static void on_uart_rx(void)
         }
     }
 }
+
+
 // TODO add queue
 uint64_t sim868::send_request(const std::string&& cmd,
                               long timeout,
@@ -296,7 +296,7 @@ uint64_t sim868::send_request(const std::string&& cmd,
     }
     ++id;
     // TODO do optimization ??
-    TRACE_DEBUG(1,TRACE_SIM868,"requesting\'%s\'\n", cmd.c_str());
+    //TRACE_DEBUG(1,TRACE_SIM868,"requesting\'%s\'\n", cmd.c_str());
 
     // prepare
     current_response.response.clear();
@@ -350,63 +350,78 @@ bool sim868::check_response(uint64_t id)
 // send request and wait for specific response (in gps wait for correct number of ',')
 std::string sim868::sendRequestLong(const std::string&& cmd, long timeout, const size_t bufferSize)
 {
-    if(!is_on())
+    std::string resp;
+    // std::string cmd_ = cmd; 
+    auto req = sim868::send_request(cmd.c_str(), timeout, bufferSize);
+    if(req == 0)
     {
-        TRACE_ABNORMAL(TRACE_SIM868, "sim868 is off, cannot send request\n");
         return "";
     }
-    // TODO do optimization ??
-    
-    std::string returnString("");
-    returnString.reserve(bufferSize);
-    StateStringMachine findOk("OK\r\n");
-    StateStringMachine findError("ERROR\r\n");
-
-    TRACE_DEBUG(1,TRACE_SIM868,"requesting\'%s\'\n", cmd.c_str());
-    uint64_t t = time_us_64();
-    size_t i = 0;
-    
-    rx_buffer = "";
-
-    uart_puts(UART_ID, cmd.c_str());
-    uart_puts(UART_ID, "\r\n");
-
-    #if 1
-
-    while (time_us_64() - t < timeout * 1000)
+    while (!check_response(req))
     {
-        sleep_ms(1);
+        sleep_ms(100);
     }
+    resp = get_respond(req);
+    std::cout << resp << std::endl;
+    return resp;
+    
+    //     if(!is_on())
+    //     {
+    //         TRACE_ABNORMAL(TRACE_SIM868, "sim868 is off, cannot send request\n");
+    //         return "";
+    //     }
+    //     // TODO do optimization ??
+        
+    //     std::string returnString("");
+    //     returnString.reserve(bufferSize);
+    //     StateStringMachine findOk("OK\r\n");
+    //     StateStringMachine findError("ERROR\r\n");
 
-    returnString = rx_buffer;
+    //     TRACE_DEBUG(1,TRACE_SIM868,"requesting\'%s\'\n", cmd.c_str());
+    //     uint64_t t = time_us_64();
+    //     size_t i = 0;
+        
+    //     rx_buffer = "";
+
+    //     uart_puts(UART_ID, cmd.c_str());
+    //     uart_puts(UART_ID, "\r\n");
+
+    //     #if 1
+
+    //     while (time_us_64() - t < timeout * 1000)
+    //     {
+    //         sleep_ms(1);
+    //     }
+
+    //     returnString = rx_buffer;
 
 
-    #else
+    //     #else
 
-    //static char inputBuffer[BUFFER_SIZE];
-    while (time_us_64() - t < timeout * 1000)
-    {
-        while (uart_is_readable_within_us(UART_ID, 100))
-        {
-            const char c = uart_getc(UART_ID);
-            returnString += c;
-             // TRACE_ABNORMAL(TRACE_SIM868, "read char '%c'\n", c);
-            if(findOk.updateChar(c)) {goto AT_EXIT;}
-            if(findError.updateChar(c)) {goto AT_EXIT;}
-            // inputBuffer[i++] = uart_getc(UART_ID0);
-            // if(i >= BUFFER_SIZE)
-            // {
-            //     i = BUFFER_SIZE - 1;
-            //     goto CHECK;
-            // }
-        }
-    }
-    #endif
-//     inputBuffer[i] = '\0';
-AT_EXIT:
-    returnString.shrink_to_fit();
-    TRACE_DEBUG(1,TRACE_SIM868,"received\'%s\'\n", returnString.c_str());
-    return returnString;
+    //     //static char inputBuffer[BUFFER_SIZE];
+    //     while (time_us_64() - t < timeout * 1000)
+    //     {
+    //         while (uart_is_readable_within_us(UART_ID, 100))
+    //         {
+    //             const char c = uart_getc(UART_ID);
+    //             returnString += c;
+    //              // TRACE_ABNORMAL(TRACE_SIM868, "read char '%c'\n", c);
+    //             if(findOk.updateChar(c)) {goto AT_EXIT;}
+    //             if(findError.updateChar(c)) {goto AT_EXIT;}
+    //             // inputBuffer[i++] = uart_getc(UART_ID0);
+    //             // if(i >= BUFFER_SIZE)
+    //             // {
+    //             //     i = BUFFER_SIZE - 1;
+    //             //     goto CHECK;
+    //             // }
+    //         }
+    //     }
+    //     #endif
+    // //     inputBuffer[i] = '\0';
+    // AT_EXIT:
+    //     returnString.shrink_to_fit();
+    //     TRACE_DEBUG(1,TRACE_SIM868,"received\'%s\'\n", returnString.c_str());
+    //     return returnString;
 }
 
 
@@ -416,6 +431,14 @@ AT_EXIT:
 bool sim868::is_respond_ok(const std::string& respond)
 {
     auto ok_msg = "\r\nOK\r\n";
+    auto ok_pos = respond.length() - strlen(ok_msg);
+    // printf("%u -> '%s'\n",ok_pos, &respond.c_str()[ok_pos]);
+    return strcmp(&respond.c_str()[ok_pos], ok_msg) == 0;
+}
+
+bool sim868::is_respond_error(const std::string& respond)
+{
+    auto ok_msg = "\r\nERROR\r\n";
     auto ok_pos = respond.length() - strlen(ok_msg);
     // printf("%u -> '%s'\n",ok_pos, &respond.c_str()[ok_pos]);
     return strcmp(&respond.c_str()[ok_pos], ok_msg) == 0;
