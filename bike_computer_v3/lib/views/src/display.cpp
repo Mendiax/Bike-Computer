@@ -24,18 +24,19 @@ extern void view0(void);
 extern void view1(void);
 extern void view2(void);
 extern void view3(void);
+extern void view4(void);
+
 
 extern void view_charge(void);
 extern void view_main(void);
 
 
-//view_new_func views_all[] = {view0, view1, view2, view3, view4};
-view_new_func views_all[] = {view0, view1, view2, view3};
+view_new_func views_all[] = {view0, view1, view2, view3, view4};
 #define DISPLAY_TYPES_LENGTH (sizeof(views_all) / sizeof(view_new_func))
 void Display_init(SensorData *data)
 {
     _Display.data = data;
-    _Display.currentType = 0;
+    _Display.currentType = 4;
     
     // setup
     Screen_setup();

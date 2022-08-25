@@ -102,6 +102,7 @@ void sim868::gps::turn_on()
         if(sim868::is_respond_ok(respond))
         {
             gps_current_state = GpsState::NO_SIGNAL;
+            //printf("GPS ON\n");
         }
         id = 0;
     }
@@ -120,6 +121,7 @@ void sim868::gps::turn_off()
         if(sim868::is_respond_ok(respond))
         {
             gps_current_state = GpsState::OFF;
+            //printf("GPS OFF\n");
         }
         id = 0;
     }
@@ -131,8 +133,17 @@ void sim868::gps::turn_off()
 
 bool sim868::gps::fetch_data()
 {
+    static uint_fast16_t fail_counter;
+    // keep gps on
     if(get_gps_state() == GpsState::OFF)
     {
+        turn_on();
+        return false;
+    }
+    if(get_gps_state() == GpsState::RESTARTING)
+    {
+        turn_off();
+        fail_counter = 0;
         return false;
     }
     static uint64_t id;
@@ -170,6 +181,14 @@ bool sim868::gps::fetch_data()
         else
         {
             gps_current_state = GpsState::NO_RESPOND;
+        }
+        if(gps_current_state != GpsState::POSITION_AVAIBLE)
+        {
+            fail_counter++;
+            if(fail_counter >= 10)
+            {
+                gps_current_state = GpsState::RESTARTING;
+            }
         }
         id = 0;
         return true;

@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <pico/sync.h>
 #include <stdio.h>
+#include "pico/stdlib.h"
+#include <inttypes.h>
 
 // formats
 #define INS_ARR(arr) arr[0], arr[1], arr[2]
@@ -84,8 +86,8 @@ static inline void tracesSetup()
 
 
     
-    TRACES_ON(1,TRACE_CORE_1); // render time for scree
-    TRACES_ON(2,TRACE_CORE_1); // pause btn
+    //TRACES_ON(1,TRACE_CORE_1); // render time for scree
+    //TRACES_ON(2,TRACE_CORE_1); // pause btn
 
 
 
@@ -97,7 +99,7 @@ static inline void tracesSetup()
 
 
     TRACES_ON(1, TRACE_MPU9250); // mpu init
-    TRACES_ON(2, TRACE_MPU9250);  // reag gyro
+    //TRACES_ON(2, TRACE_MPU9250);  // reag gyro
 
     //TRACES_ON(1, TRACE_SIM868);  // send request log long
     TRACES_ON(2, TRACE_SIM868);  // send_request log
@@ -139,11 +141,13 @@ namespace utility {
     if (tracesOn[name] & (1 << id))\
     {\
         mutex_enter_blocking(&tracesMutex); \
-        printf("[" #name ".%u]<%s:%d> " __info,\
-            id,\
-            &__FILE__[UTILITY_CONST_EXPR_VALUE(utility::get_file_name_offset(__FILE__))],\
-            __LINE__,\
-            ##__VA_ARGS__);\
+        uint32_t __time_since_boot = to_ms_since_boot(get_absolute_time()); \
+        printf("[" #name ".%u]<%s:%d>%" PRIu32 " " __info, \
+            id, \
+            &__FILE__[UTILITY_CONST_EXPR_VALUE(utility::get_file_name_offset(__FILE__))], \
+            __LINE__, \
+            __time_since_boot, \
+            ##__VA_ARGS__); \
         mutex_exit(&tracesMutex); \
     }\
     }while(0)

@@ -75,6 +75,8 @@ void sim868::turnOn(void)
 {
     gpio_put(SIM868_PIN_POWER, 1);
     sim_on = 1;
+    current_response.status = ResponseStatus::RECEIVED;
+    current_response.response = "";
 }
 
 void sim868::turnOff(void)
@@ -288,10 +290,10 @@ uint64_t sim868::send_request(const std::string&& cmd,
         return 0;
     }
 
-    if(current_response.status == ResponseStatus::SENT || current_response.status == ResponseStatus::STARTED)
+    if(current_response.status != ResponseStatus::RECEIVED)
     {
         // there is request pending so it needs to be received first
-        TRACE_ABNORMAL(TRACE_SIM868, "there is pending request, cannot send request\n");
+        TRACE_ABNORMAL(TRACE_SIM868, "there is pending request, cannot send request '%s'\n", cmd.c_str());
         return 0;
     }
     ++id;
@@ -318,6 +320,7 @@ std::string sim868::get_respond(uint64_t id)
 {
     if(sim868::check_response(id))
     {
+        //std::cout << id << " -> " << current_response.response << std::endl;
         current_response.status = ResponseStatus::RECEIVED; 
         return current_response.response; 
     }

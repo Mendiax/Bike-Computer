@@ -65,6 +65,10 @@ include_directories(./drivers/DOF/MPU9250)
 include_directories(tests/bc_test)
 include_directories(tests)
 
+include_directories(lib/Parser/include)
+
+
+
 
 ################################ SUBDIRECTORY #################################
 #sub
@@ -81,6 +85,7 @@ add_subdirectory(drivers/interrupts)
 add_subdirectory(drivers/buttons)
 add_subdirectory(drivers/battery)
 add_subdirectory(drivers/gsm)
+add_subdirectory(lib/Parser)
 
 
 # DOF
@@ -145,6 +150,8 @@ target_link_libraries( ${PICO_MAIN_FILE}
         Common
         Battery
         GSM
+
+        Parser
 )
 
 #################################### TEST #####################################
@@ -181,6 +188,8 @@ target_link_libraries( ${PICO_TEST_FILE}
 
         IMU I2C
         FatFs_SPI
+
+        Parser
 
         test_main # tests
 )

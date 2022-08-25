@@ -6,4 +6,8 @@ target_link_libraries(test_main PUBLIC
     pico_time
     pico_stdlib
     GSM
+    Parser
+    Common
+    bcTest
+    Display
 )

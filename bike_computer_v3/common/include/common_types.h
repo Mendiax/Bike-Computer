@@ -4,6 +4,9 @@
 #include "ringbuffer.h"
 #include "pico/sync.h"
 
+#include <string>
+#include <array>
+
 enum class SystemState
 {
     RUNNING,
@@ -73,8 +76,37 @@ struct GpsDataS
     float msl;
 };
 
+template<typename T, size_t N>
+struct ArrayMinMaxS
+{
+    T array[N];
+    T min;
+    T max;
+};
+
+#define FORECAST_SENSOR_DATA_LEN 6
+
+template<size_t N>
+struct ForecastArrS
+{
+    ArrayMinMaxS<float, N> temperature_2m;
+    ArrayMinMaxS<float, N> pressure_msl;
+    ArrayMinMaxS<float, N> precipitation;
+    ArrayMinMaxS<float, N> windspeed_10m;
+    ArrayMinMaxS<float, N> winddirection_10m;
+    ArrayMinMaxS<float, N> windgusts_10m;
+
+    Time_HourS sunrise;
+    Time_HourS sunset;
+    float winddirection_10m_dominant;
+
+    float current_windspeed;
+    float current_winddirection;
+};
+
 typedef struct SensorData
 {
+    ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
     RingBuffer* rearShockBuffer;
     SpeedData speed;
     GpsDataS gps_data;

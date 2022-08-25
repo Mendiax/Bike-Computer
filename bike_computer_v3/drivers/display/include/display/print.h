@@ -20,6 +20,8 @@
 
 
 /* Print function ------------------------------------------------------------------*/
+void Paint_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, display::DisplayColor color = FONT_FOREGROUND, uint8_t scale = 1);
+
 void Paint_SetPixel(uint16_t x, uint16_t y, display::DisplayColor color);
 
 void Paint_DrawChar(uint16_t x, uint16_t y, const char character,

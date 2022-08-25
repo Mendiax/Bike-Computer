@@ -12,7 +12,8 @@ enum class GpsState
     NO_RESPOND, // no respond from sim868
     NO_SIGNAL, // no connection to satelites (or not enough)
     DATA_AVAIBLE, // data can be read
-    POSITION_AVAIBLE
+    POSITION_AVAIBLE,
+    RESTARTING
 };
 
 struct GpsRawData

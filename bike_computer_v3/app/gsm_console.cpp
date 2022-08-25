@@ -112,112 +112,24 @@ void consoleGSM()
     // sendCMD_waitResp("AT+BTSCAN=1,10", "OK", 8000);
     
 
-
-
-    //AT+CSTT="internet","internet","internet"
-    // AT+CIPPING="www.google.com"
     sleep_ms(2000);
 
     // GSM setup
     sim868::sendRequestLong("AT+CSQ",1000); // signal strength
-    // std::string cgatt = sim868::sendRequestLong("AT+CGATT?", 1000);
-    // sim868::clear_respond(cgatt);
-    // if(cgatt!="1\r\n")
-    // {
-    //     std::cout << "cgatt '" << cgatt << "'" << std::endl;
-    //     do
-    //     {
-    //         sleep_ms(1000);
-    //         cgatt = sim868::sendRequestLong("AT+CGATT?", 1000);
-    //         sim868::clear_respond(cgatt);
-    //     } while (cgatt!="1\r\n"); // wait for connection
-        
-    // }
-    // sleep_ms(2000);
-
-    // TODO coś zepsute w setupie xd help
-
-    bool connected = false;
-    while(!connected)
-    {
-        sim868::gsm::check_connection(connected);
-        sleep_ms(1000);
-    }
-
-    // // setup connection
-    // sim868::sendRequestLong("AT+CSTT=\"internet\",\"internet\",\"internet\"", 8000);
-    // //should be CGDCONT: 1,"IP","internet","0.0.0.0",0,0
-    // sim868::sendRequestLong("AT+CIICR", 1000);
-    // sim868::sendRequestLong("AT+CIFSR", 1000);
-    connected = false;
-    while(!connected)
-    {
-        if(sim868::gsm::setup_connection(connected))
-        {
-            if(connected == false)
-            {
-                printf("ERROR CSTT\n");
-                sleep_ms(10*1000);
-            }
-        }
-        sleep_ms(100);
-    }
-
-    // optional test
-    //sim868::sendRequestLong("AT+CIPPING=\"www.google.com\"", 8000);
-    //sleep_ms(1000); // ????????????????????
-
-    // // bearer config
-    // setup for cid 1
-    // set parameters
-    // sim868::sendRequestLong("AT+SAPBR=3,1,\"APN\",\"internet\"", 2000); // ok
-    // sim868::sendRequestLong("AT+SAPBR=3,1,\"USER\",\"internet\"", 2000); // ok
-    // sim868::sendRequestLong("AT+SAPBR=3,1,\"PWD\",\"internet\"", 2000); // ok
-    // // open
-    // sim868::sendRequestLong("AT+SAPBR=1,1",2000); //ok
-    // // query
-    // sim868::sendRequestLong("AT+SAPBR=2,1",2000); // ret <cid>,<stat>,<ip>
-
-    connected = false;
-    std::string ip;
-    while(!connected)
-    {
-        if(sim868::gsm::bearer_setup(connected, &ip))
-        {
-            if(connected == false)
-            {
-                printf("ERROR BEARER\n");
-                sleep_ms(10*1000);
-            }
-        }
-        sleep_ms(100);
-    }
-    std::cout << "extracted ip " << ip << std::endl;
-
-    sim868::sendRequestLong("AT+CSQ",1000); // signal strength
-
-    sleep_ms(5000);
-
-    bool success = false;
     std::string forecast_json;
-    while(!success)
-    {
-        if(sim868::gsm::send_http_req(success,
-            "http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m",
-            forecast_json,
-            4000)
-            )
-        {
-            if(success == false)
-            {
-                printf("HTTP error\n");
-                sleep_ms(10*1000);
-            }
-        }
-        sleep_ms(1000);
-    }
+    std::string http_req_addr = sim868::gsm::construct_http_request_url(52.52, 13.41, (Time_DateS){2022,8,21}, (Time_DateS){2022,8,21});
+    //std::string http_req_addr = "http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m";
 
+    bool success;
+    while (!sim868::gsm::get_http_req(success, http_req_addr, forecast_json))
+    {
+        sleep_ms(100);
+    }
+    
     std::cout << "forecast: " << forecast_json << std::endl;
+    
+
+
 
     // sim868::sendRequestLong("AT+HTTPINIT", 2000);
     // sim868::sendRequestLong("AT+HTTPPARA=\"CID\",1", 2000);

@@ -57,11 +57,11 @@ float invSqrt(float x)
 void IMU_Init(void)
 {	
 	I2C_Init();
-  	consolep("IMU_Init()\n");
-    uint8_t u8Ret; 
-	mpu9250::init();
-    bmp280::init();
-
+  consolep("IMU_Init()\n");
+  uint8_t u8Ret; 
+  mpu9250::init();
+  bmp280::init();
+  scan();
 
 }
 

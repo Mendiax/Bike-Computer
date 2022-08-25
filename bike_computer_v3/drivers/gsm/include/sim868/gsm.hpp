@@ -2,8 +2,12 @@
 #define SIM868_GSM_HPP
 
 #include "sim868/gps.hpp"
+#include "common_utils.hpp"
+
 
 #include <stdint.h>
+#include <sstream>
+
 
 
 enum class HttpReadE{
@@ -11,6 +15,13 @@ enum class HttpReadE{
     READ_SIZE,
     READING_DATA,
     FINISHED
+};
+
+enum class GsmStateE{
+    ON,
+    IS_CONNECTED,
+    LOGGED_IN,
+    BEARER_OK
 };
 
 namespace sim868
@@ -75,6 +86,43 @@ namespace sim868
          * @return false 
          */
         bool send_http_req(bool& success, const std::string& request, std::string& response, size_t expected_size = 4000);
+
+        /**
+         * @brief Get the http req do a sim setup if needed
+         * 
+         * @param success true if http succeded
+         * @param request http request
+         * @param response response for request
+         * @param expected_size expected size of response
+         * @return true has finished
+         * @return false 
+         */
+        bool get_http_req(bool& success, const std::string& request, std::string& response, size_t expected_size = 4000);
+
+        /**
+         * @brief returns url for forecast with given parameters
+         * 
+         * @param latitude 
+         * @param longitude 
+         * @param start 
+         * @param end 
+         * @return std::string 
+         */
+        template<typename T>
+        static inline std::string construct_http_request_url(float latitude, float longitude, const T& start, const T& end)
+        {
+            std::stringstream url;
+            url
+            << "http://api.open-meteo.com/v1/forecast?" 
+            << "latitude=" << latitude << "&" << "longitude=" << longitude
+            << "&hourly=temperature_2m,pressure_msl,precipitation,windspeed_10m,winddirection_10m,windgusts_10m&daily=sunrise,sunset,winddirection_10m_dominant&current_weather=true&"
+            << "timezone=" << "Europe/Berlin"
+            << "&start_date=" << get_iso_format(start)
+            << "&end_date=" << get_iso_format(end) ;
+
+            return url.str();
+
+        }
 
     }
 }

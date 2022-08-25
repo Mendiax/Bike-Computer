@@ -8,14 +8,18 @@ PICO_DRIVE_LETTER := I
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 
-all:
+all: parser
 	$(MAKE) -C $(BUILD) -j$(NPROCS)
 
 sim:
 	$(MAKE) -C $(BUILD) -j$(NPROCS)
 
+parser:
+	bison -o lib/Parser/src/parser_bison.cpp -d lib/Parser/parser.y
+	flex -Cr -o lib/Parser/src/lexer.cpp lib/Parser/lexer.l
+
 #-DCMAKE_VERBOSE_MAKEFILE=ON
-cmake:
+cmake: parser
 	cmake -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Debug 
 
 cmaker:

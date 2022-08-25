@@ -6,15 +6,20 @@
 #include <display/fonts.h>
 #include <stdbool.h>
 
+//drawFunc_p get_draw_func_plot(float* arr);
+
+void plot_float(void *settings);
+void plot_arrayminmax(void *settings);
 
 
-typedef struct PlotData
-{
-    RingBuffer *buffer;
-} PlotData;
 
-/*draws floats from ring buffer*/
-void PlotFloatDraw(void *data, void *settings, Frame *plotFrame);
-void PlotDrawByte(void *data, void *settings, Frame *plotFrame);
+// typedef struct PlotData
+// {
+//     RingBuffer *buffer;
+// } PlotData;
+
+// /*draws floats from ring buffer*/
+// void PlotFloatDraw(void *data, void *settings, Frame *plotFrame);
+// void PlotDrawByte(void *data, void *settings, Frame *plotFrame);
 
 #endif

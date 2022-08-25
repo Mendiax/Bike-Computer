@@ -16,7 +16,7 @@
 #include "hardware/uart.h"
 
 
-// #include "display/print.h"
+#include "display/print.h"
  #include "console/console.h"
 // #include "display/driver.hpp"
 
@@ -123,10 +123,7 @@ START_SD:
     // Unmount drive
     f_unmount("0:");
     // Loop forever doing nothing
-    while (true)
-    {
-        sleep_ms(1000);
-    }
+    printf("test_SD finished\r\n");
 }
 
 void test_DOF()
@@ -169,7 +166,7 @@ void test_DOF()
 
     }
 }
-/*
+
 void test_driver()
 {
     display::init();
@@ -228,7 +225,28 @@ void test_print()
     Paint_DrawChar(240, 10, 'x', font);
 
     printf("\n");
-    Paint_Println(0, DISPLAY_HEIGHT - font->height, "========================================", font, FONT_FOREGROUND);
+    // Paint_Println(0, DISPLAY_HEIGHT - font->height, "========================================", font, FONT_FOREGROUND);
+
+    display::display();
+}
+
+void test_draw_line()
+{
+    display::init();
+    display::clear();
+    display::display();
+
+    printf("driver inited\n");
+
+    // Paint_DrawLine(0,0,4,100);
+    // Paint_DrawLine(10,10,300,10);
+    // Paint_DrawLine(12,1,120,200);
+    // Paint_DrawLine(10,1,30,200);
+    
+    Paint_DrawLine(0,0,319,239);
+    // Paint_DrawLine(10,10,30,1);
+    // Paint_DrawLine(12,1,12,20);
+    // Paint_DrawLine(10,1,3,20);
 
     display::display();
 }
@@ -250,7 +268,7 @@ void test_console()
         sleep_ms(200);
     }
 }
-*/
+
 void test_gps()
 {
   consoleLogInit();
@@ -324,9 +342,9 @@ int main(void)
         sleep_ms(100);
     }
 
-    test_SD();
 
-    //run_tests();
+    run_tests();
+    // test_SD();
 
     /*
     display test
@@ -338,6 +356,13 @@ int main(void)
     // printf("[TEST] starting test_print()\n");
     // test_print();
     // printf("[TEST] ending test_print()\n");
+    // sleep_ms(1000);
+    // printf("[TEST] starting test_draw_line()\n");
+    // test_draw_line();
+    // printf("[TEST] ending test_draw_line()\n");
+
+    // sleep_ms(1000);
+
 
     /*
     console test
@@ -349,7 +374,7 @@ int main(void)
     //bmp_test();
     test_DOF();
 
-    test_sim868_interface();
+    // test_sim868_interface();
     
 
     while (1)

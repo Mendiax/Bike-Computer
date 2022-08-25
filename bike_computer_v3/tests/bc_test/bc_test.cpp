@@ -1,4 +1,4 @@
 #include "bc_test.h"
 
 // error count
-int testError;
+int bc_testError;

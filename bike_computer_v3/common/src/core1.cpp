@@ -1,8 +1,11 @@
 #include "core1.h"
 #include "core_utils.hpp"
 #include "common_types.h"
+#include "common_utils.hpp"
+
 #include "buttons/buttons.h"
 #include "traces.h"
+
 
 // display
 #include "display/print.h"
@@ -10,6 +13,8 @@
 #include "views/display.h"
 
 #include <string>
+#include <iostream>
+
 #include "pico/time.h"
 
 #define FRAME_PER_SECOND 10
@@ -96,7 +101,10 @@ static int loop(void)
         // copy data
         mutex_enter_blocking(&sensorDataMutex);
         sensorDataDisplay = sensorData;
+        // std::cout << "Core1: ";
+        // print(sensorDataDisplay.forecast.windgusts_10m);
         mutex_exit(&sensorDataMutex);
+
 
         // if system state has changed execute proper code
         static SystemState last_system_state;
@@ -160,7 +168,7 @@ static int loop(void)
             auto label = "PAUSED";
             auto width_char = pause_label.width / strlen(label); 
             getFontSize(width_char, pause_label.height, &font, &scale);
-            Paint_Println(pause_label.x, pause_label.y, label, font, display::DisplayColor(0xf,0x0,0x0), scale);
+            Paint_Println(pause_label.x, pause_label.y, label, font, {0xf,0x0,0x0}, scale);
         }
         display::display();
     }

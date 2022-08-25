@@ -18,6 +18,8 @@
 
 #define ERROR 1
 
+extern int bc_testError;
+
 #define BC_TEST_START()                \
     do                                 \
     {                                  \
@@ -28,32 +30,43 @@
         }                              \
     } while (0)
 
-#define BC_TEST(funcName)                                                                \
-    do                                                                                   \
-    {                                                                                    \
-        printf("[TEST] " #funcName " started\n");                                          \
-        absolute_time_t timeStart = get_absolute_time();                                 \
-        int ret = funcName();                                                            \
-        absolute_time_t timeEnd = get_absolute_time();                                   \
-        long long int timeTaken = absolute_time_diff_us(timeStart, timeEnd);             \
-        if (ret != 0)                                                                    \
-        {                                                                                \
+#define BC_TEST(funcName)                                                                        \
+    do                                                                                           \
+    {                                                                                            \
+        printf("[TEST] " #funcName " started\n");                                                \
+        absolute_time_t timeStart = get_absolute_time();                                         \
+        int ret = funcName();                                                                    \
+        absolute_time_t timeEnd = get_absolute_time();                                           \
+        long long int timeTaken = absolute_time_diff_us(timeStart, timeEnd);                     \
+        if (ret != 0)                                                                            \
+        {                                                                                        \
             printf("\x1b[1;31m[TEST] " #funcName " FAILED!   Took %lld us\n\x1b[0m", timeTaken); \
-        }                                                                                \
-        else                                                                             \
-        {                                                                                \
+            bc_testError++;                                                                      \
+        }                                                                                        \
+        else                                                                                     \
+        {                                                                                        \
             printf("\x1b[1;32m[TEST] " #funcName " PASSED!   Took %lld us\n\x1b[0m", timeTaken); \
-        }                                                                                \
+        }                                                                                        \
     } while (0)
 
-#define BC_TEST_END()                \
-    do                               \
-    {                                \
-        printf("[TEST] finished\n"); \
-        for (;;)                     \
-        {                            \
-            sleep_ms(100);           \
-        }                            \
+#define BC_CHECK(boolean)                                              \
+    do                                                                 \
+    {                                                                  \
+        if (!(boolean))                                                \
+        {                                                              \
+            printf("\x1b[1;31m[TEST] " #boolean " failed\n\x1b[0m\n"); \
+            return 1;                                                  \
+        }                                                              \
+    } while (0)
+
+#define BC_TEST_END()                                     \
+    do                                                    \
+    {                                                     \
+        printf("[TEST] finished\n");                      \
+        if (bc_testError == 0)                            \
+            printf("\x1b[1;32m[TEST] PASSED!\n\x1b[0m");  \
+        else                                              \
+            printf("\x1b[1;31m[TEST] failed\n\x1b[0m\n"); \
     } while (0)
 
 #endif

@@ -29,6 +29,9 @@ static void Paint_Println_multilineGen(uint16_t x, uint16_t y, const char *str,
                                        uint8_t scale = 1,
                                        bool overwriteBackground = false);
 
+void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void (*draw_func)(uint16_t x, uint16_t y, display::DisplayColor color), display::DisplayColor color, uint8_t scale);
+
+
 // global definitions
 void Paint_SetPixel(uint16_t x, uint16_t y, display::DisplayColor color)
 {
@@ -47,7 +50,8 @@ void Paint_SetPixel(uint16_t x, uint16_t y, display::DisplayColor color)
     if(x >= DISPLAY_WIDTH || y >= DISPLAY_HEIGHT)
     {
         TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "write outside of window x=%" PRIu16 " y=%" PRIu16 "\n", x, y);
-        // no return so it can be optimised out when compiling without traces and have greater performance
+        //return;
+        // no return (XD) so it can be optimised out when compiling without traces and have greater performance
     }
     uint_fast32_t index = 0;
     index += y * (display::width);
@@ -136,7 +140,46 @@ void Paint_Println_multilineBackground(uint16_t x, uint16_t y, const char *str,
                                true);
 }
 
+void Paint_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, display::DisplayColor color, uint8_t scale)
+{
+    Paint_DrawLineGen(x0,y0,x1,y1, Paint_SetPixel, color, scale);
+}
+
 // static definitions
+void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void (*draw_func)(uint16_t x, uint16_t y, display::DisplayColor color), display::DisplayColor color, uint8_t scale)
+{
+    // source https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+    int_fast32_t dx = std::abs((int32_t)x1 - (int32_t)x0);
+    uint_fast8_t sx = x0 < x1 ? 1 : -1;
+    int_fast32_t dy = - std::abs((int32_t)y1 - (int32_t)y0);
+    uint_fast8_t sy = y0 < y1 ? 1 : -1;
+
+    int_fast32_t error = dx + dy;
+    
+    while(true)
+    {
+        draw_func(x0, y0, color);
+        if(x0 == x1 && y0 == y1)
+            break;
+        auto e2 = 2 * error;
+        if (e2 >= dy)
+        {
+            if(x0 == x1)
+                break;
+            error = error + dy;
+            x0 = x0 + sx;
+        }
+
+        if (e2 <= dx)
+        {
+            if (y0 == y1)
+                break;
+            error = error + dx;
+            y0 = y0 + sy;
+        }
+    }
+}
+
 static void Paint_PrintlnGen(uint16_t x, uint16_t y, const char *str,
                              const sFONT *font, display::DisplayColor colorForeground, display::DisplayColor colorBackground, uint8_t scale, bool overwriteBackground)
 {

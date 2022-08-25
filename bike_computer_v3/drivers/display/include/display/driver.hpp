@@ -54,19 +54,18 @@ namespace display
 
     struct DisplayColor
     {
-    public:
-        uint16_t color;
         int8_t r, g, b;
-        DisplayColor(int8_t r, int8_t g, int8_t b)
-            : r(r & 0xf), g(g & 0xf), b(b & 0xf)
-        {
-            // uint8_t max = std::max(std::max(r,g), b);
+    // public:
+    //     //uint16_t color;
+    //     int8_t r, g, b;
+    //     DisplayColor()
+    //         : r{0}, g{0}, b{0}
+    //         {}
+    //     DisplayColor(int8_t r, int8_t g, int8_t b)
+    //         : r(r & 0xf), g(g & 0xf), b(b & 0xf)
+    //     {
 
-            color =
-                (((uint16_t)r << 8) & 0xf00) |
-                (((uint16_t)g << 4) & 0x0f0) |
-                (((uint16_t)b << 0) & 0x00f);
-        }
+    //     }
     };
 
     void init(void);

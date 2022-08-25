@@ -7,6 +7,7 @@
 
 #include <inttypes.h>
 #include <iostream>
+#include <sstream>
 
 
 static HttpReadE http_state;
@@ -99,6 +100,9 @@ void on_uart_rx_http(void)
 }
 
 extern bool http_req_irq;
+
+static GsmStateE current_state = GsmStateE::ON;
+
 
 uint64_t sim868::gsm::send_request_httpread()
 {
@@ -354,9 +358,11 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
             }
             if(state == READ)
             {
+                // if(respond)
                 //response = respond;
                 clear_respond(respond);
-                response = std::move(respond);
+                response = respond.substr(respond.find_first_of('\n'));
+                //response = std::move(respond);
             }
             // go to next state
             state = (ConnectionStateE)((int)state + 1);
@@ -403,11 +409,11 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
         case READ:
             {
                 auto current_time = get_absolute_time();
-                if(us_to_ms(absolute_time_diff_us(action0_time, current_time)) < 2000)
+                if(us_to_ms(absolute_time_diff_us(action0_time, current_time)) < 10000)
                 {
                     return false; 
                 }
-                id = send_request(at_cmds[state], 8000 + expected_size * 10);
+                id = send_request(at_cmds[state], 8000 + expected_size);
             }
             break;
         case INIT:
@@ -424,3 +430,92 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
     }
     return false;  
 }
+
+bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::string& response, size_t expected_size)
+{
+    //std::cout << "get_http_req in [" << (int)current_state << "] " << std::endl;
+    if (current_state != GsmStateE::BEARER_OK)
+    {
+        switch (current_state)
+        {
+        case GsmStateE::ON:
+            {
+                bool is_connected = false;
+                if(sim868::gsm::check_connection(is_connected))
+                {
+                    if(is_connected)
+                    {
+                        current_state = GsmStateE::IS_CONNECTED;
+                    }
+                    else
+                    {
+                        // setup failed 
+                        // TODO error handling
+                    }
+
+                }
+            }
+            break;
+        case GsmStateE::IS_CONNECTED:
+            {
+                bool is_logged_in = false;
+                if(sim868::gsm::setup_connection(is_logged_in))
+                {
+                    if(is_logged_in)
+                    {
+                        current_state = GsmStateE::LOGGED_IN;
+                    }
+                    else
+                    {
+                        // setup failed 
+                        // TODO error handling
+                    }
+
+                }
+            }
+            break;
+        case GsmStateE::LOGGED_IN:
+            {
+                bool bearer_ok = false;
+                if(sim868::gsm::bearer_setup(bearer_ok))
+                {
+                    if(bearer_ok)
+                    {
+                        current_state = GsmStateE::BEARER_OK;
+                    }
+                    else
+                    {
+                        // setup failed 
+                        // TODO error handling
+                    }
+                }
+            }
+            break;
+        default:
+            break;
+        }
+        // setup is not done return false
+        return false;
+    }
+    else
+    {
+        //std::cout << "get_http_req configured " << std::endl; 
+        if(sim868::gsm::send_http_req(success, request, response, 5000))
+        {
+            if(success == false)
+            {
+                // TODO error handling ???
+                printf("HTTP error\n");
+            }
+        }
+        else
+        {
+            // waitng for response
+            return false;
+        }
+        return true;
+    }
+}
+
+
+

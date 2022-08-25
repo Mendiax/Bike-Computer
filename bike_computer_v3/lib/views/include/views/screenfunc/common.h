@@ -2,6 +2,7 @@
 #define SCREENFUNC_COMMON_H
 
 #include "display/fonts.h"
+#include "display/print.h"
 
 /* data ptr, additional data ptr, window(size) */
 typedef void (*drawFunc_p)(void *);
@@ -51,12 +52,25 @@ typedef struct ValSettings
     void *data;
 } ValSettings;
 
+typedef struct PlotSettings
+{
+    Frame frame;
+    bool auto_max;
+    bool auto_min;
+    void * min, *max;
+    void *data; // ptr to array
+    uint16_t len; // len of drawing mus be less than data
+    //uint16_t* offset; // movable offset null if not used
+    display::DisplayColor color;
+} PlotSettings;
+
 
 struct Settings
 {
     union{
         LabelSettings label;
         ValSettings val;
+        PlotSettings plot;
     };
 };
 
@@ -67,13 +81,13 @@ typedef struct LastValSettings
     TextSettings text;
 } LastValSettings;
 
-typedef struct PlotSettings
-{
-    long min, max;
-    bool autoMax;
-    bool autoMin;
-    long offset;
-} PlotSettings;
+// typedef struct PlotSettings
+// {
+//     long min, max;
+//     bool autoMax;
+//     bool autoMin;
+//     long offset;
+// } PlotSettings;
 
 
 #endif

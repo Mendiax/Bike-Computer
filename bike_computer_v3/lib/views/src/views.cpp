@@ -15,6 +15,7 @@
 #include <tuple>
 #include <typeinfo>
 #include <stdint.h>
+#include <iostream>
 
 //#define SETTING_SIZE std::max(std::max(std::max(sizeof(LastValSettings), sizeof(PlotSettings)), sizeof(LabelSettings)), sizeof(ValSettings))
 //uint8_t allocData[SETTING_SIZE * MAX_NUMBER_OF_WINDOWS + sizeof(View)];
@@ -24,7 +25,7 @@
 //    return allocData + sizeof(View) + id * SETTING_SIZE;
 //}
 
-void add_label(const char* string, const Frame& frame,   Align align = Align::LEFT, size_t commonLength = 0)
+void add_label(const char* string, const Frame& frame, Align align = Align::LEFT, size_t commonLength = 0)
 {
     LabelSettings valSettings;
     if(commonLength > 0)
@@ -149,6 +150,12 @@ static constexpr auto split_vertical(const Frame& frame)
     const Frame f2 = {frame.x + half_width, frame.y, half_width, frame.height};
     return std::make_tuple(f1,f2);
 }
+/**
+ * @brief splits frame into 2 frames with half of height
+ * 
+ * @param frame 
+ * @return constexpr auto 
+ */
 static constexpr auto split_horizontal(const Frame& frame)
 {
     const uint16_t half_height = frame.height / 2;
@@ -194,6 +201,18 @@ void top_bar()
 static constexpr Frame get_frame_bar()
 {
     return {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT - TOP_BAR_HEIGHT};
+}
+
+static inline constexpr uint16_t get_frame_top_y(const Frame frame)
+{
+    massert(DISPLAY_HEIGHT >= frame.y + frame.height, "no space left Y:%" PRIu16  " H:%" PRIu16 "\n", frame.y, frame.height);
+    return frame.y + frame.height;
+}
+
+static inline constexpr uint16_t get_height_left(const Frame frame)
+{
+    massert(DISPLAY_HEIGHT >= get_frame_top_y(frame), "no space left\n");
+    return DISPLAY_HEIGHT - get_frame_top_y(frame);
 }
 
 /*
@@ -262,8 +281,8 @@ void view2(void)
                            Align::CENTER, true);
     add_value("%3.0f",3,&_Display.data->gps_data.msl, topRight, Align::CENTER);
 
-    Frame bottomLeft ={0,topLeft.y + topLeft.height, topLeft.width, DISPLAY_HEIGHT - bottomLeft.y};
-    Frame bottomRight ={topRight.x,topRight.y + topRight.height, topRight.width, bottomRight.height};
+    Frame bottomLeft ={0, get_frame_top_y(topLeft), topLeft.width, DISPLAY_HEIGHT - bottomLeft.y};
+    Frame bottomRight ={topRight.x,get_frame_top_y(topRight), topRight.width, bottomRight.height};
     add_value("%6.3f",6,&_Display.data->gps_data.lat, bottomLeft, Align::CENTER);
     add_value("%6.3f",6,&_Display.data->gps_data.lon, bottomRight, Align::CENTER);
 
@@ -278,6 +297,56 @@ void view3(void)
     auto [frame_hour, frame_date] = split_horizontal(frame);
     add_value("",TIMES_LABEL_LENGTH,&_Display.data->hour, frame_hour, Align::CENTER);
     add_value("",TIMES_LABEL_LENGTH,&_Display.data->date, frame_date, Align::CENTER);
+}
+
+void view4(void)
+{
+    view_new_inAllocatedPlace(&_Display.view);
+    top_bar();
+
+    auto frame = get_frame_bar();
+    
+    //std::cout << "frame: " << frame_to_string(frame) << std::endl;
+    //std::cout << "height left: " << get_height_left(frame) << std::endl;
+
+    Frame top{0, TOP_BAR_HEIGHT, frame.width, frame.height - (DISPLAY_HEIGHT / 10)};
+    Frame top_labels{top.x,top.y,top.width, TOP_BAR_HEIGHT};
+    //std::cout << "top: " << frame_to_string(top) << std::endl;
+    Frame bottom{0, get_frame_top_y(top), frame.width, get_height_left(top)};
+    //std::cout << "bottom: " << frame_to_string(bottom) << std::endl;
+
+    static float min = 0.0, max = 20.0;
+    {
+        PlotSettings plot_sett{top, false,false,&min, &max, 
+        &_Display.data->forecast.windgusts_10m.array, 
+        FORECAST_SENSOR_DATA_LEN, {0xa,0,0}}; 
+        Settings set;
+        set.plot = plot_sett;
+        Window plot_win{set, plot_float}; 
+        view_addNewWindow(&_Display.view,plot_win);
+    }
+    {
+        PlotSettings plot_sett{top, false,false,&min, &max, 
+        &_Display.data->forecast.windspeed_10m.array, 
+        FORECAST_SENSOR_DATA_LEN, {0,0xa,0}}; 
+        Settings set;
+        set.plot = plot_sett;
+        Window plot_win{set, plot_float}; 
+        view_addNewWindow(&_Display.view,plot_win);
+    }
+    {
+        static float min = 0.0, max = 3.0;
+        PlotSettings plot_sett{top, false,false,&min, &max, 
+        &_Display.data->forecast.precipitation.array, 
+        FORECAST_SENSOR_DATA_LEN, {0,0,0xf}}; 
+        Settings set;
+        set.plot = plot_sett;
+        Window plot_win{set, plot_float}; 
+        view_addNewWindow(&_Display.view,plot_win);
+    }
+
+
+    //add_label("|    |    |    |    |", bottom);
 }
 
 void view_charge(void)
