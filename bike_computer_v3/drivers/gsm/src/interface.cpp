@@ -101,7 +101,7 @@ void sim868::boot(void)
     waitForBoot();
 }
 
-bool check_for_boot(void)
+bool sim868::check_for_boot(void)
 {
     return sim868::sendRequestLong("AT", 2000).find("OK") != std::string::npos;
 }
@@ -162,7 +162,7 @@ void sim868::waitForBoot()
         return;
     }
     int fail_counter = 0;
-    while(!check_for_boot)
+    while(!check_for_boot())
     {
         consolep("SIM868 is starting\n");
         sleep_ms(1000);
