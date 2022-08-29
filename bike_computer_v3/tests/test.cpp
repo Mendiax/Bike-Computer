@@ -11,6 +11,8 @@
 #include "common_utils.hpp"
 #include "sim868/gsm.hpp"
 
+#include "BMP280.hpp"
+
 #include "parser.hpp"
 
 #include "massert.h"
@@ -190,6 +192,19 @@ int url_test(void)
     return 0;
 }
 
+int altitude_test(void)
+{
+    float temperature_2m = 16.4;
+    float pressure_msl = 1017.3;
+    float surface_pressure = 1004.2;
+
+    auto h = bmp280::get_height(pressure_msl, surface_pressure, temperature_2m);
+    PRINTF("altitude = %f\n", h);
+    BC_CHECK(h >= 109.0 && h <= 110.0);
+
+    return 0;
+}
+
 // extern void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void (*draw_func)(uint16_t x, uint16_t y, display::DisplayColor color), display::DisplayColor color, uint8_t scale);
 
 int draw_line_test(void)
@@ -205,5 +220,7 @@ void run_tests(void)
     BC_TEST(gps_data_test);
     BC_TEST(parser_test);
     BC_TEST(url_test);
+    BC_TEST(altitude_test);
+
     BC_TEST_END();
 }

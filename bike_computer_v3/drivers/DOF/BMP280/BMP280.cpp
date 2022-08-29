@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <hardware/i2c.h>
 #include "pico/binary_info.h"
@@ -255,6 +256,16 @@ void bmp280::init()
     bmp280_get_calib_params(&params);
 }
 
+float bmp280::get_height(float pressure_msl, float pressure_cl, float temp)
+{
+    // https://keisan.casio.com/exec/system/1224585971
+    
+    float h = (
+            (std::pow(((double)pressure_msl/(double)pressure_cl), (1.0/5.257)) - 1.0) * 
+             (temp + 273.15)
+             ) / 0.0065;
+    return h;
+}
 
 int bmp_test() {
 

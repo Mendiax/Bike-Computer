@@ -10,4 +10,5 @@ target_link_libraries(test_main PUBLIC
     Common
     bcTest
     Display
+    BMP280
 )
