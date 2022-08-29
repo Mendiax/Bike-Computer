@@ -93,21 +93,6 @@ static int loop(void)
         //size_t avaible_memory = check_free_mem();
         //printf("Avaible memory = %zu\n", avaible_memory);
 
-        int32_t temp, press;
-        CYCLE_UPDATE(true, false, WEATHER_CYCLE_MS,
-        {},
-        {
-            std::tie(temp, press) = bmp280::get_temp_press();
-            //temp = (temp % 100) < 50 ? (temp / 100) : ((temp / 100) + 1);
-            mutex_enter_blocking(&sensorDataMutex);
-            sensorData.weather.temperature = temp;
-            sensorData.weather.pressure = press;
-            mutex_exit(&sensorDataMutex);
-            TRACE_DEBUG(1,TRACE_CORE_0,
-                        "Current weather temp:%" PRId32 "C press:%" PRId32 "Pa\n",
-                        temp, press);
-        });
-
         // battery
         static bool is_charging = 0;
         static uint8_t bat_lev = 0;
@@ -190,8 +175,6 @@ static int loop(void)
                         latitude = 51.4;
                         longitude = 16.59;
                     }
-                    //Time_DateS current_time_date{2022, 8, 24}; // fix
-                    //Time_DateS current_time_date{current_time.year, current_time.month, current_time.day}; // fix
                     http_req_addr = sim868::gsm::construct_http_request_url(latitude,
                                                                             longitude,
                                                                             current_time_date,
@@ -222,6 +205,29 @@ static int loop(void)
                     }
                 });
         }
+
+        int32_t temp, press;
+        float altitude;
+        CYCLE_UPDATE(true, false, WEATHER_CYCLE_MS,
+        {},
+        {
+            std::tie(temp, press) = bmp280::get_temp_press();
+            mutex_enter_blocking(&sensorDataMutex);
+            if(sensorData.forecast.pressure_msl.array[current_time.hour] != 0)
+            {
+                altitude = bmp280::get_height(sensorData.forecast.pressure_msl.array[current_time.hour],
+                                                         (float)press/1000.0,
+                                                         (float)temp/100.0);
+            }
+            //temp = (temp % 100) < 50 ? (temp / 100) : ((temp / 100) + 1);
+            sensorData.weather.temperature = (float)temp / 100.0f;
+            sensorData.weather.pressure = press;
+            sensorData.altitude = altitude;
+            mutex_exit(&sensorDataMutex);
+            TRACE_DEBUG(4,TRACE_CORE_0,
+                        "Current weather temp:%" PRId32 "C press:%" PRId32 "Pa altitude:%.2fm\n",
+                        temp, press, altitude);
+        });
 
         // static char cipgsmloc[20] = {0};
         // CYCLE_UPDATE(sim868::gsm::get_cipgsmloc(cipgsmloc), GPS_FETCH_CYCLE_MS + 100,

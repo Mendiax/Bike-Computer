@@ -108,7 +108,7 @@ struct ForecastArrS
 
 struct Weather_BMP280_S
 {
-    int32_t temperature;
+    float temperature;
     int32_t pressure;
 };
 
@@ -125,6 +125,7 @@ typedef struct SensorData
     SystemState current_state;
     Time_HourS hour;
     Time_DateS date;
+    float altitude;
 
     // char cipgsmloc[20];
     // char clbs[27];
