@@ -5,6 +5,8 @@
 
 #include "display/driver.hpp"
 #include "display/debug.h"
+#include "traces.h"
+
 
 // SPI setup
 #define SPI_PORT spi1
@@ -61,7 +63,7 @@ void assert_loop(bool b)
     {
         while (1)
         {
-            printf("ASSERT failed\n");
+            PRINTF("ASSERT failed\n");
             sleep_ms(1000);
         }
     }
@@ -272,7 +274,7 @@ void display_set_brightnes(uint8_t Value)
 {
     if (Value < 0 || Value > 100)
     {
-        printf("DEV_SET_PWM Error \r\n");
+        PRINTF("DEV_SET_PWM Error \r\n");
     }
     else
     {
@@ -541,6 +543,6 @@ void display::display()
     //     r2  = (display_buffer[i + 1] & 0xf0) >> 4;
     //     g2  = (display_buffer[i + 2] & 0x0f) >> 0;
     //     b2  = (display_buffer[i + 2] & 0xf0) >> 4;
-    //     //printf("%d %d %d %d %d %d \n",  r,g,b,r2,g2,b2);
+    //     //PRINTF("%d %d %d %d %d %d \n",  r,g,b,r2,g2,b2);
     // }
 }

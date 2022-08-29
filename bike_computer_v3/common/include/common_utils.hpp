@@ -6,12 +6,19 @@
 
 #include <string>
 #include <inttypes.h>
+#include <stdlib.h>
 
 
 /**
  * @brief file containg functions for common types
  * 
  */
+
+/**
+ * @brief checks avaible memory with malloc
+ * 
+ */
+size_t check_free_mem();
 
 /**
  * @brief Get the iso format of given structure

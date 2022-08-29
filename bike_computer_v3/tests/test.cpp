@@ -63,7 +63,7 @@ int test()
             "\r\n"
             "OK\r\n";
         sim868::clear_respond(respond);
-        auto expected_res = "0,70,3961\r\n";
+        auto expected_res = "0,70,3961";
 
 
         if(strcmp(respond.c_str(), expected_res) != 0)
@@ -80,7 +80,7 @@ int test()
             "OK\r\n";
         sim868::clear_respond(gps_respond);
         std::string expected_res =
-            "1,0,20220723071332.000,,,,0.24,0.0,0,,,,,,8,0,,,42,,\r\n";
+            "1,0,20220723071332.000,,,,0.24,0.0,0,,,,,,8,0,,,42,,";
 
         if(gps_respond != expected_res)
         {
@@ -103,7 +103,7 @@ int gps_data_test(void)
             "OK\r\n";
         sim868::clear_respond(gps_respond);
         auto data_arr = sim868::split_string(gps_respond);
-        const size_t expected_no_arr_size = 21;
+        const size_t expected_no_arr_size = 20;
         if(data_arr.size() != expected_no_arr_size)
         {
             printf("gps data size not to spec got: %zu expected: %zu\n", data_arr.size(), expected_no_arr_size);

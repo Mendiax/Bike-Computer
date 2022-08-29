@@ -34,7 +34,10 @@ int main()
     tracesSetup();
 
     // setup console
+    sleep_ms(1000);
     stdio_init_all();
+    // if(stdio_usb_connected())
+    //     tracesSetup();
     // wait for serial console
     // coment out for normal use
     while (!stdio_usb_connected()){sleep_ms(100);}
@@ -51,6 +54,7 @@ int main()
     //sensorData.rearShockBuffer = ring_buffer_create(sizeof(uint8_t), SCREEN_WIDTH);
     sensorData.current_state = SystemState::TURNED_ON;
     
+    mutex_init(&sensorDataMutex);
 
 
     TRACE_DEBUG(0, TRACE_MAIN, "Launch core1\n");

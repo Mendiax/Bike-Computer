@@ -8,6 +8,9 @@
 #include <string>
 #include <stdio.h>
 
+#include "traces.h"
+
+
 #define fileno(x) 0
 
 uint64_t lines = 1;
@@ -49,7 +52,7 @@ static int create_string_token(int token);
 \"[0-9A-Za-z_/°:-]+\"       {  return create_string_token(LEX_STRING);         }
 
 
-.                           { printf("error: %s\n", yytext);   return LEX_ERROR;                               }
+.                           { PRINTF("error: %s\n", yytext);   return LEX_ERROR;                               }
 
 %%
 
@@ -70,7 +73,7 @@ static int create_val_token(int token)
 static int create_string_token(int token)
 {
   yylval.str_p = new std::string(yytext);
-  //printf("%s\n", yylval.str_p->c_str());
+  //PRINTF("%s\n", yylval.str_p->c_str());
   return token;
 }
 

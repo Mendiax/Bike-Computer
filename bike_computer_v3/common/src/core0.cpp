@@ -14,20 +14,27 @@
 #include "common_types.h"
 #include "speedometer/speedometer.hpp"
 #include "interrupts/interrupts.hpp"
-//#include "battery/battery.h"
+#include "parser.hpp"
+// SIM868
 #include "sim868/interface.hpp"
 #include "sim868/gps.hpp"
 #include "sim868/gsm.hpp"
-#include "parser.hpp"
+// BMP
+#include "IMU.h"
+#include "I2C.h"
 
 
 #define DATA_PER_SECOND 10
-#define BAT_LEV_CYCLE_MS (15*1000)
+#define BAT_LEV_CYCLE_MS (29*1000)
+#define WEATHER_CYCLE_MS (10*1000)
 
-#define GPS_FETCH_CYCLE_MS (10*1000)
+#define HEART_BEAT_CYCLE_MS (1*1000)
 
-// http requests per 1h
-#define GSM_FETCH_CYCLE_MS (3600*1000)
+
+#define GPS_FETCH_CYCLE_MS (5*1000)
+
+// http requests per 10min
+#define GSM_FETCH_CYCLE_MS (10*60*1000)
 
 
 
@@ -59,61 +66,56 @@ static void setup(void)
     // sensorData.forecast.windgusts_10m.array[4] = 20.0;
     // sensorData.forecast.windgusts_10m.array[5] = 10.0;
 
-
     //turn of power led
     gpio_init(25); //power led
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 1);
     sim868::boot();
     mutex_enter_blocking(&sensorDataMutex);
+    //memcpy(sensorData.cipgsmloc, "0,0.000000,0.000000", sizeof("0,0.000000,0.000000"));
     sensorData.current_state = SystemState::RUNNING;
     mutex_exit(&sensorDataMutex);
+
+    I2C_Init();
+    IMU_Init();
 }
-
-// enum class ReqId{
-//     BAT,
-//     NO_REQ
-// };
-
-// static uint16_t queue[ReqId::NO];
-
-
-#define CYCLE_UPDATE(function, cycle, pre_code, code) \
-    do{ \
-        static absolute_time_t __last_update; \
-        static bool __executed = false; \
-        auto __current_time = get_absolute_time(); \
-        if( us_to_ms(absolute_time_diff_us(__last_update, __current_time)) >  cycle || \
-            (to_ms_since_boot(__current_time) < cycle && !__executed) ) \
-        { \
-            { \
-                pre_code \
-            } \
-            if(function) \
-            { \
-                __executed = true; \
-                /* success */ \
-                __last_update = __current_time; \
-                { \
-                    code \
-                } \
-            } \
-        } \
-    } while(0)
 
 static int loop(void)
 {
     absolute_time_t frameStart = get_absolute_time();
 
     // data update
-    { 
+    {
+        CYCLE_UPDATE(true, false, HEART_BEAT_CYCLE_MS,
+        {},{
+            PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
+        });
+        //size_t avaible_memory = check_free_mem();
+        //printf("Avaible memory = %zu\n", avaible_memory);
+
+        int32_t temp, press;
+        CYCLE_UPDATE(true, false, WEATHER_CYCLE_MS,
+        {},
+        {
+            std::tie(temp, press) = bmp280::get_temp_press();
+            //temp = (temp % 100) < 50 ? (temp / 100) : ((temp / 100) + 1);
+            mutex_enter_blocking(&sensorDataMutex);
+            sensorData.weather.temperature = temp;
+            sensorData.weather.pressure = press;
+            mutex_exit(&sensorDataMutex);
+            TRACE_DEBUG(1,TRACE_CORE_0,
+                        "Current weather temp:%" PRId32 "C press:%" PRId32 "Pa\n",
+                        temp, press);
+        });
+
         // battery
         static bool is_charging = 0;
         static uint8_t bat_lev = 0;
         static uint16_t voltage = 0;
-        CYCLE_UPDATE(sim868::get_bat_level(is_charging, bat_lev, voltage), BAT_LEV_CYCLE_MS,
+        CYCLE_UPDATE(sim868::get_bat_level(is_charging, bat_lev, voltage), false, BAT_LEV_CYCLE_MS,
         {
-            
+            //TRACE_DEBUG(1,TRACE_CORE_0,
+            //            "Entering get_bat_level\n");
         },
         {
             mutex_enter_blocking(&sensorDataMutex);
@@ -130,36 +132,40 @@ static int loop(void)
         static float longitude;
         static float msl;
         static TimeS current_time;
-        CYCLE_UPDATE(sim868::gps::fetch_data(), GPS_FETCH_CYCLE_MS,
+        CYCLE_UPDATE(sim868::gps::fetch_data(), false, GPS_FETCH_CYCLE_MS,
         {
-            
+            //TRACE_DEBUG(3,TRACE_CORE_0,
+            //            "entering fetch_data\n");
         },
         {
             sim868::gps::get_speed(speed);
             sim868::gps::get_position(latitude, longitude);
-            sim868::gps::get_date(current_time);
             sim868::gps::get_msl(msl);
             // speed = 69.3;
             // msl = 123.34;
 
             time_print(current_time);
-            TRACE_DEBUG(3,TRACE_CORE_0,
-                        "gps speed %.1f, pos [%.5f,%.5f] date year = %" PRIu16 "\n",
-                        speed, latitude, longitude, current_time.year);
+            
             // if(latitude == 0.0 || longitude == 0.0)
             // {
             //     latitude = 51.104877842621484;
             //     longitude = 17.031670433667298;
             // }
             mutex_enter_blocking(&sensorDataMutex);
+            sim868::gps::get_signal(sensorData.gps_data.sat,
+                                    sensorData.gps_data.sat2);
             sensorData.gps_data.speed = speed;
             sensorData.gps_data.lat = latitude;
             sensorData.gps_data.lon = longitude;
             sensorData.gps_data.msl = msl;
 
-            memcpy(&sensorData.hour, &current_time.hour, sizeof(sensorData.hour));
             memcpy(&sensorData.date, &current_time.year, sizeof(sensorData.date));
             mutex_exit(&sensorDataMutex);
+            TRACE_DEBUG(3,TRACE_CORE_0,
+                        "gps speed %.1f, pos [%.5f,%.5f] date year = %" PRIu16 " signal = [%" PRIu8 ",%" PRIu8 "]\n",
+                        speed, latitude, longitude, current_time.year,
+                        sensorData.gps_data.sat,
+                        sensorData.gps_data.sat2);
         });
 
     
@@ -168,48 +174,83 @@ static int loop(void)
         static std::string http_req_addr;
         static bool success;
         Time_DateS current_time_date{current_time.year, current_time.month, current_time.day}; // fix
-        CYCLE_UPDATE(sim868::gsm::get_http_req(success,http_req_addr.c_str(),forecast_json), 
-            GSM_FETCH_CYCLE_MS,
-            {
-                if(latitude < 10.0 || longitude < 10.0)
+        if(current_time_date.year != 0)
+        {
+
+            CYCLE_UPDATE(sim868::gsm::get_http_req(success,http_req_addr.c_str(),forecast_json),
+                !success,
+                GSM_FETCH_CYCLE_MS,
                 {
-                    latitude = 51.104877842621484;
-                    longitude = 17.031670433667298;
-                }
-                //Time_DateS current_time_date{2022, 8, 24}; // fix
-                //Time_DateS current_time_date{current_time.year, current_time.month, current_time.day}; // fix
-                http_req_addr = sim868::gsm::construct_http_request_url(latitude,
-                                                                        longitude,
-                                                                        current_time_date,
-                                                                        current_time_date);
-            },
-            {
+                    // if(!success && us_to_ms(absolute_time_diff_us(__last_update, __current_time)) < 1000)
+                    // {
+                    //     break;
+                    // }
+                    if(latitude < 10.0 || longitude < 10.0)
+                    {
+                        latitude = 51.4;
+                        longitude = 16.59;
+                    }
+                    //Time_DateS current_time_date{2022, 8, 24}; // fix
+                    //Time_DateS current_time_date{current_time.year, current_time.month, current_time.day}; // fix
+                    http_req_addr = sim868::gsm::construct_http_request_url(latitude,
+                                                                            longitude,
+                                                                            current_time_date,
+                                                                            current_time_date);
+                },
                 {
-                    if(success)
                     {
-                        std::cout << "forecast: " << forecast_json << std::endl;
+                        if(success)
+                        {
+                            std::cout << "forecast: '" << forecast_json << "'" << std::endl;
+                            auto forecast_raw = parse_json(forecast_json, 1);
+                            if(forecast_raw != nullptr)
+                            {
+                                mutex_enter_blocking(&sensorDataMutex);
+                                move_forecasts_to_forecastplots(forecast_raw, &sensorData.forecast, current_time.hour);
+                                mutex_exit(&sensorDataMutex);
+                            }
+                            else
+                            {
+                                TRACE_ABNORMAL(TRACE_CORE_0, "parser returned null ptr %d\n", 0);
+                            }
+                        }
+                        else
+                        {
+                            std::cout << "forecast failed" << std::endl;
+                            //__executed = false; // ?? 
+                        }                   
                     }
-                    else
-                    {
-                        std::cout << "forecast failed" << std::endl;
-                        __executed = false; // ?? 
-                    }
-                    auto forecast_raw = parse_json(forecast_json, 1);
-                    if(forecast_raw != nullptr)
-                    {
-                        mutex_enter_blocking(&sensorDataMutex);
-                        move_forecasts_to_forecastplots(forecast_raw, &sensorData.forecast, current_time.hour);
-                        mutex_exit(&sensorDataMutex);
-                    }
-                    else
-                    {
-                        TRACE_ABNORMAL(TRACE_CORE_0, "parser returned null ptr %d\n", 0);
-                    }
-                }
-            });
+                });
+        }
+
+        // static char cipgsmloc[20] = {0};
+        // CYCLE_UPDATE(sim868::gsm::get_cipgsmloc(cipgsmloc), GPS_FETCH_CYCLE_MS + 100,
+        // {},
+        // {
+        //     mutex_enter_blocking(&sensorDataMutex);
+        //     memcpy(sensorData.cipgsmloc, cipgsmloc, sizeof(cipgsmloc));
+        //     mutex_exit(&sensorDataMutex);
+        //     // std::cout << "Core0: \n:"
+        //     //  << "'"
+        //     //  << sensorData.clbs << "'\n'"
+        //     //  << sensorData.cipgsmloc << "'" << std::endl;
+        // });
+        // static char clbs[27] = {0};
+        // CYCLE_UPDATE(sim868::gsm::get_clbs(clbs), GPS_FETCH_CYCLE_MS + 300,
+        // {},
+        // {
+        //     mutex_enter_blocking(&sensorDataMutex);
+        //     memcpy(sensorData.clbs, clbs, sizeof(clbs));
+        //     mutex_exit(&sensorDataMutex);
+        //     std::cout << "Core0: \n'"
+        //      << sensorData.clbs << "'\n'"
+        //      << sensorData.cipgsmloc << "'" << std::endl;
+        // });
         
+        sim868::gps::get_date(current_time);
         mutex_enter_blocking(&sensorDataMutex);
-        // std::cout << "Core0: ";
+        memcpy(&sensorData.hour, &current_time.hour, sizeof(sensorData.hour));
+        //std::cout << "Core0: \n";
         // print(sensorData.forecast.windgusts_10m);
         // std::cout << "len: " << sensorData.forecast.len << std::endl;
 
@@ -218,21 +259,21 @@ static int loop(void)
             speedDataUpdate(sensorData.speed);
             sensorData.time.t = to_ms_since_boot(get_absolute_time()) / 1000;
         }
-
-
         mutex_exit(&sensorDataMutex);
+
     }
-        
     absolute_time_t frameEnd = get_absolute_time();
     auto frameTimeUs = absolute_time_diff_us(frameStart, frameEnd);
+    
     if(fpsToUs(DATA_PER_SECOND) > frameTimeUs)
     {
         // frame took less time
         int64_t timeToSleep = fpsToUs(DATA_PER_SECOND) - frameTimeUs; 
-        sleep_us(timeToSleep);
         TRACE_DEBUG(2, TRACE_CORE_0,
                     "frame took %" PRIi64 " max time is %" PRIi64 " sleeping %" PRIi64 "\n",
                     frameTimeUs, fpsToUs(DATA_PER_SECOND), timeToSleep);
+        sleep_us(timeToSleep);
+
     }
     else
     {
@@ -241,7 +282,6 @@ static int loop(void)
                        "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",
                        frameTimeUs, fpsToUs(DATA_PER_SECOND), timeToSleep);
     }
-
     return 1;
 }
 

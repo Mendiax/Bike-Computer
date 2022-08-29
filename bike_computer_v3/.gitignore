@@ -4,3 +4,11 @@ pico/
 sim800_doc/
 external/
 specification/
+lib/Parser/src/parser_bison.hpp
+lib/Parser/src/parser_bison.cpp
+lib/Parser/src/lexer.cpp
+
+
+lib/Parser/test_data.json
+drivers/DOF/Mag/
+

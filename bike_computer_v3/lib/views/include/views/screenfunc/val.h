@@ -37,15 +37,16 @@ void ValDrawTime(void *settings);
 
 
 #define TIMES_LABEL_LENGTH 8
-void drawFormat_TimeS(void *settings);
 drawFunc_p getDrawFunc(TimeS* var);
+void drawFormat_TimeS(void *settings);
 
 
-void drawFormat_void(void *settings);
 drawFunc_p getDrawFunc(void* var);
+void drawFormat_void(void *settings);
 
 
-
+drawFunc_p getDrawFunc(char* var);
+void drawFormat_char_p(void *settings);
 
 #define BAT_LEVEL_LABEL_LENGTH 5
 drawFunc_p getDrawFunc(Battery* var);

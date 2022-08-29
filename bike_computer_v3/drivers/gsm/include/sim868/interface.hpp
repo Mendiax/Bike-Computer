@@ -22,6 +22,8 @@
 #define SIM868_PIN_POWER 14
 #define SIM868_PIN_DTR 17
 
+#define GSM_WAIT
+
 // #----------------------------#
 // local class definitons 
 // #----------------------------#
@@ -33,14 +35,14 @@ public:
     StateStringMachine(const std::string&& string)
     :m_stringToFind(string)
     {
-        //printf("legth %s: %zu\n",string.c_str(), string.length());
+        //PRINTF("legth %s: %zu\n",string.c_str(), string.length());
         position = 0;
     }
     bool updateChar(char c)
     {
         if(m_stringToFind[position] == c)
         {
-            //printf("__found_char__ %zu\n", position);
+            //PRINTF("__found_char__ %zu\n", position);
             position++;
             if(position == m_stringToFind.length())
             {

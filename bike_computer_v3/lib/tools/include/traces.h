@@ -68,7 +68,10 @@ static inline void tracesSetup()
     TRACES_ON(0, TRACE_MAIN); 
     TRACES_ON_ALL(TRACE_SPEED);
 
-//    TRACES_ON_ALL(TRACE_VIEWS);
+    // ==================================================
+    //                   VIEWS TRACES
+    // ==================================================
+    // TRACES_ON_ALL(TRACE_VIEWS);
     // TRACES_ON(0,TRACE_VIEWS);
     // TRACES_ON(1,TRACE_VIEWS);
     // TRACES_ON(2,TRACE_VIEWS);
@@ -80,27 +83,44 @@ static inline void tracesSetup()
 
     //TRACES_ON(7,TRACE_VIEWS); // adding new window
 
-    //TRACES_ON(1,TRACE_CORE_0); // bat info
-    //TRACES_ON(2, TRACE_CORE_0); // data update time
-    //TRACES_ON(3, TRACE_CORE_0); // gps update
+    // ==================================================
+    //                   CORE 0 TRACES
+    // ==================================================
+    TRACES_ON(1,TRACE_CORE_0); // bat info
+    // TRACES_ON(2, TRACE_CORE_0); // data update time
+    TRACES_ON(3, TRACE_CORE_0); // gps update
+    TRACES_ON(4, TRACE_CORE_0); // BMP280 updatre
 
 
-    
+
+    // ==================================================
+    //                   CORE 1 TRACES
+    // ==================================================
     //TRACES_ON(1,TRACE_CORE_1); // render time for scree
     //TRACES_ON(2,TRACE_CORE_1); // pause btn
 
 
-
+    // ==================================================
+    //                   BUTTONS TRACES
+    // ==================================================
     //TRACES_ON(0, BUTTONS);
     //TRACES_ON(1, BUTTONS);
 
+    // ==================================================
+    //                   DISPLAY TRACES
+    // ==================================================
     // RACES_ON(1, TRACE_DISPLAY_PRINT); // write string msg
     // RACES_ON(2, TRACE_DISPLAY_PRINT); // wrtie char msg
 
-
+    // ==================================================
+    //                   MPU9250 TRACES
+    // ==================================================
     TRACES_ON(1, TRACE_MPU9250); // mpu init
     //TRACES_ON(2, TRACE_MPU9250);  // reag gyro
 
+    // ==================================================
+    //                   SIM 868 TRACES
+    // ==================================================
     //TRACES_ON(1, TRACE_SIM868);  // send request log long
     TRACES_ON(2, TRACE_SIM868);  // send_request log
 
@@ -132,23 +152,29 @@ namespace utility {
 
 }
 
-#define UTILITY_CONST_EXPR_VALUE(exp) ::utility::const_expr_value<decltype(exp), exp>::value
+#define UTILITY_CONST_EXPR_VALUE(exp) utility::const_expr_value<decltype(exp), exp>::value
 
+
+#define PRINTF(format, ...) \
+    do{ \
+        mutex_enter_blocking(&tracesMutex); \
+        printf(format, ##__VA_ARGS__); \
+        mutex_exit(&tracesMutex); \
+    } while (0)
+    
 
 
 #define TRACE_DEBUG(id, name, __info,...) \
     do{\
     if (tracesOn[name] & (1 << id))\
     {\
-        mutex_enter_blocking(&tracesMutex); \
-        uint32_t __time_since_boot = to_ms_since_boot(get_absolute_time()); \
-        printf("[" #name ".%u]<%s:%d>%" PRIu32 " " __info, \
+        float __time_since_boot = (float)to_ms_since_boot(get_absolute_time()) / 1000.0; \
+        PRINTF("[" #name ".%u]<%s:%d>%.3f " __info, \
             id, \
             &__FILE__[UTILITY_CONST_EXPR_VALUE(utility::get_file_name_offset(__FILE__))], \
             __LINE__, \
             __time_since_boot, \
             ##__VA_ARGS__); \
-        mutex_exit(&tracesMutex); \
     }\
     }while(0)
 

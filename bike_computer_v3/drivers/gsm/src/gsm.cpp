@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include <iostream>
 #include <sstream>
+#include <string.h>
 
 
 static HttpReadE http_state;
@@ -165,7 +166,7 @@ bool sim868::gsm::check_connection(bool& connected)
         if(sim868::is_respond_ok(respond))
         {
             sim868::clear_respond(respond);
-            connected = (respond == "1\r\n");
+            connected = (respond == "1");
         }
         id = 0;
         return true;
@@ -202,7 +203,7 @@ bool sim868::gsm::setup_connection(bool& connected)
         {
             // go to next state
             state = (ConnectionStateE)((int)state + 1);
-            //printf("next state %d\n", (int)state);
+            //PRINTF("next state %d\n", (int)state);
 
             // TODO extract ip from CIFSR ?
         }
@@ -220,7 +221,7 @@ bool sim868::gsm::setup_connection(bool& connected)
 
         if(state == DONE)
         {
-            //printf("done state %d\n", (int)state);
+            //PRINTF("done state %d\n", (int)state);
             connected = true;
             return true;
         }
@@ -285,7 +286,7 @@ bool sim868::gsm::bearer_setup(bool& connected, std::string* ip)
             }
             // go to next state
             state = (ConnectionStateE)((int)state + 1);
-            //printf("next state %d\n", (int)state);
+            //PRINTF("next state %d\n", (int)state);
         }
         else
         {
@@ -301,7 +302,7 @@ bool sim868::gsm::bearer_setup(bool& connected, std::string* ip)
 
         if(state == DONE)
         {
-            //printf("done state %d\n", (int)state);
+            //PRINTF("done state %d\n", (int)state);
             connected = true;
             return true;
         }
@@ -360,13 +361,25 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
             {
                 // if(respond)
                 //response = respond;
-                clear_respond(respond);
-                response = respond.substr(respond.find_first_of('\n'));
+                //clear_respond(respond);
+                auto first_bracket_pos = respond.find_first_of('{');
+                auto last_bracket_pos = respond.find_last_of('}');
+                if(first_bracket_pos == std::string::npos || last_bracket_pos == std::string::npos)
+                {
+                    TRACE_ABNORMAL(TRACE_SIM868, " could not find brackets %zu, %zu\n", first_bracket_pos, last_bracket_pos);
+
+                    success = false;
+                    return true;
+                }
+                //TRACE_ABNORMAL(TRACE_SIM868, " pos %zu, %zu\n", first_bracket_pos, last_bracket_pos);
+
+                auto len = last_bracket_pos - first_bracket_pos + 1;
+                response = respond.substr(first_bracket_pos, len);
                 //response = std::move(respond);
             }
             // go to next state
             state = (ConnectionStateE)((int)state + 1);
-            //printf("next state %d\n", (int)state);
+            //PRINTF("next state %d\n", (int)state);
         }
         else
         {
@@ -386,7 +399,7 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
 
         if(state == DONE)
         {
-            //printf("done state %d\n", (int)state);
+            //PRINTF("done state %d\n", (int)state);
             success = true;
             return true;
         }
@@ -409,7 +422,7 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
         case READ:
             {
                 auto current_time = get_absolute_time();
-                if(us_to_ms(absolute_time_diff_us(action0_time, current_time)) < 10000)
+                if(us_to_ms(absolute_time_diff_us(action0_time, current_time)) < 1000)
                 {
                     return false; 
                 }
@@ -433,6 +446,22 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
 
 bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::string& response, size_t expected_size)
 {
+    // static uint8_t fails = 0;
+    // const uint8_t fail_treshhold = 2;
+
+    // if(fails > fail_treshhold)
+    // {
+    //     // if(!sim868::is_on())
+    //     // {
+    //     //     sim868::turnOn();
+    //     //     return false;
+    //     // }else if(!sim868::check_for_boot())
+    //     // {
+    //     //     return false;
+    //     // }
+    //     // current_state = GsmStateE::ON;
+    //     fails = 0;
+    // }
     //std::cout << "get_http_req in [" << (int)current_state << "] " << std::endl;
     if (current_state != GsmStateE::BEARER_OK)
     {
@@ -451,6 +480,7 @@ bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::s
                     {
                         // setup failed 
                         // TODO error handling
+                        //++fails;
                     }
 
                 }
@@ -469,6 +499,7 @@ bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::s
                     {
                         // setup failed 
                         // TODO error handling
+                        //++fails;
                     }
 
                 }
@@ -487,6 +518,7 @@ bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::s
                     {
                         // setup failed 
                         // TODO error handling
+                        //++fails;
                     }
                 }
             }
@@ -500,13 +532,19 @@ bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::s
     else
     {
         //std::cout << "get_http_req configured " << std::endl; 
-        if(sim868::gsm::send_http_req(success, request, response, 5000))
+        if(sim868::gsm::send_http_req(success, request, response, 2100))
         {
             if(success == false)
             {
                 // TODO error handling ???
-                printf("HTTP error\n");
+                PRINTF("HTTP error\n");
+                //++fails;
             }
+            // if(fails > fail_treshhold)
+            // {
+            //     sim868::turnOff();
+            //     return false;
+            // }
         }
         else
         {
@@ -515,6 +553,72 @@ bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::s
         }
         return true;
     }
+}
+
+bool sim868::gsm::get_cipgsmloc(char cipgsmloc[20])
+{
+    static uint64_t id;
+    if(check_response(id)) // it will return false if id == 0
+    {
+        auto respond = get_respond(id);
+        if(sim868::is_respond_ok(respond))
+        {
+            sim868::clear_respond(respond);
+            std::cout << "cipgsmlock:" << respond << std::endl;
+
+            size_t copy_len = respond.length() >= 19 ? 19 : respond.length();
+            memcpy(&cipgsmloc[0], respond.c_str(), copy_len);
+            cipgsmloc[copy_len] = '\0';
+            //std::cout << cipgsmloc << std::endl;
+        }
+        id = 0;
+        return true;
+    }
+    else if(id == 0)
+    {
+        if(current_state >= GsmStateE::BEARER_OK)
+        {
+            id = send_request("AT+CIPGSMLOC=1,1",2000);
+        }
+        else
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool sim868::gsm::get_clbs(char clbs[27])
+{
+    static uint64_t id;
+    if(check_response(id)) // it will return false if id == 0
+    {
+        auto respond = get_respond(id);
+        if(sim868::is_respond_ok(respond))
+        {
+            sim868::clear_respond(respond);
+            std::cout << respond << std::endl;
+            size_t copy_len = respond.length() >= 26 ? 26 : respond.length();
+            memcpy(&clbs[0], respond.c_str(), copy_len);
+            clbs[copy_len] = '\0';
+            //std::cout << clbs << std::endl;
+
+        }
+        id = 0;
+        return true;
+    }
+    else if(id == 0)
+    {
+        if(current_state >= GsmStateE::BEARER_OK)
+        {
+            id = send_request("AT+CLBS=1,1",2000);
+        }
+        else
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 

@@ -6,7 +6,7 @@ void Screen_setup()
 {
   display::init();
   display::clear();
-  Paint_Println(0,10, "START", &Font24, FONT_FOREGROUND);
+  //Paint_Println(0,10, "START", &Font24, FONT_FOREGROUND);
   display::display();
 }
 

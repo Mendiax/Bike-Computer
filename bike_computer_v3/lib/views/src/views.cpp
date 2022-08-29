@@ -131,7 +131,7 @@ static auto splitFrame(const Frame& frame, uint16_t length, bool align_right=fal
     const uint16_t offset = frame.width - (f1.width + f2.width);
     if(align_right)
     {
-        printf("offset = %" PRIu16 " \n", offset);
+        //PRINTF("offset = %" PRIu16 " \n", offset);
         f1.x += offset;
         f2.x += offset;
     }
@@ -142,7 +142,12 @@ static auto splitFrame(const Frame& frame, uint16_t length, bool align_right=fal
     TRACE_DEBUG(1, TRACE_VIEWS, "Frame splited %s and %s\n", frame_to_string(f1).c_str(), frame_to_string(f2).c_str());
     return std::make_tuple(f1,f2);
 }
-
+/**
+ * @brief splits frame into 2 frames with half of width
+ * 
+ * @param frame 
+ * @return constexpr auto 
+ */
 static constexpr auto split_vertical(const Frame& frame)
 {
     const uint16_t half_width = frame.width / 2;
@@ -274,18 +279,30 @@ void view2(void)
 {
     view_new_inAllocatedPlace(&_Display.view);
     top_bar();
+    auto frame  = get_frame_bar();
+    auto [gps, gsm] = split_horizontal(frame);
 
-    Frame topLeft = {0,TOP_BAR_HEIGHT, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2};
-    Frame topRight = {DISPLAY_WIDTH/2,topLeft.y, DISPLAY_WIDTH/2, topLeft.height};
-    addValueUnitsVertical("%2.0f", 2, &_Display.data->gps_data.speed, "km","h", topLeft, 
+
+    auto [gps_speed_height, gps_pos] = split_horizontal(gps);
+    auto [gps_speed, gps_height] = split_vertical(gps_speed_height);
+    auto [gps_lat, gps_long] = split_vertical(gps_pos);
+    auto [gsm_clbs, gsm_cipgsmloc] = split_horizontal(gsm);
+
+
+    //Frame topLeft = {0,TOP_BAR_HEIGHT, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2};
+    //Frame topRight = {DISPLAY_WIDTH/2,topLeft.y, DISPLAY_WIDTH/2, topLeft.height};
+    addValueUnitsVertical("%2.0f", 2, &_Display.data->gps_data.speed, "km","h", gps_speed, 
                            Align::CENTER, true);
-    add_value("%3.0f",3,&_Display.data->gps_data.msl, topRight, Align::CENTER);
+    //add_value("%3.0f",3,&_Display.data->gps_data.msl, gps_height, Align::CENTER);
 
-    Frame bottomLeft ={0, get_frame_top_y(topLeft), topLeft.width, DISPLAY_HEIGHT - bottomLeft.y};
-    Frame bottomRight ={topRight.x,get_frame_top_y(topRight), topRight.width, bottomRight.height};
-    add_value("%6.3f",6,&_Display.data->gps_data.lat, bottomLeft, Align::CENTER);
-    add_value("%6.3f",6,&_Display.data->gps_data.lon, bottomRight, Align::CENTER);
+    //Frame bottomLeft ={0, get_frame_top_y(topLeft), topLeft.width, DISPLAY_HEIGHT - bottomLeft.y};
+    //Frame bottomRight ={topRight.x,get_frame_top_y(topRight), topRight.width, bottomRight.height};
+    add_value("%6.3f",6,&_Display.data->gps_data.lat, gps_lat, Align::CENTER);
+    add_value("%6.3f",6,&_Display.data->gps_data.lon, gps_long, Align::CENTER);
 
+
+    add_value("%2" PRIu8,2,&_Display.data->gps_data.sat, gsm_clbs, Align::CENTER);
+    add_value("%2" PRIu8,2,&_Display.data->gps_data.sat2, gsm_cipgsmloc, Align::CENTER);
 }
 
 void view3(void)
@@ -319,7 +336,7 @@ void view4(void)
     {
         PlotSettings plot_sett{top, false,false,&min, &max, 
         &_Display.data->forecast.windgusts_10m.array, 
-        FORECAST_SENSOR_DATA_LEN, {0xa,0,0}}; 
+        FORECAST_SENSOR_DATA_LEN, {0xf,0x0,0x1}}; 
         Settings set;
         set.plot = plot_sett;
         Window plot_win{set, plot_float}; 
@@ -328,7 +345,7 @@ void view4(void)
     {
         PlotSettings plot_sett{top, false,false,&min, &max, 
         &_Display.data->forecast.windspeed_10m.array, 
-        FORECAST_SENSOR_DATA_LEN, {0,0xa,0}}; 
+        FORECAST_SENSOR_DATA_LEN, {0,0xf,0}}; 
         Settings set;
         set.plot = plot_sett;
         Window plot_win{set, plot_float}; 

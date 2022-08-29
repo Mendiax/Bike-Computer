@@ -153,13 +153,14 @@ void test_DOF()
 
         auto [temp, press] = bmp280::get_temp_press();
 
-        consolef(" accel " FORMAT_INT16_ARR "\t", INS_ARR(accel.arr));
+        //consolef(" accel " FORMAT_INT16_ARR "\t", INS_ARR(accel.arr));
         consolef(" magn "  FORMAT_INT16_ARR "\t", INS_ARR(mag.arr));
-        consolef(" gyro "  FORMAT_INT16_ARR "\t", INS_ARR(gyro.arr));
-        consolef(" temp %" PRId32 "\tpress %" PRId32, temp, press);
+        //consolef(" gyro "  FORMAT_INT16_ARR "\t", INS_ARR(gyro.arr));
+        //consolef(" temp %" PRId32 "\tpress %" PRId32, temp, press);
 
         //consolef("%" PRIi16 "\t%" PRIi16 "\t%" PRIi16, INS_ARR(gyro.arr));  // angle accel ???
         consolep("\n");
+        sleep_ms(500000);
 
 
         //consolef("YawPitchRoll " FORMAT_FLOAT_ARR " gyro " FORMAT_INT16_ARR "\n", INS_ARR(data), INS_ARR(gyro));
@@ -341,9 +342,10 @@ int main(void)
     {
         sleep_ms(100);
     }
-
+    tracesSetup();
 
     run_tests();
+    //test_DOF();
     // test_SD();
 
     /*

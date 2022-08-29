@@ -124,6 +124,9 @@ namespace sim868
 
         }
 
+        bool get_cipgsmloc(char cipgsmloc[20]);
+
+        bool get_clbs(char clbs[27]);
     }
 }
 

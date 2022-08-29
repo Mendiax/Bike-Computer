@@ -49,6 +49,11 @@ drawFunc_p getDrawFunc(TimeS* var)
 }
 
 
+drawFunc_p getDrawFunc(char* var)
+{
+    return drawFormat_char_p;
+}
+
 drawFunc_p getDrawFunc(Time_HourS* var) 
 { 
     return drawFormat_Time_HourS; 
@@ -117,6 +122,26 @@ void drawFormatVariable(void *settings)
 
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
+
+void drawFormat_char_p(void *settings)
+{
+    ValSettings *valSettings = (ValSettings *)settings;
+
+    char* value = (char *)valSettings->data;
+
+    size_t max_str_len = valSettings->text.str_len + 1;
+    char buffer[max_str_len + 1];
+
+    int write = snprintf(&buffer[0], max_str_len, valSettings->text.string, value);
+    PRINTF("value: '%s' max strlen: %zu format:'%s' buffer:'%s' scale:%zu font:%p\n", value, max_str_len, valSettings->text.string, &buffer[0], valSettings->text.scale, valSettings->text.font);
+
+    if(write < 0){
+        return;
+    }
+
+    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+}
+
 void drawFormatVariableVoid(void *settings)
 {
     ValSettings *valSettings = (ValSettings *)settings;
@@ -227,7 +252,7 @@ void drawFormat_TimeS(void *settings)
     */
     
     // TODO
-    // printf("%4" PRIu16 "\t"
+    // PRINTF("%4" PRIu16 "\t"
     //         "%2" PRIu8 "\t"
     //         "%2" PRIu8 "\t"
     //         "%2" PRIu8 "\t"

@@ -17,7 +17,7 @@ static bool gps_has_correct_date;
 
 void time_print(const TimeS& time)
 {
-    printf("time: "
+    PRINTF("time: "
         "%4" PRIu16 "\t"
         "%2" PRIu8 "\t"
         "%2" PRIu8 "\t"
@@ -34,7 +34,7 @@ void time_print(const TimeS& time)
 
 void get_time_from_str(TimeS& time, const std::string& str)
 {
-    //printf("date stre = '%s'\n", str.c_str());
+    //PRINTF("date stre = '%s'\n", str.c_str());
     if(str.length() < strlen("20220812130030.000"))
     {
         return;
@@ -68,13 +68,13 @@ GpsRawData sim868::gps::get_gps_from_respond(const std::string& respond)
     // if empty return 0
     #define EMPTY(str) strcmp(str,"") == 0 ? "0" : str
     #define EXTRACT_DOC_IDX(data, idx) EMPTY(data[DOC_IDX(idx)].c_str()) 
-    printf("str = %s\n", respond.c_str());
+    PRINTF("str = %s\n", respond.c_str());
     auto data_arr = sim868::split_string(respond);
 
     GpsRawData data_from_gps = {0};
     data_from_gps.data_time_stamp = get_absolute_time();
     // TODO error handling
-    if(data_arr.size() < 21)
+    if(data_arr.size() < 20)
     {
         TRACE_ABNORMAL(TRACE_SIM868, " bad respond data_arr.size() = %zu\n", data_arr.size());
         return data_from_gps;
@@ -102,7 +102,7 @@ void sim868::gps::turn_on()
         if(sim868::is_respond_ok(respond))
         {
             gps_current_state = GpsState::NO_SIGNAL;
-            //printf("GPS ON\n");
+            //PRINTF("GPS ON\n");
         }
         id = 0;
     }
@@ -121,7 +121,7 @@ void sim868::gps::turn_off()
         if(sim868::is_respond_ok(respond))
         {
             gps_current_state = GpsState::OFF;
-            //printf("GPS OFF\n");
+            //PRINTF("GPS OFF\n");
         }
         id = 0;
     }
@@ -154,20 +154,20 @@ bool sim868::gps::fetch_data()
         {
             sim868::clear_respond(respond);
             auto gsm_data = get_gps_from_respond(respond);
-            //printf("gsm_data.utc_date_time: ");
+            //PRINTF("gsm_data.utc_date_time: ");
             //time_print(gsm_data.utc_date_time);
             gps_current_state = GpsState::NO_RESPOND;
             if(gsm_data.status == 1)
             {
                 gps_current_state = GpsState::NO_SIGNAL;
-                //printf("respond OK\n");
+                //PRINTF("respond OK\n");
             }
             if(gsm_data.utc_date_time.year > 2000)
             {
                 gps_current_state = GpsState::DATA_AVAIBLE;
                 gps_last_data = gsm_data;
                 gps_has_correct_date = true;
-                //printf("date OK\n");
+                //PRINTF("date OK\n");
             }
             if(gsm_data.latitude != 0 && gsm_data.latitude != 0)
             {
@@ -175,7 +175,7 @@ bool sim868::gps::fetch_data()
                 gps_last_correct_data = gsm_data;
                 gps_has_correct_data = true;
                 gps_current_state = GpsState::POSITION_AVAIBLE;
-                //printf("position OK\n");
+                //PRINTF("position OK\n");
             }
         }
         else
@@ -199,6 +199,7 @@ bool sim868::gps::fetch_data()
     }
     return false;
 }
+
 // void sim868::gps::check_satelites()
 // {
 
@@ -229,6 +230,19 @@ bool sim868::gps::get_position(float& latitude, float& longitude)
 
     return true;
 }
+
+bool sim868::gps::get_signal(uint8_t& sat, uint8_t& sat2)
+{
+    // if(!gps_has_correct_data)
+    // {
+    //     return false;
+    // }
+    sat = gps_last_data.gps_satelites;
+    sat2 = gps_last_data.gnss_satelites;
+
+    return true;
+}
+
 bool sim868::gps::get_msl(float& msl)
 {
     if(!gps_has_correct_data)
@@ -247,11 +261,11 @@ bool sim868::gps::get_date(TimeS& time)
     {
         return false;
     }
-    // printf("get_date.utc_date_time: ");
+    // PRINTF("get_date.utc_date_time: ");
     // time_print(gps_last_data.utc_date_time);
     //time = gps_last_data.utc_date_time;
     time = correct_time(gps_last_data);
-    // printf("return time           : ");
+    // PRINTF("return time           : ");
     // time_print(time);
     return true;
 

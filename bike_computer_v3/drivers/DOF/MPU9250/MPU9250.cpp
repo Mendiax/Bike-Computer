@@ -50,6 +50,8 @@
 #define GYRO_SENS 32.8f
 
 //Magnetometer
+#define WIA_VAL 0b01001000
+
 #define MAG_AD 0xC
 #define WIA_AD 0x00
 #define INFO 0x01
@@ -86,55 +88,139 @@ static uint8_t buf[7]; // common buffer for all reads
 
 
   // config
-  I2C_WriteOneByte(GYRO_ADDRESS,PWR_MGMT_1, 0x00);
-	I2C_WriteOneByte(GYRO_ADDRESS,SMPLRT_DIV, 0x07);
-	I2C_WriteOneByte(GYRO_ADDRESS,CONFIG, 0x06);
-	I2C_WriteOneByte(GYRO_ADDRESS,GYRO_CONFIG, 0x10);
-	I2C_WriteOneByte(GYRO_ADDRESS,ACCEL_CONFIG, 0x01);
+  // I2C_WriteOneByte(GYRO_ADDRESS,PWR_MGMT_1, 0x00);
+	// I2C_WriteOneByte(GYRO_ADDRESS,SMPLRT_DIV, 0x07);
+	// I2C_WriteOneByte(GYRO_ADDRESS,CONFIG, 0x06);
+	// I2C_WriteOneByte(GYRO_ADDRESS,GYRO_CONFIG, 0x10);
+	// I2C_WriteOneByte(GYRO_ADDRESS,ACCEL_CONFIG, 0x01);
 
+
+    // // enable bypass
+    // I2C_WriteOneByte(GYRO_ADDRESS, 0x37, 0x02);
+    // sleep_ms(1000);
+
+    // //read AK8963 WHOAMI
+
+    // uint8_t readData = I2C_ReadOneByte(MAG_ADDRESS, 0x0);
+    // printf("MAG WHO AM I is (Must return 72): %d\r\n", readData == 72);
+
+
+     // First extract the factory calibration for each magnetometer axis
+   uint8_t rawData[3];  // x/y/z gyro calibration data stored here
+   uint8_t Mmode = 0b0010;
+   float magCalibration[3];
+
+  #define AK8963_ADDRESS   0x0C
+  #define WHO_AM_I_AK8963  0x00 // should return 0x48
+  #define INFO             0x01
+  #define AK8963_ST1       0x02  // data ready status bit 0
+  #define AK8963_XOUT_L    0x03  // data
+  #define AK8963_XOUT_H    0x04
+  #define AK8963_YOUT_L    0x05
+  #define AK8963_YOUT_H    0x06
+  #define AK8963_ZOUT_L    0x07
+  #define AK8963_ZOUT_H    0x08
+  #define AK8963_ST2       0x09  // Data overflow bit 3 and data read error status bit 2
+  #define AK8963_CNTL      0x0A  // Power down (0000), single-measurement (0001), self-test (1000) and Fuse ROM (1111) modes on bits 3:0
+  #define AK8963_CNTL2     0x0B  // Reset
+  #define AK8963_ASTC      0x0C  // Self test control
+  #define AK8963_I2CDIS    0x0F  // I2C disable
+  #define AK8963_ASAX      0x10  // Fuse ROM x-axis sensitivity adjustment value
+  #define AK8963_ASAY      0x11  // Fuse ROM y-axis sensitivity adjustment value
+  #define AK8963_ASAZ      0x12  // Fuse ROM z-axis sensitivity adjustment value
+  #define I2C_SLV0_ADDR    0x25
+  #define I2C_SLV0_REG     0x26
+  #define I2C_SLV0_CTRL    0x27
+  #define I2C_SLV0_DO      0x63
+
+  #define EXT_SENS_DATA_00 0x49
+
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS);           // Set the I2C slave address of AK8963 and set for write.
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_CNTL2);              // I2C slave 0 register address from where to begin data transfer
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0x01);                       // Reset AK8963
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x81);                     // Enable I2C and write 1 byte
+   sleep_ms(50);
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS);           // Set the I2C slave address of AK8963 and set for write.
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_CNTL);               // I2C slave 0 register address from where to begin data transfer
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0x00);                       // Power down magnetometer  
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x81);                     // Enable I2C and write 1 byte
+   sleep_ms(50);
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS);           // Set the I2C slave address of AK8963 and set for write.
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_CNTL);               // I2C slave 0 register address from where to begin data transfer
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0x0F);                       // Enter fuze mode
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x81);                     // Enable I2C and write 1 byte
+   sleep_ms(50);
+   
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS | 0x80);    // Set the I2C slave address of AK8963 and set for read.
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_ASAX);               // I2C slave 0 register address from where to begin data transfer
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x83);                     // Enable I2C and read 3 bytes
+   sleep_ms(50);
+   I2C_ReadBuff(DEFAULT_ADDRESS, EXT_SENS_DATA_00, 3, &rawData[0]);        // Read the x-, y-, and z-axis calibration values
+   magCalibration[0] =  (float)(rawData[0] - 128)/256.0f + 1.0f;        // Return x-axis sensitivity adjustment values, etc.
+   magCalibration[1] =  (float)(rawData[1] - 128)/256.0f + 1.0f;  
+   magCalibration[2] =  (float)(rawData[2] - 128)/256.0f + 1.0f; 
+   
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS);           // Set the I2C slave address of AK8963 and set for write.
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_CNTL);               // I2C slave 0 register address from where to begin data transfer
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0x00);                       // Power down magnetometer  
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x81);                     // Enable I2C and transfer 1 byte
+   sleep_ms(50);
+
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS);           // Set the I2C slave address of AK8963 and set for write.
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_CNTL);               // I2C slave 0 register address from where to begin data transfer 
+   // Configure the magnetometer for continuous read and highest resolution
+   // set Mscale bit 4 to 1 (0) to enable 16 (14) bit resolution in CNTL register,
+   // and enable continuous mode data acquisition Mmode (bits [3:0]), 0010 for 8 Hz and 0110 for 100 Hz sample rates
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0b1000 << 4 | Mmode);        // Set magnetometer data resolution and sample ODR
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x81);                     // Enable I2C and transfer 1 byte
+   sleep_ms(50);
+
+
+    uint8_t readData = I2C_ReadOneByte(MAG_ADDRESS, 0x0);
+    printf("MAG WHO AM I is (Must return 72): %d\r\n", readData == 72);
 
 	
-    /*
-        disable the I2C Master I/F module; pins ES_DA and ES_SCL are isolated
-        from pins SDA/SDI and SCL/ SCLK.
-    */
-    I2C_WriteOneByte(GYRO_ADDRESS,USER_CTRL_AD, 0x00);
-    /*
-        When asserted, the i2c_master interface pins(ES_CL and ES_DA) will go
-        into bypass mode when the i2c master interface is disabled.
-    */
-    I2C_WriteOneByte(GYRO_ADDRESS,INT_BYPASS_CONFIG_AD, 0x02);
+    // /*
+    //     disable the I2C Master I/F module; pins ES_DA and ES_SCL are isolated
+    //     from pins SDA/SDI and SCL/ SCLK.
+    // */
+    // I2C_WriteOneByte(GYRO_ADDRESS,USER_CTRL_AD, 0x00);
+    // /*
+    //     When asserted, the i2c_master interface pins(ES_CL and ES_DA) will go
+    //     into bypass mode when the i2c master interface is disabled.
+    // */
+    // I2C_WriteOneByte(GYRO_ADDRESS,INT_BYPASS_CONFIG_AD, 0x02);
 
-    // setup the Magnetometer to fuse ROM access mode to get the Sensitivity
-    // Adjustment values and 16-bit output
-    I2C_WriteOneByte(MAG_AD,CNTL1_AD, 0x1F);
+    // // setup the Magnetometer to fuse ROM access mode to get the Sensitivity
+    // // Adjustment values and 16-bit output
+    // I2C_WriteOneByte(MAG_AD,CNTL1_AD, 0x1F);
 
-    //wait for the mode changes
-    sleep_ms(100);
+    // //wait for the mode changes
+    // sleep_ms(100);
 
-    //read the Sensitivit Adjustment values
-    uint8_t buf_asax_ad[3];
-    I2C_ReadBuff(MAG_AD, ASAX_AD, 3, buf_asax_ad);
-    float asax = (buf_asax_ad[0]-128)*0.5/128+1;
-    float asay = (buf_asax_ad[1]-128)*0.5/128+1;
-    float asaz = (buf_asax_ad[2]-128)*0.5/128+1;
+    // //read the Sensitivit Adjustment values
+    // uint8_t buf_asax_ad[3];
+    // I2C_ReadBuff(MAG_AD, ASAX_AD, 3, buf_asax_ad);
+    // float asax = (buf_asax_ad[0]-128)*0.5/128+1;
+    // float asay = (buf_asax_ad[1]-128)*0.5/128+1;
+    // float asaz = (buf_asax_ad[2]-128)*0.5/128+1;
 
-    //reset the Magnetometer to power down mode
-    I2C_WriteOneByte(MAG_AD,CNTL1_AD, 0x00);
+    // //reset the Magnetometer to power down mode
+    // I2C_WriteOneByte(MAG_AD,CNTL1_AD, 0x00);
 
-    //wait for the mode changes
-    sleep_ms(100);
+    // //wait for the mode changes
+    // sleep_ms(100);
 
-    //set the Magnetometer to continuous mode 2(100Hz) and 16-bit output
-    I2C_WriteOneByte(MAG_AD,CNTL1_AD, 0x16);
+    // //set the Magnetometer to continuous mode 2(100Hz) and 16-bit output
+    // I2C_WriteOneByte(MAG_AD,CNTL1_AD, 0x16);
 
-    //wait for the mode changes
-    sleep_ms(100);
+    // //wait for the mode changes
+    // sleep_ms(100);
 	
 	sleep_ms(10);
 	if(!mpu9250::check())
 	{
-    TRACE_ABNORMAL(TRACE_MPU9250,"MPU9250_Check() false\n%s", "");
+    TRACE_ABNORMAL(TRACE_MPU9250,"MPU9250_Check() false %" PRIu8 "\n", I2C_ReadOneByte(DEFAULT_ADDRESS, WHO_AM_I));
 	}
 }
 /**
@@ -176,22 +262,31 @@ void mpu9250::read_gyro(Vector3& gyro_data)
 void mpu9250::read_mag(Vector3& mag_data)
 {
   // ?????????????????
-  // I2C_WriteOneByte(MAG_ADDRESS,0x37,0x02);//turn on Bypass Mode 
-  // sleep_ms(10);
-  // I2C_WriteOneByte(MAG_ADDRESS,0x0A,0x01);	
-  // sleep_ms(10);
+  I2C_WriteOneByte(GYRO_ADDRESS,0x37,0x02);//turn on Bypass Mode 
+  sleep_ms(10);
+  I2C_WriteOneByte(MAG_ADDRESS,0x0A,0x01);	
+  sleep_ms(10);
   static Vector3 mag;
+
+  
+  uint8_t wia_resp = I2C_ReadOneByte(MAG_ADDRESS, WIA_AD);
+
+  if(wia_resp != WIA_VAL)
+  {
+    consolep("MAGNETOMETR FAILED\n");
+  }
+  
 
   uint8_t status;
   I2C_ReadBuff(MAG_ADDRESS, STATUS_1_AD, 1, &status);
   if((status & 0x01) == 0x01){
-    I2C_ReadBuff(MAG_ADDRESS, MAG_XOUT_L, 7, ::buf);
-    if(!(buf[6] & 0x8)){
+    I2C_ReadBuff(MAG_ADDRESS, MAG_XOUT_L, 6, ::buf);
+     if(!(buf[6] & 0x8)){
       // little endian so we flip order of bytes
       mag.x = int16_t(buf[1]<<8) | int16_t(buf[0]);
       mag.y = int16_t(buf[3]<<8) | int16_t(buf[2]);
       mag.z = int16_t(buf[5]<<8) | int16_t(buf[4]);
-    }
+     }
   }
 
 

@@ -64,6 +64,8 @@ namespace sim868
         bool get_position(float& latitude, float& longitude);
         bool get_date(TimeS& time);
         bool get_msl(float& msl);
+        bool get_signal(uint8_t& sat, uint8_t& sat2);
+
         GpsState get_gps_state(void);
     };
 };

@@ -17,6 +17,8 @@
 // #include "Pico-SIM868-Test.h"
 #include "traces.h"
 
+#include "core_utils.hpp"
+
 auto_init_mutex(uart_mutex);
 
 void core1_entry()
@@ -115,18 +117,18 @@ void consoleGSM()
     sleep_ms(2000);
 
     // GSM setup
-    sim868::sendRequestLong("AT+CSQ",1000); // signal strength
-    std::string forecast_json;
-    std::string http_req_addr = sim868::gsm::construct_http_request_url(52.52, 13.41, (Time_DateS){2022,8,21}, (Time_DateS){2022,8,21});
-    //std::string http_req_addr = "http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m";
+    // sim868::sendRequestLong("AT+CSQ",1000); // signal strength
+    // std::string forecast_json;
+    // std::string http_req_addr = sim868::gsm::construct_http_request_url(52.52, 13.41, (Time_DateS){2022,8,21}, (Time_DateS){2022,8,21});
+    // //std::string http_req_addr = "http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m";
 
-    bool success;
-    while (!sim868::gsm::get_http_req(success, http_req_addr, forecast_json))
-    {
-        sleep_ms(100);
-    }
+    // bool success;
+    // while (!sim868::gsm::get_http_req(success, http_req_addr, forecast_json))
+    // {
+    //     sleep_ms(100);
+    // }
     
-    std::cout << "forecast: " << forecast_json << std::endl;
+    // std::cout << "forecast: " << forecast_json << std::endl;
     
 
 
@@ -152,6 +154,36 @@ void consoleGSM()
     // AT+CLBSCFG=0,1
     // AT+CLBSCFG=0,2
     // AT+CLBSCFG=0,3
+
+    while(1)
+    {
+        static float speed;
+        static float latitude;
+        static float longitude;
+        static float msl;
+        static TimeS current_time;
+        static uint8_t sat, sat2;
+        CYCLE_UPDATE(sim868::gps::fetch_data(), false, 500,
+        {
+            //TRACE_DEBUG(3,TRACE_CORE_0,
+            //            "entering fetch_data\n");
+        },
+        {
+            sim868::gps::get_speed(speed);
+            sim868::gps::get_position(latitude, longitude);
+            sim868::gps::get_msl(msl);
+
+            time_print(current_time);
+
+            sim868::gps::get_signal(sat,
+                                    sat2);
+
+            consolef("gps speed %.1f, pos [%.5f,%.5f] date year = %" PRIu16 " signal = [%" PRIu8 ",%" PRIu8 "]\n",
+                        speed, latitude, longitude, current_time.year,
+                        sat,
+                        sat2);
+        });
+    }
 
     
     //http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m
@@ -193,6 +225,7 @@ int main(void)
     sleep_ms(2000);
     tracesSetup();
     TRACES_ON(1, TRACE_SIM868);
+    TRACES_ON(3,TRACE_CORE_0);
 
     // wait for intput
     // while (true)

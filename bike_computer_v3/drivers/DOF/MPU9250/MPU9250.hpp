@@ -73,10 +73,10 @@
 #define DEFAULT_ADDRESS     0x68
 
 #define	GYRO_ADDRESS   DEFAULT_ADDRESS //Gyro and Accel device address
-#define MAG_ADDRESS    DEFAULT_ADDRESS //0x18   //compass device address
 #define ACCEL_ADDRESS  DEFAULT_ADDRESS //0xD0 
+#define MAG_ADDRESS    0xC //0x18   //compass device address
 
-#define WHO_AM_I_VAL				0x73 //identity of MPU9250 is 0x71. identity of MPU9255 is 0x73.
+#define WHO_AM_I_VAL				0x71 //identity of MPU9250 is 0x71. identity of MPU9255 is 0x73.
 
 
 struct Vector3

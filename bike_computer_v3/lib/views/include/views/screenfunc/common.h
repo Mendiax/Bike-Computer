@@ -3,6 +3,7 @@
 
 #include "display/fonts.h"
 #include "display/print.h"
+#include "traces.h"
 
 /* data ptr, additional data ptr, window(size) */
 typedef void (*drawFunc_p)(void *);

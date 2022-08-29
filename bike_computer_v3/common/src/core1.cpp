@@ -77,7 +77,6 @@ static void change_state_irq_handler()
 
 static void setup(void)
 {
-    mutex_init(&sensorDataMutex);
     button1.callbackFunc = incDisplay;
     button1rel.callbackFunc = incDisplayRel;
 
@@ -101,8 +100,10 @@ static int loop(void)
         // copy data
         mutex_enter_blocking(&sensorDataMutex);
         sensorDataDisplay = sensorData;
-        // std::cout << "Core1: ";
-        // print(sensorDataDisplay.forecast.windgusts_10m);
+        // std::cout << "Core1: \n'"
+        //      //<< sensorDataDisplay.clbs << "'\n'"
+        //      << sensorDataDisplay.cipgsmloc << "'" << std::endl;
+
         mutex_exit(&sensorDataMutex);
 
 

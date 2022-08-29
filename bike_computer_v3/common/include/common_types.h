@@ -74,6 +74,8 @@ struct GpsDataS
     float lat;
     float lon;
     float msl;
+    uint8_t sat;
+    uint8_t sat2;
 };
 
 template<typename T, size_t N>
@@ -104,10 +106,18 @@ struct ForecastArrS
     float current_winddirection;
 };
 
+struct Weather_BMP280_S
+{
+    int32_t temperature;
+    int32_t pressure;
+};
+
+// TODO optimize size
 typedef struct SensorData
 {
     ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
-    RingBuffer* rearShockBuffer;
+    Weather_BMP280_S weather;
+    //RingBuffer* rearShockBuffer;
     SpeedData speed;
     GpsDataS gps_data;
     mtime_t time;
@@ -115,6 +125,10 @@ typedef struct SensorData
     SystemState current_state;
     Time_HourS hour;
     Time_DateS date;
+
+    // char cipgsmloc[20];
+    // char clbs[27];
+
 } SensorData;
 
 // variables used for mutlicore

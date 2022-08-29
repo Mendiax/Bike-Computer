@@ -2,7 +2,7 @@
 #define __VIEW_H__
 
 #include "window.h"
-#define MAX_NUMBER_OF_WINDOWS 8
+#define MAX_NUMBER_OF_WINDOWS 9
 
 #define VIEW_DEBUG
 

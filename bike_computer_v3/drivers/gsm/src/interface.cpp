@@ -198,7 +198,7 @@ bool sim868::get_bat_level(bool& is_charging,
         auto values = split_string(respond);
         if(values.size() < 3)
         {
-            TRACE_ABNORMAL(TRACE_SIM868, "not enough params %zu\n", values.size());
+            TRACE_ABNORMAL(TRACE_SIM868, "not enough params %s, %zu\n", respond.c_str(), values.size());
             return false;
         }
 
@@ -308,11 +308,20 @@ uint64_t sim868::send_request(const std::string&& cmd,
     current_response.timeout = timeout;
     current_response.id = id;
 
+    TRACE_DEBUG(2, TRACE_SIM868, "new request \'%s\' %" PRIu64 "\n", cmd.c_str(), id);
     // send request
     uart_puts(UART_ID, cmd.c_str());
     uart_puts(UART_ID, "\r\n");
+
+    #ifdef GSM_WAIT
+    while(check_response(id))
+    {
+        sleep_ms(10);
+    }
+    #endif
     
-    TRACE_DEBUG(2, TRACE_SIM868, "new request \'%s\' %" PRIu64 "\n", cmd.c_str(), id);
+
+    
     return id;
 }
 
@@ -349,8 +358,6 @@ bool sim868::check_response(uint64_t id)
 }
 
 
-// TODO do optimization like:
-// send request and wait for specific response (in gps wait for correct number of ',')
 std::string sim868::sendRequestLong(const std::string&& cmd, long timeout, const size_t bufferSize)
 {
     std::string resp;
@@ -435,7 +442,7 @@ bool sim868::is_respond_ok(const std::string& respond)
 {
     auto ok_msg = "\r\nOK\r\n";
     auto ok_pos = respond.length() - strlen(ok_msg);
-    // printf("%u -> '%s'\n",ok_pos, &respond.c_str()[ok_pos]);
+    // PRINTF("%u -> '%s'\n",ok_pos, &respond.c_str()[ok_pos]);
     return strcmp(&respond.c_str()[ok_pos], ok_msg) == 0;
 }
 
@@ -443,7 +450,7 @@ bool sim868::is_respond_error(const std::string& respond)
 {
     auto ok_msg = "\r\nERROR\r\n";
     auto ok_pos = respond.length() - strlen(ok_msg);
-    // printf("%u -> '%s'\n",ok_pos, &respond.c_str()[ok_pos]);
+    // PRINTF("%u -> '%s'\n",ok_pos, &respond.c_str()[ok_pos]);
     return strcmp(&respond.c_str()[ok_pos], ok_msg) == 0;
 }
 
@@ -492,6 +499,15 @@ void sim868::clear_respond(std::string& respond)
     if(nl_cnt == 0)
     {
         last_char_idx++;
+    }
+
+    if(respond.at(last_char_idx) == '\r')
+    {
+        --last_char_idx;
+    }
+    if(respond.at(last_char_idx) == '\n')
+    {
+        --last_char_idx;
     }
 
     if(nl_cnt != 0 || last_char_idx == 0)

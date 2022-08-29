@@ -6,6 +6,7 @@
 #include <hardware/i2c.h>
 #include "pico/binary_info.h"
 #include "pico/stdlib.h"
+#include "traces.h"
 
  /* Example code to talk to a BMP280 temperature and pressure sensor
     NOTE: Ensure the device is capable of being driven at 3.3v NOT 5v. The Pico
@@ -132,6 +133,8 @@ void bmp280_read_raw(int32_t* temp, int32_t* pressure) {
     // store the 20 bit read in a 32 bit signed integer for conversion
     *pressure = (buf[0] << 12) | (buf[1] << 4) | (buf[2] >> 4);
     *temp = (buf[3] << 12) | (buf[4] << 4) | (buf[5] >> 4);
+
+    PRINTF("RAW pres %" PRId32 " temp %" PRId32 "\n", *pressure, *temp);
 }
 
 void bmp280_reset() {
@@ -236,7 +239,7 @@ struct bmp280_calib_param params;
 
 std::tuple<int32_t, int32_t> bmp280::get_temp_press()
 {
-
+    bmp280_get_calib_params(&params);
     int32_t raw_temperature;
     int32_t raw_pressure;
     bmp280_read_raw(&raw_temperature, &raw_pressure);
