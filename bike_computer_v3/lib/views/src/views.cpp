@@ -3,6 +3,7 @@
 #include "traces.h"
 #include "display/debug.h"
 #include "massert.h"
+#include "common_types.h"
 
 #include "views/screenfunc/common.h"
 #include "views/screenfunc/plot.h"
@@ -166,6 +167,7 @@ static constexpr auto split_horizontal(const Frame& frame)
     const uint16_t half_height = frame.height / 2;
     const Frame f1 = {frame.x, frame.y, frame.width, half_height};
     const Frame f2 = {frame.x, frame.y + half_height, frame.width, half_height};
+    
     return std::make_tuple(f1,f2);
 }
 
@@ -257,19 +259,25 @@ void view1(void)
     view_new_inAllocatedPlace(&_Display.view);
     top_bar();
 
-    Frame topLeft = {0,TOP_BAR_HEIGHT, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/5};
-    Frame topRight = {DISPLAY_WIDTH/2,topLeft.y, DISPLAY_WIDTH/2, topLeft.height};
-    add_label("max",topLeft,Align::CENTER);
-    add_label("avg",topRight,Align::CENTER);
-    Frame bottomLeft ={0,topLeft.y + topLeft.height, topLeft.width, 100};
-    Frame bottomRight ={topRight.x,topRight.y + topRight.height, topRight.width, bottomRight.height};
-    add_value("%2.0f",2,&_Display.data->speed.velocityMax, bottomLeft, Align::CENTER);
-    add_value("%2.0f",2,&_Display.data->speed.avgGlobal, bottomRight, Align::CENTER);
+    Frame max_avg_bar = {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT/5};
+    Frame max_avg_val = {0, get_frame_top_y(max_avg_bar), DISPLAY_WIDTH, 100};
+    Frame time_passed = {0, get_frame_top_y(max_avg_val), DISPLAY_WIDTH, get_height_left(max_avg_val)};
 
-    Frame time_passed = {0, bottomLeft.y + bottomLeft.height, DISPLAY_WIDTH, DISPLAY_HEIGHT - time_passed.y};
+    auto [bar_max,bar_avg] = split_vertical(max_avg_bar);
+    add_label("max", bar_max, Align::CENTER);
+    add_label("avg", bar_avg, Align::CENTER);
 
 
-    add_value("%2d:%02d:%02d", 8 ,&_Display.data->time, time_passed, Align::CENTER);
+    auto [max,avg] = split_vertical(max_avg_val);
+    add_value("%2.0f",2,&_Display.data->speed.velocityMax, max, Align::CENTER);
+
+    auto [avg_curr, avg_global] = split_horizontal(avg);
+    add_value("%4.1f",4,&_Display.data->speed.avg, avg_curr, Align::LEFT);
+    add_value("%4.1f",4,&_Display.data->speed.avg_global, avg_global, Align::LEFT);
+
+
+    // Frame time_passed = {0, bottomLeft.y + bottomLeft.height, DISPLAY_WIDTH, DISPLAY_HEIGHT - time_passed.y};
+    add_value("%2d:%02d:%02d", 8 ,(mtime_t*)&_Display.data->speed.drive_time, time_passed, Align::CENTER);
 
 
     TRACE_DEBUG(4, TRACE_VIEWS, "view1 setup finished \n%s", "");
@@ -286,7 +294,10 @@ void view2(void)
     auto [gps_speed_height, gps_pos] = split_horizontal(gps);
     auto [gps_speed, gps_height] = split_vertical(gps_speed_height);
     auto [gps_lat, gps_long] = split_vertical(gps_pos);
-    auto [gsm_clbs, gsm_cipgsmloc] = split_horizontal(gsm);
+    auto [signal, bmp] = split_vertical(gsm);
+    auto [sat, sat2] = split_horizontal(signal);
+    auto [temp, press] = split_horizontal(bmp);
+
 
 
     //Frame topLeft = {0,TOP_BAR_HEIGHT, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2};
@@ -294,6 +305,7 @@ void view2(void)
     addValueUnitsVertical("%2.0f", 2, &_Display.data->gps_data.speed, "km","h", gps_speed, 
                            Align::CENTER, true);
     //add_value("%3.0f",3,&_Display.data->gps_data.msl, gps_height, Align::CENTER);
+    add_value("%3.0fm",3,&_Display.data->altitude, gps_height, Align::CENTER);
 
     //Frame bottomLeft ={0, get_frame_top_y(topLeft), topLeft.width, DISPLAY_HEIGHT - bottomLeft.y};
     //Frame bottomRight ={topRight.x,get_frame_top_y(topRight), topRight.width, bottomRight.height};
@@ -301,8 +313,11 @@ void view2(void)
     add_value("%6.3f",6,&_Display.data->gps_data.lon, gps_long, Align::CENTER);
 
 
-    add_value("%2" PRIu8,2,&_Display.data->gps_data.sat, gsm_clbs, Align::CENTER);
-    add_value("%2" PRIu8,2,&_Display.data->gps_data.sat2, gsm_cipgsmloc, Align::CENTER);
+    add_value("%2" PRIu8,2,&_Display.data->gps_data.sat, sat, Align::CENTER);
+    add_value("%2" PRIu8,2,&_Display.data->gps_data.sat2, sat2, Align::CENTER);
+
+    add_value("% 3.0fC",3,&_Display.data->weather.temperature, temp, Align::CENTER);
+    //add_value("%4f",4,&_Display.data->gps_data.sat2, sat2, Align::CENTER);
 }
 
 void view3(void)

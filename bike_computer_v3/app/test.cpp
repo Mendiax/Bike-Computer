@@ -346,7 +346,8 @@ int main(void)
 
     run_tests();
     //test_DOF();
-    // test_SD();
+    
+    test_SD();
 
     /*
     display test
@@ -374,7 +375,7 @@ int main(void)
 
     //init_i2c();
     //bmp_test();
-    test_DOF();
+    //test_DOF();
 
     // test_sim868_interface();
     

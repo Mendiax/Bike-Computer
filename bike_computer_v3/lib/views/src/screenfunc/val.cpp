@@ -111,14 +111,16 @@ void drawFormatVariable(void *settings)
 
     T value = *((T *)valSettings->data);
 
-    size_t max_str_len = valSettings->text.str_len + 1;
-    char buffer[max_str_len + 1];
+    size_t max_str_len = valSettings->text.str_len + 1; // add 1 for '\0'
+    char buffer[max_str_len];
 
     int write = snprintf(&buffer[0], max_str_len, valSettings->text.string, value);
 
     if(write < 0){
         return;
     }
+
+    //PRINTF("[DRAW] %" PRIu16 ",%" PRIu16 "\n", valSettings->text.offsetX,valSettings->text.offsetY);
 
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
@@ -133,7 +135,7 @@ void drawFormat_char_p(void *settings)
     char buffer[max_str_len + 1];
 
     int write = snprintf(&buffer[0], max_str_len, valSettings->text.string, value);
-    PRINTF("value: '%s' max strlen: %zu format:'%s' buffer:'%s' scale:%zu font:%p\n", value, max_str_len, valSettings->text.string, &buffer[0], valSettings->text.scale, valSettings->text.font);
+    //PRINTF("value: '%s' max strlen: %zu format:'%s' buffer:'%s' scale:%zu font:%p\n", value, max_str_len, valSettings->text.string, &buffer[0], valSettings->text.scale, valSettings->text.font);
 
     if(write < 0){
         return;

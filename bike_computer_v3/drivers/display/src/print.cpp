@@ -251,7 +251,7 @@ static void Paint_DrawCharGen(uint16_t xPoint, uint16_t yPoint, const char chara
     uint16_t page, column;
     if (xPoint > display::width || yPoint > display::height)
     {
-        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "[ERROR] Paint_DrawChar Input exceeds the normal display range\n");
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, " Paint_DrawChar Input exceeds display range %" PRIu16 ",%" PRIu16 "\n", xPoint, yPoint);
         return;
     }
 

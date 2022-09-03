@@ -73,7 +73,7 @@ static void setup(void)
     sim868::boot();
     mutex_enter_blocking(&sensorDataMutex);
     //memcpy(sensorData.cipgsmloc, "0,0.000000,0.000000", sizeof("0,0.000000,0.000000"));
-    sensorData.current_state = SystemState::RUNNING;
+    sensorData.current_state = SystemState::AUTOSTART;
     mutex_exit(&sensorDataMutex);
 
     I2C_Init();
@@ -88,7 +88,7 @@ static int loop(void)
     {
         CYCLE_UPDATE(true, false, HEART_BEAT_CYCLE_MS,
         {},{
-            PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
+            //PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
         });
         //size_t avaible_memory = check_free_mem();
         //printf("Avaible memory = %zu\n", avaible_memory);
@@ -117,41 +117,41 @@ static int loop(void)
         static float longitude;
         static float msl;
         static TimeS current_time;
-        CYCLE_UPDATE(sim868::gps::fetch_data(), false, GPS_FETCH_CYCLE_MS,
-        {
-            //TRACE_DEBUG(3,TRACE_CORE_0,
-            //            "entering fetch_data\n");
-        },
-        {
-            sim868::gps::get_speed(speed);
-            sim868::gps::get_position(latitude, longitude);
-            sim868::gps::get_msl(msl);
-            // speed = 69.3;
-            // msl = 123.34;
+        // CYCLE_UPDATE(sim868::gps::fetch_data(), false, GPS_FETCH_CYCLE_MS,
+        // {
+        //     //TRACE_DEBUG(3,TRACE_CORE_0,
+        //     //            "entering fetch_data\n");
+        // },
+        // {
+        //     sim868::gps::get_speed(speed);
+        //     sim868::gps::get_position(latitude, longitude);
+        //     sim868::gps::get_msl(msl);
+        //     // speed = 69.3;
+        //     // msl = 123.34;
 
-            time_print(current_time);
+        //     time_print(current_time);
             
-            // if(latitude == 0.0 || longitude == 0.0)
-            // {
-            //     latitude = 51.104877842621484;
-            //     longitude = 17.031670433667298;
-            // }
-            mutex_enter_blocking(&sensorDataMutex);
-            sim868::gps::get_signal(sensorData.gps_data.sat,
-                                    sensorData.gps_data.sat2);
-            sensorData.gps_data.speed = speed;
-            sensorData.gps_data.lat = latitude;
-            sensorData.gps_data.lon = longitude;
-            sensorData.gps_data.msl = msl;
+        //     // if(latitude == 0.0 || longitude == 0.0)
+        //     // {
+        //     //     latitude = 51.104877842621484;
+        //     //     longitude = 17.031670433667298;
+        //     // }
+        //     mutex_enter_blocking(&sensorDataMutex);
+        //     sim868::gps::get_signal(sensorData.gps_data.sat,
+        //                             sensorData.gps_data.sat2);
+        //     sensorData.gps_data.speed = speed;
+        //     sensorData.gps_data.lat = latitude;
+        //     sensorData.gps_data.lon = longitude;
+        //     sensorData.gps_data.msl = msl;
 
-            memcpy(&sensorData.date, &current_time.year, sizeof(sensorData.date));
-            mutex_exit(&sensorDataMutex);
-            TRACE_DEBUG(3,TRACE_CORE_0,
-                        "gps speed %.1f, pos [%.5f,%.5f] date year = %" PRIu16 " signal = [%" PRIu8 ",%" PRIu8 "]\n",
-                        speed, latitude, longitude, current_time.year,
-                        sensorData.gps_data.sat,
-                        sensorData.gps_data.sat2);
-        });
+        //     memcpy(&sensorData.date, &current_time.year, sizeof(sensorData.date));
+        //     mutex_exit(&sensorDataMutex);
+        //     TRACE_DEBUG(3,TRACE_CORE_0,
+        //                 "gps speed %.1f, pos [%.5f,%.5f] date year = %" PRIu16 " signal = [%" PRIu8 ",%" PRIu8 "]\n",
+        //                 speed, latitude, longitude, current_time.year,
+        //                 sensorData.gps_data.sat,
+        //                 sensorData.gps_data.sat2);
+        // });
 
     
         // http req
@@ -215,9 +215,20 @@ static int loop(void)
             mutex_enter_blocking(&sensorDataMutex);
             if(sensorData.forecast.pressure_msl.array[current_time.hour] != 0)
             {
-                altitude = bmp280::get_height(sensorData.forecast.pressure_msl.array[current_time.hour],
-                                                         (float)press/1000.0,
+                altitude = bmp280::get_height(sensorData.forecast.pressure_msl.array[current_time.hour]  * 1000.0f,
+                                                         (float)press,
                                                          (float)temp/100.0);
+            }
+            else
+            {
+                static float start_press = 0.0;
+                if(start_press == 0.0)
+                {
+                    start_press =  (float)press;
+                }
+                altitude = bmp280::get_height(start_press,
+                                              (float)press,
+                                              (float)temp/100.0);
             }
             //temp = (temp % 100) < 50 ? (temp / 100) : ((temp / 100) + 1);
             sensorData.weather.temperature = (float)temp / 100.0f;
@@ -260,11 +271,9 @@ static int loop(void)
         // print(sensorData.forecast.windgusts_10m);
         // std::cout << "len: " << sensorData.forecast.len << std::endl;
 
-        if(sensorData.current_state != SystemState::PAUSED)
-        {
-            speedDataUpdate(sensorData.speed);
-            sensorData.time.t = to_ms_since_boot(get_absolute_time()) / 1000;
-        }
+        speedDataUpdate(sensorData.speed, sensorData.current_state);
+        sensorData.time.t = to_ms_since_boot(get_absolute_time()) / 1000;
+
         mutex_exit(&sensorDataMutex);
 
     }

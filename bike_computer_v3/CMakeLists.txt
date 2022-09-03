@@ -36,22 +36,11 @@ include_directories(lib/views/include)
 include_directories(drivers/speedometer/include)
 include_directories(drivers/interrupts/include)
 include_directories(lib/Console)
+include_directories(lib/SD/include)
+
 include_directories(drivers/buttons/include)
 include_directories(drivers/battery/include)
 include_directories(drivers/gsm/include)
-
-# GSM
-# include_directories(./lib2/Config)
-# include_directories(./lib2/Infrared)
-# include_directories(./lib2/AT_TEST)
-# include_directories(./lib2/BT)
-# include_directories(./lib2/GPS)
-# include_directories(./lib2/HTTP)
-# include_directories(./lib2/Phone_Call)
-# include_directories(./lib2/SMS)
-# 
-# include_directories(./examples/)
-# add_subdirectory(./examples)
 
 
 
@@ -86,6 +75,7 @@ add_subdirectory(drivers/buttons)
 add_subdirectory(drivers/battery)
 add_subdirectory(drivers/gsm)
 add_subdirectory(lib/Parser)
+add_subdirectory(lib/SD)
 
 
 # DOF
@@ -93,18 +83,6 @@ add_subdirectory(drivers/DOF/BMP280)
 add_subdirectory(drivers/DOF/I2C)
 add_subdirectory(drivers/DOF/IMU)
 add_subdirectory(drivers/DOF/MPU9250)
-
-# add_subdirectory(lib_DOF/BMP280_pico)
-
-# GSM
-# add_subdirectory(lib2/Config)
-# add_subdirectory(lib2/Infrared)
-# add_subdirectory(lib2/AT_TEST)
-# add_subdirectory(lib2/BT)
-# add_subdirectory(lib2/GPS)
-# add_subdirectory(lib2/HTTP)
-# add_subdirectory(lib2/Phone_Call)
-# add_subdirectory(lib2/SMS)
 
 # SD
 add_subdirectory(external/no-OS-FatFS/FatFs_SPI)
@@ -220,6 +198,7 @@ target_link_libraries( ${PICO_GSM_CONSOLE_FILE}
         Tools
         Speedometer
         Console
+        Common
 
         GSM
         # Infrared_GSM Config_GSM AT_TEST BT GPS HTTP Phone_Call SMS

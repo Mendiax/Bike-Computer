@@ -62,7 +62,7 @@ void labelSettingsAlign(LabelSettings* settings, const Frame& frame, Align align
         { 
             auto spaceLeft = frame.width - labelSettingsGetWidth(settings);
             settings->text.offsetX = frame.x + spaceLeft / 2;
-            TRACE_DEBUG(0, TRACE_DISPLAY_PRINT, "Center space left = %d\n", spaceLeft);
+            TRACE_DEBUG(3, TRACE_DISPLAY_PRINT, "Center space left = %d\n", spaceLeft);
         }
         break;
     case Align::RIGHT:

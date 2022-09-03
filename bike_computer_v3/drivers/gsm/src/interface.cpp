@@ -215,7 +215,7 @@ bool sim868::get_bat_level(bool& is_charging,
     else if(id == 0)
     {
         // sending response
-        id = send_request("AT+CBC",100);
+        id = send_request("AT+CBC",2000);
     }
     else
     {

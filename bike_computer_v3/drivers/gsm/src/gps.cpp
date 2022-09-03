@@ -15,22 +15,7 @@ static bool gps_has_correct_data;
 static bool gps_has_correct_date;
 
 
-void time_print(const TimeS& time)
-{
-    PRINTF("time: "
-        "%4" PRIu16 "\t"
-        "%2" PRIu8 "\t"
-        "%2" PRIu8 "\t"
-        "%2" PRIu8 "\t"
-        "%2" PRIu8 "\t"
-        "%6.3f \n",
-        time.year,
-        time.month,
-        time.day,
-        time.hour,
-        time.minutes,
-        time.seconds);
-}
+
 
 void get_time_from_str(TimeS& time, const std::string& str)
 {
@@ -185,7 +170,7 @@ bool sim868::gps::fetch_data()
         if(gps_current_state != GpsState::POSITION_AVAIBLE)
         {
             fail_counter++;
-            if(fail_counter >= 10)
+            if(fail_counter >= 20)
             {
                 gps_current_state = GpsState::RESTARTING;
             }

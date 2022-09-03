@@ -4,7 +4,7 @@ PICO_MAIN_FILE := pico_main
 PICO_TEST_FILE := pico_test
 PICO_GSM_CONSOLE_FILE := pico_gsm_console
 
-PICO_DRIVE_LETTER := I
+PICO_DRIVE_LETTER := H
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 
@@ -20,7 +20,7 @@ parser:
 
 #-DCMAKE_VERBOSE_MAKEFILE=ON
 cmake: parser
-	cmake -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Debug 
+	cmake -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Debug
 
 cmaker:
 	cmake -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Release

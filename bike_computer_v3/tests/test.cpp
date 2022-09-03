@@ -11,6 +11,11 @@
 #include "common_utils.hpp"
 #include "sim868/gsm.hpp"
 
+#include "sd_file.h"
+#include "ff.h"
+#include "session.hpp"
+#include "sd_common.h"
+
 #include "BMP280.hpp"
 
 #include "parser.hpp"
@@ -18,7 +23,8 @@
 #include "massert.h"
 #include "traces.h"
 
-#define BC_CHECK(statement) if(!(statement)){fprintf(stderr, "[ERROR] " #statement " failed\n"); return ERROR;}
+#define BC_CHECK_VERBAL(statement, fmt, ...) if(!(statement)){fprintf(stderr, "[ERROR] line:%d " #statement " failed " fmt "\n",  __LINE__, ##__VA_ARGS__); return ERROR;}
+#define BC_CHECK(statement) if(!(statement)){fprintf(stderr, "[ERROR] line:%d " #statement " failed \n", __LINE__); return ERROR;}
 
 void print_c_str(const char* msg)
 {
@@ -41,7 +47,7 @@ int test()
         // +CBC: 0,70,3961
         //
         // OK
-        // 
+        //
         std::string respond =
             "AT+CBC\r\n"
             "+CBC: 0,70,3961\r\n"
@@ -58,7 +64,7 @@ int test()
         // +CBC: 0,70,3961
         //
         // OK
-        // 
+        //
         std::string respond =
             "AT+CBC\r\n"
             "+CBC: 0,70,3961\r\n"
@@ -205,12 +211,101 @@ int altitude_test(void)
     return 0;
 }
 
-// extern void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void (*draw_func)(uint16_t x, uint16_t y, display::DisplayColor color), display::DisplayColor color, uint8_t scale);
-
-int draw_line_test(void)
+int sd_drive_test(void)
 {
-    
+    const char* file_name = "sd_test.csv";
+    mount_drive();
+    f_unlink(file_name);
+    Sd_File file(file_name);
+    PRINTF("File opened\n");
+    //file.clear();
+    PRINTF("File cleared\n");
+
+
+    TimeS time_start{2022,8,9,19,54,13.01};
+    TimeS time_end{2022,8,9,20,54,13.01};
+
+    SpeedData data{};
+
+    data.drive_time = 3650;
+    data.velocityMax = 30;
+    data.avg = 20;
+    data.avg_global = 15;
+    data.distance = 13;
+    data.distanceDec = 11;
+
+    Session session;
+    session.start(time_start);
+    session.end(time_end, data);
+
+    const char* header_line = "time_start;time_end;duration;velocity_max;velocity_avg;velocity_avg_global;distance\n";
+    const char* first_line = "16720.83.83,69:68:6.56e;2022.08.09,20:54:13.01;01:00:50.00;30.0000;20.0000;15.0000;13110\n";
+    PRINTF("header_line: %s\n", header_line);
+    PRINTF("first_line: %s\n", first_line);
+
+    if(file.is_empty())
+    {
+        file.append(header_line);
+    }
+    file.append(first_line);
+    PRINTF("File written\n");
+
+
+    FIL fp;
+    auto res = f_open(&fp, file_name, FA_OPEN_EXISTING | FA_WRITE | FA_READ);
+    BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+    PRINTF("Open ok\n");
+
+
+    //res = f_truncate(&fp);
+    res = f_rewind(&fp);
+    BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+    PRINTF("Rewind ok\n");
+
+    FILINFO info;
+    auto fres = f_stat(file_name, &info);
+    PRINTF("file size == %" PRIu64 " \n", info.fsize);
+
+
+
+    {
+        auto test_string = header_line;
+        enum{BUFFER_SIZE=256};
+        char buffer[BUFFER_SIZE] = {0};
+        UINT bytes_read = 0;
+        PRINTF("Reading\n");
+        auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
+        PRINTF("Reading ok\n");
+        BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+        PRINTF(" read: %s\n", buffer);
+        BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
+        BC_CHECK(strcmp(test_string, buffer) == 0);
+    }
+
+    {
+        auto test_string = first_line;
+        enum{BUFFER_SIZE=256};
+        char buffer[BUFFER_SIZE] = {0};
+       // auto res = f_gets(buffer, BUFFER_SIZE, &fp);
+        // BC_CHECK_VERBAL(res != NULL, "%d", res);
+        // printf(" read: %s\n", res);
+        // BC_CHECK(strcmp(test_string, res) == 0);
+        UINT bytes_read = 0;
+        PRINTF("Reading\n");
+        auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
+        BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+        BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
+        PRINTF("Reading ok\n");
+        //PRINTF(" read: %s\n", buffer);
+        BC_CHECK(strcmp(test_string, buffer) == 0);
+        PRINTF("Reading ok2\n");
+
+    }
+    f_close(&fp);
+    PRINTF("Close\n");
+
 }
+
 void run_tests(void)
 {
     stdio_init_all();
@@ -221,6 +316,8 @@ void run_tests(void)
     BC_TEST(parser_test);
     BC_TEST(url_test);
     BC_TEST(altitude_test);
+    sd_drive_test();
+    //BC_TEST(sd_drive_test);
 
     BC_TEST_END();
 }

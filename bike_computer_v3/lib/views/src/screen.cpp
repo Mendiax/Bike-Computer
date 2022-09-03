@@ -12,7 +12,6 @@ void Screen_setup()
 
 void Screen_draw(){
   display::display();
-  TRACE_DEBUG(0, TRACE_DISPLAY_PRINT, "drawing display%s\n", "");
 }
 
 void Screen_clear(){

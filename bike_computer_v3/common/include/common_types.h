@@ -9,11 +9,12 @@
 
 enum class SystemState
 {
+    TURNED_ON,
+    AUTOSTART,
     RUNNING,
     PAUSED,
     STOPPED,
-    CHARGING,
-    TURNED_ON
+    CHARGING
 };
 
 struct SpeedData
@@ -21,10 +22,12 @@ struct SpeedData
     //RingBuffer* speedBuffer;
     float velocity;
     float velocityMax;
-    float avgGlobal;
+    float avg;
+    float avg_global;
     int16_t distance;
     int8_t distanceDec;
-    uint64_t driveTime; // in ms
+    uint64_t drive_time; // in s
+    uint64_t stop_time; // in ms
 };
 
 struct TimeS
@@ -112,6 +115,14 @@ struct Weather_BMP280_S
     int32_t pressure;
 };
 
+// TODO
+struct Gear_Usage
+{
+
+};
+
+
+
 // TODO optimize size
 typedef struct SensorData
 {
@@ -120,7 +131,7 @@ typedef struct SensorData
     //RingBuffer* rearShockBuffer;
     SpeedData speed;
     GpsDataS gps_data;
-    mtime_t time;
+    mtime_t time;   // absolute time frtom boot in seconds
     Battery lipo;
     SystemState current_state;
     Time_HourS hour;

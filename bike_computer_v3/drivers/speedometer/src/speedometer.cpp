@@ -33,6 +33,7 @@ static volatile float speed_velocity = 0.0f;
 static volatile uint_fast64_t speed_wheelCounter = 0;
 // check if last value was read by speed_getSpeed() function
 static volatile bool dataReady = false;
+static bool increment_wheelCounter = 0;
 
 // static declarations
 static void speed_update();
@@ -96,34 +97,87 @@ void speed_emulate(int16_t speed)
     #endif
 }
 
-void speedDataUpdate(SpeedData& speedData)
+void speedDataUpdate(SpeedData& speed_data, SystemState& state)
 {
-    static uint64_t driveStartTime;
-    auto time_s = to_ms_since_boot(get_absolute_time()) / 1000;
-    auto distance = speed_getDistance(); 
-    if(distance > 0)
-        speedData.driveTime = time_s - driveStartTime;
-    else
-        driveStartTime = time_s;
-    // get data for speed and distance
-    speedData.velocity = speed_mps_to_kmph(speed_getSpeed());
-    speedData.distance = distance / 1000.0;
-    speedData.distanceDec = (uint64_t)(distance / 100.0) % 100;
+    // TODO refactor xd
+    static uint32_t time_last_update;
+    static uint32_t drive_start_time = 0;
 
-    // do some calculations
-    speedData.velocityMax = std::fmax(speedData.velocityMax, speedData.velocity);
-    speedData.avgGlobal = ((double)distance /(double)speedData.driveTime) * 3.6;
+
+    auto time_ms = to_ms_since_boot(get_absolute_time());
+    uint32_t time_delta = time_ms - time_last_update;
+    time_last_update = time_ms;
+
+    // check for start
+    if(state == SystemState::AUTOSTART && speed_getDistance() > 0)
+    {
+        state = SystemState::RUNNING;
+
+        // reset data
+        speed_wheelCounter = 0;
+        drive_start_time = time_ms;
+        speed_data.stop_time = 0;
+    }
+
+    switch (state)
+    {
+    case SystemState::RUNNING:
+        speed_data.drive_time = ((time_ms - drive_start_time) - speed_data.stop_time) / 1000 ;
+        increment_wheelCounter = 1;
+        break;
+    case SystemState::PAUSED:
+        increment_wheelCounter = 0;
+        speed_data.stop_time += time_delta;
+        break;
+    case SystemState::AUTOSTART:
+        increment_wheelCounter = 1;
+    case SystemState::CHARGING:
+    case SystemState::TURNED_ON:
+        drive_start_time = 0;
+        speed_data.stop_time = 0;
+        break;
+    case SystemState::STOPPED:
+        increment_wheelCounter = 0;
+        // TODO
+    default:
+        break;
+    }
+
+
+    if(state == SystemState::RUNNING)
+    {
+        auto distance_m = speed_getDistance(); 
+        // get data for speed and distance
+        speed_data.velocity = speed_mps_to_kmph(speed_getSpeed());
+        speed_data.distance = distance_m / 1000.0;
+        speed_data.distanceDec = (uint64_t)(distance_m / 100.0) % 100;
+
+        // do some calculations
+        speed_data.velocityMax = std::fmax(speed_data.velocityMax, speed_data.velocity);
+        //PRINTF("max=%f\n", speed_data.velocityMax);
+        
+        double drive_time_s = ((double)speed_data.drive_time);
+        if(drive_time_s > 0.0)
+        {
+            speed_data.avg = speed_mps_to_kmph((double)distance_m / drive_time_s);
+        }
+        double drive_global_time_s = ((double)(time_ms - drive_start_time) / 1000.0);
+        if(drive_global_time_s > 0.0)
+        {
+            speed_data.avg_global = speed_mps_to_kmph((double)distance_m / drive_global_time_s);
+        }
+    }
 
     
     // update buffer
     // uint8_t bufferVelocity = (uint8_t)velocity;
-    // ring_buffer_push_overwrite(speedData.speedBuffer, (char *)&bufferVelocity);
+    // ring_buffer_push_overwrite(speed_data.speedBuffer, (char *)&bufferVelocity);
 }
 
-void speedDataInit(SpeedData& speedData)
+void speedDataInit(SpeedData& speed_data)
 {
-    memset(&speedData, 0, sizeof(speedData));
-    // speedData.speedBuffer = 
+    memset(&speed_data, 0, sizeof(speed_data));
+    // speed_data.speedBuffer = 
     //     ring_buffer_create(sizeof(uint8_t), 100);
 }
 
@@ -169,12 +223,12 @@ static void speed_update()
         absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
 
         int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
-        if (delta_time < 10) // less than 10 ms so max speed is not bigger than 787km/h with 27.5 // 100 >
+        if (delta_time < speed_to_ms(99)) // less than 10 ms so max speed is not bigger than 787km/h with 27.5 // 100 >
         {
             TRACE_ABNORMAL(TRACE_SPEED, "too fast speed updates delta time = %lld\n", delta_time);
             return;
         }
-        ++speed_wheelCounter;
+        speed_wheelCounter += (increment_wheelCounter == 1);
         speed_velocity = speed_velocity_from_delta(delta_time);
         //DEBUG_SPEED("interrupt : %lu speed : %f delta : %lld last : %lu\n", to_ms_since_boot(update_us), speed_velocity, delta_time,  to_ms_since_boot(last_update_us));
         absolute_time_copy_to_volatile(speed_lastupdate, update_us);

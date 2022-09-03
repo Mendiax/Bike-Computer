@@ -14,11 +14,21 @@
  * 
  */
 
+
+
 /**
  * @brief checks avaible memory with malloc
  * 
  */
 size_t check_free_mem();
+
+std::string time_to_str(const TimeS& time);
+std::string time_to_str(const Time_HourS& time);
+
+Time_HourS time_from_millis(uint64_t millis_to_add);
+
+
+void time_print(const TimeS& time);
 
 /**
  * @brief Get the iso format of given structure

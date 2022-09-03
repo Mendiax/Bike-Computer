@@ -23,7 +23,7 @@
 // #if 1
 // 	#define DEBUG_OLED(__info,...) printf("[DEBUG_OLED] : " __info,##__VA_ARGS__)
 // #else
-// 	#define DEBUG_OLED(__info,...)  
+// 	#define DEBUG_OLED(__info,...)
 // #endif
 
 #define TRACES_ON(id, name) \
@@ -50,6 +50,7 @@ enum tracesE{
     TRACE_MPU9250,
     TRACE_BMP280,
     TRACE_SIM868,
+    TRACE_SD,
     NO_TRACES
 };
 
@@ -61,11 +62,11 @@ static inline void tracesSetup()
 {
     mutex_init(&tracesMutex);
     // all 0 ids are for abnormal traces and tunrd on on default
-    for(size_t i = 0; i < NO_TRACES; i++) 
+    for(size_t i = 0; i < NO_TRACES; i++)
     {
-        TRACES_ON(0, i); 
+        TRACES_ON(0, i);
     }
-    TRACES_ON(0, TRACE_MAIN); 
+    TRACES_ON(0, TRACE_MAIN);
     TRACES_ON_ALL(TRACE_SPEED);
 
     // ==================================================
@@ -97,7 +98,7 @@ static inline void tracesSetup()
     //                   CORE 1 TRACES
     // ==================================================
     //TRACES_ON(1,TRACE_CORE_1); // render time for scree
-    //TRACES_ON(2,TRACE_CORE_1); // pause btn
+    TRACES_ON(2,TRACE_CORE_1); // pause btn
 
 
     // ==================================================
@@ -111,6 +112,8 @@ static inline void tracesSetup()
     // ==================================================
     // RACES_ON(1, TRACE_DISPLAY_PRINT); // write string msg
     // RACES_ON(2, TRACE_DISPLAY_PRINT); // wrtie char msg
+    // RACES_ON(3, TRACE_DISPLAY_PRINT); // center space
+
 
     // ==================================================
     //                   MPU9250 TRACES
@@ -161,7 +164,7 @@ namespace utility {
         printf(format, ##__VA_ARGS__); \
         mutex_exit(&tracesMutex); \
     } while (0)
-    
+
 
 
 #define TRACE_DEBUG(id, name, __info,...) \

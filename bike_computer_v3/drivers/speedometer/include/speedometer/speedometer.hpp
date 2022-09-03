@@ -29,7 +29,7 @@ void speed_emulate(int16_t speed = 20);
 
 void speedDataInit(SpeedData& speedData);
 
-void speedDataUpdate(SpeedData& speedData);
+void speedDataUpdate(SpeedData& speedData, SystemState& state);
 
 
 #endif
