@@ -41,7 +41,7 @@ static inline TimeIso8601S* TimeIso8601_from_string(const std::string& time_str)
     TimeIso8601S* new_time = new TimeIso8601S();
     memset(new_time, 0, sizeof(TimeIso8601S));
     if(time_str.at(11) == 'T')
-    {   //_1____6__9__12_15 
+    {   //_1____6__9__12_15
         //"2022-08-19T19:54"
         new_time->year = std::atoi(time_str.substr(1,4).c_str());
         new_time->month = std::atoi(time_str.substr(6,2).c_str());
@@ -84,6 +84,7 @@ struct ForecastS
     uint8_t data_len;
     float latitude;
     float longitude;
+    //TimeIso8601S current_time;
     WeatherS current_weather;
     float* temperature_2m;
     float* pressure_msl;
@@ -107,6 +108,7 @@ static inline void create_offsets(std::unordered_map<std::string, void*>& map, c
     map["\"latitude\""] = (void*)&structure.latitude;
     map["\"longitude\""] = (void*)&structure.longitude;
     //current
+    //map["\"time\""] = (void*)&structure.current_time;
     map["\"temperature\""] = (void*)&structure.current_weather.temperature;
     map["\"windspeed\""] = (void*)&structure.current_weather.windspeed;
     map["\"winddirection\""] = (void*)&structure.current_weather.winddirection;

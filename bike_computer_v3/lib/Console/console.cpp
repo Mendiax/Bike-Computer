@@ -18,7 +18,9 @@
 #define NO_LINES (DISPLAY_HEIGHT / FONT_HEIGHT)
 #define LINE_HEIGHT (FONT_HEIGHT)
 #define LINE_LENGTH (DISPLAY_WIDTH / FONT_WIDTH)
-static char console[NO_LINES][LINE_LENGTH + 1]; 
+static char console[NO_LINES][LINE_LENGTH + 1];
+
+static bool console_inited;
 
 void consoleLogInit()
 {
@@ -30,6 +32,7 @@ void consoleLogInit()
     display::init();
     display::clear();
     display::display();
+    console_inited = true;
     consolep("LCD Console started\n");
 }
 
@@ -43,6 +46,10 @@ void consoleScrollup()
 
 void consoleLog(const char* fmt, ...)
 {
+    if(!console_inited)
+    {
+        return;
+    }
     va_list args;
     va_start(args, fmt);
     enum{bufferSize=256};
@@ -70,7 +77,7 @@ void consoleLog(const char* fmt, ...)
         // {
         //     continue;
         // }
-        Paint_Println(0, DISPLAY_HEIGHT - (LINE_HEIGHT * (i + 1)), console[i], &FONT); 
+        Paint_Println(0, DISPLAY_HEIGHT - (LINE_HEIGHT * (i + 1)), console[i], &FONT);
     }
     display::display();
     va_end(args);

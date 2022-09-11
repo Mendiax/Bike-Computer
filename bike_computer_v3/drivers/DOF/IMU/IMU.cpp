@@ -31,20 +31,20 @@ uint8_t u8PressureType;
 
 /**
   * @brief  invSqrt
-  * @param  
-  * @retval 
+  * @param
+  * @retval
   */
 
-float invSqrt(float x) 
+float invSqrt(float x)
 {
 	float halfx = 0.5f * x;
 	float y = x;
-	
+
 	long i = *(long*)&y;                //get bits for floating value
 	i = 0x5f3759df - (i >> 1);          //gives initial guss you
 	y = *(float*)&i;                    //convert bits back to float
 	y = y * (1.5f - (halfx * y * y));   //newtop step, repeating increases accuracy
-	
+
 	return y;
 }
 
@@ -55,13 +55,13 @@ float invSqrt(float x)
   * @retval None
   */
 void IMU_Init(void)
-{	
+{
 	I2C_Init();
-  consolep("IMU_Init()\n");
-  uint8_t u8Ret; 
+  //consolep("IMU_Init()\n");
+  uint8_t u8Ret;
   mpu9250::init();
   bmp280::init();
-  scan();
+  //scan();
 
 }
 

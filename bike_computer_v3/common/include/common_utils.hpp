@@ -11,14 +11,14 @@
 
 /**
  * @brief file containg functions for common types
- * 
+ *
  */
 
 
 
 /**
  * @brief checks avaible memory with malloc
- * 
+ *
  */
 size_t check_free_mem();
 
@@ -30,12 +30,30 @@ Time_HourS time_from_millis(uint64_t millis_to_add);
 
 void time_print(const TimeS& time);
 
+
+static inline absolute_time_t absolute_time_copy_volatile(volatile absolute_time_t* time)
+{
+    #ifdef NDEBUG
+    return *time;
+    #else
+    return {time->_private_us_since_boot};
+    #endif
+}
+static inline void absolute_time_copy_to_volatile(volatile absolute_time_t& time, absolute_time_t timeToCopy)
+{
+    #ifdef NDEBUG
+    time = timeToCopy;
+    #else
+    time._private_us_since_boot = timeToCopy._private_us_since_boot;
+    #endif
+}
+
 /**
  * @brief Get the iso format of given structure
- * 
- * @tparam T 
- * @param time 
- * @return std::string 
+ *
+ * @tparam T
+ * @param time
+ * @return std::string
  */
 template <typename T>
 static inline std::string get_iso_format(const T& time)
@@ -83,7 +101,7 @@ static inline void move_forecasts_to_forecastplots(ForecastS* raw_data, Forecast
     forecast->sunrise.hour = raw_data->sunrise[0].hour;
     forecast->sunrise.minutes = raw_data->sunrise[0].minutes;
     forecast->sunrise.seconds = 0;
-    
+
     forecast->sunset.hour = raw_data->sunset[0].hour;
     forecast->sunset.minutes = raw_data->sunset[0].minutes;
     forecast->sunset.seconds = 0;

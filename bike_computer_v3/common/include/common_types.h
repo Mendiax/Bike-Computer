@@ -2,10 +2,13 @@
 #define TYPES_H
 
 #include "ringbuffer.h"
+#include "bike_config.hpp"
+
 #include "pico/sync.h"
 
 #include <string>
 #include <array>
+#include <vector>
 
 enum class SystemState
 {
@@ -30,16 +33,6 @@ struct SpeedData
     uint64_t stop_time; // in ms
 };
 
-struct TimeS
-{
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t minutes;
-    float seconds;
-};
-
 struct Time_DateS
 {
     uint16_t year;
@@ -54,6 +47,29 @@ struct Time_HourS
     float seconds;
 };
 
+struct TimeS
+{
+    union
+    {
+        struct
+        {
+            Time_DateS date;
+            Time_HourS hours;
+        };
+        struct
+        {
+            uint16_t year;
+            uint8_t month;
+            uint8_t day;
+            uint8_t hour;
+            uint8_t minutes;
+            float seconds;
+        };
+    };
+};
+
+
+
 
 // for special prints we need seperate types in structs
 struct mtime_t
@@ -66,11 +82,7 @@ struct Battery
     bool is_charging;
     int8_t level; // in %
 };
-// typedef struct mtime_t
-// {
-//     unsigned int t;
-//     char xddd[2];
-// } mtime_t;
+
 struct GpsDataS
 {
     float speed;
@@ -89,7 +101,7 @@ struct ArrayMinMaxS
     T max;
 };
 
-#define FORECAST_SENSOR_DATA_LEN 6
+#define FORECAST_SENSOR_DATA_LEN 24
 
 template<size_t N>
 struct ForecastArrS
@@ -115,36 +127,62 @@ struct Weather_BMP280_S
     int32_t pressure;
 };
 
-// TODO
-struct Gear_Usage
-{
+/**
+ * @brief Contains data from sensors
+ *
+ */
+// struct Sensor_Data
+// {
+//     ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
+//     TimeS current_time;
+//     Weather_BMP280_S weather;
+//     float altitude; // height in m
+//     float cadence;  // rpm
+//     float velocity; // speed in kph
+//     GpsDataS gps_data;
+//     Battery lipo;   // battery info
+//     Gear_S gear;    // gear {front, rear}
+// };
 
-};
+
+
+// void reset_session_data(Session_Data& data)
+// {
+//     memset(&data, 0 ,sizeof(data));
+// }
 
 
 
 // TODO optimize size
-typedef struct SensorData
+typedef struct Sensor_Data
 {
     ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
+    TimeS current_time;
     Weather_BMP280_S weather;
-    //RingBuffer* rearShockBuffer;
-    SpeedData speed;
+    float altitude; // height in m
+    float cadence;  // rpm
+    float velocity; // speed in kph
     GpsDataS gps_data;
-    mtime_t time;   // absolute time frtom boot in seconds
-    Battery lipo;
+    Battery lipo; // battery info
+    Gear_S gear;  // gear {front, rear}
     SystemState current_state;
-    Time_HourS hour;
-    Time_DateS date;
-    float altitude;
+
+    // ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
+    // Weather_BMP280_S weather;
+    // //RingBuffer* rearShockBuffer;
+    // SpeedData speed;
+    // GpsDataS gps_data;
+    // mtime_t time;   // absolute time frtom boot in seconds
+    // Battery lipo;
+    // Time_HourS hour;
+    // Time_DateS date;
+    // float altitude;
+    // float cadence;
+    // Gear_S gear;
 
     // char cipgsmloc[20];
     // char clbs[27];
 
-} SensorData;
-
-// variables used for mutlicore
-extern mutex_t sensorDataMutex;
-extern SensorData sensorData; // volatile ???
+} Sensor_Data;
 
 #endif

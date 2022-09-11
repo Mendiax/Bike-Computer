@@ -1,4 +1,5 @@
 #include <speedometer/speedometer.hpp>
+#include "cadence/cadence.hpp"
 
 #include <math.h>
 #include <pico/time.h>
@@ -10,41 +11,62 @@
 
 // include interrupts
 extern interrupt interruptSpeed;
+extern interrupt interrupt_cadence;
 
 // buttons
-// extern interrupt button0;
-// extern interrupt button1;
-// extern interrupt button1rel;
-// extern interrupt button2;
-// extern interrupt button2rel;
-
-// extern interrupt button3;
 
 
-
+/**
+ * @brief function that is called on interrupt for core 0
+ *
+ * @param gpio
+ * @param events
+ */
 static void interrutpCallback_core0(uint gpio, uint32_t events);
+/**
+ * @brief function that is called on interrupt for core 1
+ *
+ * @param gpio
+ * @param events
+ */
 static void interrutpCallback_core1(uint gpio, uint32_t events);
 
+/**
+ * @brief Set the up interrupt object
+ *
+ * @param inter
+ */
+static inline void setup_interrupt(const interrupt& inter, bool pullup, void (*interrutp_cb)(uint, uint32_t));
+
+/**
+ * @brief Set the up interrupt btn object
+ *
+ * @param btn
+ */
+static inline void setup_interrupt_btn(Button_Interface& btn, void (*interrutp_cb)(uint, uint32_t));
+
+
+/**
+ * @brief checks if inter function should be triggered
+ *
+ * @param inter
+ * @param gpio
+ * @param events
+ */
 static inline void checkInterrupt(const interrupt& inter, const uint gpio,const uint32_t events);
 static inline void check_interrupt_btn(Button_Interface& btn, const uint gpio,const uint32_t events);
-static inline void setup_interrupt_btn(Button_Interface& btn);
-
 
 
 void interruptSetupCore0(void)
 {
-    // SETUP ALL INTERRUPT PINS
-
-    // speed interrupt
-    gpio_init(interruptSpeed.pin);
-    gpio_set_dir(interruptSpeed.pin, GPIO_IN);
-    //gpio_pull_up(interruptSpeed.pin);
-    gpio_set_irq_enabled_with_callback(interruptSpeed.pin, interruptSpeed.event, true, interrutpCallback_core0);
+    setup_interrupt(interruptSpeed, true, interrutpCallback_core0);
+    setup_interrupt(interrupt_cadence, true, interrutpCallback_core0);
 }
 
 static void interrutpCallback_core0(uint gpio, uint32_t events)
 {
     checkInterrupt(interruptSpeed, gpio, events);
+    checkInterrupt(interrupt_cadence, gpio, events);
 }
 
 /**
@@ -53,10 +75,10 @@ static void interrutpCallback_core0(uint gpio, uint32_t events)
  */
 void interruptSetupCore1(void)
 {
-    setup_interrupt_btn(btn0);
-    setup_interrupt_btn(btn1);
-    setup_interrupt_btn(btn2);
-    setup_interrupt_btn(btn3);
+    setup_interrupt_btn(btn0, interrutpCallback_core1);
+    setup_interrupt_btn(btn1, interrutpCallback_core1);
+    setup_interrupt_btn(btn2, interrutpCallback_core1);
+    setup_interrupt_btn(btn3, interrutpCallback_core1);
 
 }
 static void interrutpCallback_core1(uint gpio, uint32_t events)
@@ -94,7 +116,18 @@ static inline void check_interrupt_btn(Button_Interface& btn, const uint gpio,co
     }
 }
 
-static inline void setup_interrupt_btn(Button_Interface& btn)
+static inline void setup_interrupt(const interrupt& inter,bool pullup, void (*interrutp_cb)(uint, uint32_t))
+{
+    gpio_init(inter.pin);
+    gpio_set_dir(inter.pin, GPIO_IN);
+    if(pullup)
+    {
+        gpio_pull_up(inter.pin);
+    }
+    gpio_set_irq_enabled_with_callback(inter.pin, inter.event, true, interrutp_cb);
+}
+
+static inline void setup_interrupt_btn(Button_Interface& btn, void (*interrutp_cb)(uint, uint32_t))
 {
     auto inter_pres = btn.get_interrupt_pressed();
     auto inter_rel = btn.get_interrupt_released();
@@ -102,8 +135,8 @@ static inline void setup_interrupt_btn(Button_Interface& btn)
     gpio_init(inter_pres.pin);
     gpio_set_dir(inter_pres.pin, GPIO_IN);
     gpio_pull_up(inter_pres.pin);
-    gpio_set_irq_enabled_with_callback(inter_pres.pin, inter_pres.event, true, interrutpCallback_core1);
-    gpio_set_irq_enabled_with_callback(inter_pres.pin, inter_rel.event, true, interrutpCallback_core1);
+    gpio_set_irq_enabled_with_callback(inter_pres.pin, inter_pres.event, true, interrutp_cb);
+    gpio_set_irq_enabled_with_callback(inter_pres.pin, inter_rel.event, true, interrutp_cb);
 }
 
 const interrupt& Button_Interface::get_interrupt_pressed() const

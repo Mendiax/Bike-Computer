@@ -9,7 +9,7 @@ PICO_DRIVE_LETTER := H
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 
 all: parser
-	$(MAKE) -C $(BUILD) -j$(NPROCS)
+	$(MAKE) -C $(BUILD) -j$(NPROCS) && echo "BUILD FINISHED"
 
 sim:
 	$(MAKE) -C $(BUILD) -j$(NPROCS)

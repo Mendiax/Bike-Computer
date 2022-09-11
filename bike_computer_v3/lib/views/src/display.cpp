@@ -14,11 +14,6 @@ Display _Display;
 
 typedef void (*view_new_func)(void);
 
-#define WINDOW_CREATE_LASTVAL(originX,originY, maxWidth, maxHeight) \
-do { \
-\
-} while (0)
-
 // views
 extern void view0(void);
 extern void view1(void);
@@ -31,13 +26,14 @@ extern void view_charge(void);
 extern void view_main(void);
 
 // view3, ,  view4
-view_new_func views_all[] = {view0, view1, view2};
+view_new_func views_all[] = {view0, view1, view2, view4};
 #define DISPLAY_TYPES_LENGTH (sizeof(views_all) / sizeof(view_new_func))
-void Display_init(SensorData *data)
+void Display_init(Sensor_Data *data, Session_Data *session)
 {
     _Display.data = data;
-    _Display.currentType = 1;
-    
+    _Display.currentType = 0;
+    _Display.session = session;
+
     // setup
     Screen_setup();
 

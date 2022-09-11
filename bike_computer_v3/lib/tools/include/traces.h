@@ -41,6 +41,7 @@
 enum tracesE{
     TRACE_MAIN,
     TRACE_SPEED,
+    TRACE_CADENCE,
     BUTTONS,
     TRACE_VIEWS,
     TRACE_DISPLAY_PRINT,
@@ -91,6 +92,8 @@ static inline void tracesSetup()
     // TRACES_ON(2, TRACE_CORE_0); // data update time
     TRACES_ON(3, TRACE_CORE_0); // gps update
     TRACES_ON(4, TRACE_CORE_0); // BMP280 updatre
+    TRACES_ON(5, TRACE_CORE_0); // gear ratio
+
 
 
 
@@ -128,7 +131,12 @@ static inline void tracesSetup()
     TRACES_ON(2, TRACE_SIM868);  // send_request log
 
 
-
+    // ==================================================
+    //                   CADENCE TRACES
+    // ==================================================
+    //TRACES_ON(1, TRACE_CADENCE); // emulate
+    //TRACES_ON(2, TRACE_CADENCE); // sensor update
+    //TRACES_ON(3, TRACE_CADENCE); // get cadence
 
 
 }

@@ -10,11 +10,13 @@
 #include "views/view.h"
 
 #include <common_types.h>
+#include "session.hpp"
 
 typedef struct Display
 {
     View view;
-    SensorData *data;
+    Sensor_Data* data;
+    Session_Data* session;
     uint8_t currentType;
 } Display;
 
@@ -23,7 +25,7 @@ typedef void (*view_new_func)(void);
 
 void* getSettings(unsigned id);
 
-void Display_init(SensorData *data);
+void Display_init(Sensor_Data *data, Session_Data *session);
 void Display_setDisplayType(uint8_t type);
 void Display_incDisplayType();
 void Display_decDisplayType();

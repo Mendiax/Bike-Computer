@@ -88,7 +88,7 @@ void sim868::turnOff(void)
 // resets module with deleay of 2s
 void sim868::reset(void)
 {
-    turnOff();   
+    turnOff();
     sleep_ms(2000);
     turnOn();
 }
@@ -97,7 +97,7 @@ void sim868::boot(void)
 {
     init();
     turnOn();
-    sleep_ms(5000);
+    sleep_ms(3000);
     waitForBoot();
 }
 
@@ -181,7 +181,7 @@ void sim868::waitForBoot()
     consolep("SIM868 is ready\n");
 }
 
- 
+
 
 bool sim868::get_bat_level(bool& is_charging,
                            uint8_t& bat_lev,
@@ -238,7 +238,7 @@ void on_uart_rx(void)
     switch (current_response.status)
     {
     case ResponseStatus::SENT:
-        current_response.status = ResponseStatus::STARTED; 
+        current_response.status = ResponseStatus::STARTED;
         break;
     case ResponseStatus::STARTED:
         if(absolute_time_diff_us(current_response.time_start, get_absolute_time()) > current_response.timeout * 1000)
@@ -253,7 +253,7 @@ void on_uart_rx(void)
     case ResponseStatus::TIME_OUT:
     case ResponseStatus::RECEIVED:
         // read data in buffer
-        while (uart_is_readable(UART_ID)) 
+        while (uart_is_readable(UART_ID))
         {
             uart_getc(UART_ID);
         }
@@ -262,7 +262,7 @@ void on_uart_rx(void)
         break;
     }
 
-    while (uart_is_readable(UART_ID)) 
+    while (uart_is_readable(UART_ID))
     {
         const char c = uart_getc(UART_ID);
         current_response.response += c;
@@ -283,7 +283,7 @@ uint64_t sim868::send_request(const std::string&& cmd,
                               )
 {
     static uint64_t id;
-    if(id == 0){++id;} // proper id cannot be 0 
+    if(id == 0){++id;} // proper id cannot be 0
     if(!is_on())
     {
         TRACE_ABNORMAL(TRACE_SIM868, "sim868 is off, cannot send request\n");
@@ -319,9 +319,9 @@ uint64_t sim868::send_request(const std::string&& cmd,
         sleep_ms(10);
     }
     #endif
-    
 
-    
+
+
     return id;
 }
 
@@ -330,8 +330,8 @@ std::string sim868::get_respond(uint64_t id)
     if(sim868::check_response(id))
     {
         //std::cout << id << " -> " << current_response.response << std::endl;
-        current_response.status = ResponseStatus::RECEIVED; 
-        return current_response.response; 
+        current_response.status = ResponseStatus::RECEIVED;
+        return current_response.response;
     }
     return "";
 }
@@ -361,7 +361,7 @@ bool sim868::check_response(uint64_t id)
 std::string sim868::sendRequestLong(const std::string&& cmd, long timeout, const size_t bufferSize)
 {
     std::string resp;
-    // std::string cmd_ = cmd; 
+    // std::string cmd_ = cmd;
     auto req = sim868::send_request(cmd.c_str(), timeout, bufferSize);
     if(req == 0)
     {
@@ -374,14 +374,14 @@ std::string sim868::sendRequestLong(const std::string&& cmd, long timeout, const
     resp = get_respond(req);
     std::cout << resp << std::endl;
     return resp;
-    
+
     //     if(!is_on())
     //     {
     //         TRACE_ABNORMAL(TRACE_SIM868, "sim868 is off, cannot send request\n");
     //         return "";
     //     }
     //     // TODO do optimization ??
-        
+
     //     std::string returnString("");
     //     returnString.reserve(bufferSize);
     //     StateStringMachine findOk("OK\r\n");
@@ -390,7 +390,7 @@ std::string sim868::sendRequestLong(const std::string&& cmd, long timeout, const
     //     TRACE_DEBUG(1,TRACE_SIM868,"requesting\'%s\'\n", cmd.c_str());
     //     uint64_t t = time_us_64();
     //     size_t i = 0;
-        
+
     //     rx_buffer = "";
 
     //     uart_puts(UART_ID, cmd.c_str());
@@ -487,7 +487,7 @@ void sim868::clear_respond(std::string& respond)
     // }
 
     auto last_char_idx = str_length - 1;
-    int_fast8_t nl_cnt = 2; 
+    int_fast8_t nl_cnt = 2;
     while (last_char_idx > 0 && nl_cnt > 0)
     {
         if(respond.at(last_char_idx) == '\r')

@@ -37,10 +37,10 @@ void add_label(const char* string, const Frame& frame, Align align = Align::LEFT
     {
         labelSettingsNew(&valSettings, frame, string);
     }
-    
+
     labelSettingsAlign(&valSettings, frame, align);
     view_addNewWindow(&_Display.view, {valSettings, LabelDraw});
-    
+
 }
 
 template<typename T>
@@ -49,7 +49,7 @@ void add_value(const char* format, size_t commonLength, T* data, const Frame& fr
     Window newWindow;
     newWindow.updateFunc_p = getDrawFunc(data);
     labelSettingsNew(&newWindow.settings.label, frame, format, commonLength);
-    
+
     labelSettingsAlign(&newWindow.settings.label, frame, align);
     newWindow.settings.val.data = data;
     view_addNewWindow(&_Display.view, newWindow);
@@ -73,16 +73,16 @@ void add_Vertical(const char* overFormat, size_t overCommonLength, T* overData,
                   const char* underFormat, size_t underCommonLength, Q* underData,
                   const Frame& frame,   Align align = Align::LEFT)
 {
-    const uint_fast16_t str_len_max = std::max(overCommonLength, underCommonLength);
+    //const uint_fast16_t str_len_max = std::max(overCommonLength, underCommonLength);
     const uint_fast16_t half_height = frame.height >> 1;
 
     const Frame unitTop =     {frame.x, frame.y, frame.width, (uint16_t)half_height};
-    add_value(overFormat, str_len_max, overData, unitTop,  align);
+    add_value(overFormat, overCommonLength, overData, unitTop,  align);
 
     const uint_fast16_t top_unit_height = labelSettingsGetHeight(&view_getPreviousWindow(&_Display.view)->settings.label);
     const Frame unitBottom =  {frame.x, frame.y + (uint16_t)top_unit_height,
                          frame.width, (uint16_t)half_height};
-    add_value(underFormat, str_len_max, underData, unitBottom,  align);
+    add_value(underFormat, underCommonLength, underData, unitBottom,  align);
 }
 
 void add_Units(const char* over, const char* under, const Frame& frame, Align align = Align::LEFT)
@@ -95,17 +95,17 @@ void add_Units(const char* over, const char* under, const Frame& frame, Align al
     static const char* line_template = "_____";
     static char line[6];
     memcpy(line, line_template, sizeof(line));
-    line[str_len_max] = '\0'; 
+    line[str_len_max] = '\0';
     const Frame unitMid =     {frame.x, frame.y,   frame.width, (uint16_t)half_height};
     add_label(line, unitMid,  align);
 }
 
 /**
  * @brief split frame into fram with len-1/len width and 1/len width
- * 
- * @param frame 
- * @param len 
- * @return auto 
+ *
+ * @param frame
+ * @param len
+ * @return auto
  */
 static auto splitFrame(const Frame& frame, uint16_t length, bool align_right=false)
 {
@@ -120,11 +120,11 @@ static auto splitFrame(const Frame& frame, uint16_t length, bool align_right=fal
 
     uint16_t height = char_font->height * char_scale;
     //auto offset = (frame.width / length);
-    const uint_fast16_t f1_width = char_width * (length - 1u); 
+    const uint_fast16_t f1_width = char_width * (length - 1u);
     Frame f1 = {frame.x, frame.y, (uint16_t)f1_width, height};
-    const uint_fast16_t f2_x_offset = f1.x + f1.width;  
+    const uint_fast16_t f2_x_offset = f1.x + f1.width;
     Frame f2 = {(uint16_t) f2_x_offset, frame.y, char_width, height};
-    
+
     TRACE_DEBUG(1, TRACE_VIEWS, "Frame splited %s and %s\n", frame_to_string(f1).c_str(), frame_to_string(f2).c_str());
 
     //assert(frame.width >= (f1.width + f2.width);
@@ -145,9 +145,9 @@ static auto splitFrame(const Frame& frame, uint16_t length, bool align_right=fal
 }
 /**
  * @brief splits frame into 2 frames with half of width
- * 
- * @param frame 
- * @return constexpr auto 
+ *
+ * @param frame
+ * @return constexpr auto
  */
 static constexpr auto split_vertical(const Frame& frame)
 {
@@ -158,16 +158,16 @@ static constexpr auto split_vertical(const Frame& frame)
 }
 /**
  * @brief splits frame into 2 frames with half of height
- * 
- * @param frame 
- * @return constexpr auto 
+ *
+ * @param frame
+ * @return constexpr auto
  */
 static constexpr auto split_horizontal(const Frame& frame)
 {
     const uint16_t half_height = frame.height / 2;
     const Frame f1 = {frame.x, frame.y, frame.width, half_height};
     const Frame f2 = {frame.x, frame.y + half_height, frame.width, half_height};
-    
+
     return std::make_tuple(f1,f2);
 }
 
@@ -176,7 +176,7 @@ static constexpr auto split_horizontal(const Frame& frame)
 template<typename T>
 void addValueUnitsVertical(const char* format, size_t commonLength, T* data,
                            const char* over, const char* under,
-                           const Frame& frame, 
+                           const Frame& frame,
                            Align align = Align::LEFT, bool alignRight = true)
 {
     auto [frameValue, frameUnits] = splitFrame(frame, commonLength + 1, alignRight);
@@ -187,7 +187,7 @@ template<typename T, typename Q, typename P>
 void addValueValuesVertical(const char* format, size_t commonLength, T* data,
                             const char* overFormat, size_t overCommonLength, Q* overData,
                             const char* underFormat, size_t underCommonLength, P* underData,
-                            const Frame& frame,                      
+                            const Frame& frame,
                             Align align = Align::LEFT, bool alignRight = true)
 {
     auto [frameValue, frameUnits] = splitFrame(frame, commonLength + 1, alignRight);
@@ -224,7 +224,7 @@ static inline constexpr uint16_t get_height_left(const Frame frame)
 
 /*
 
-    speed, distance 
+    speed, distance
 */
 void view0(void)
 {
@@ -233,25 +233,31 @@ void view0(void)
 
     // const auto frame = get_frame_bar();
 
-    // const auto [frame_speed, frame_distance] = split_horizontal(); 
+    // const auto [frame_speed, frame_distance] = split_horizontal();
 
     Frame speed = {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
 
-    addValueUnitsVertical("%2.0f", 2, &_Display.data->speed.velocity, "km","h", speed, 
-                           Align::CENTER, true);
-    
-    Frame distanceFrame = {0, (speed.y + speed.height), DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
-    addValueValuesVertical("%3" PRIu16, 3, &_Display.data->speed.distance,
-                           "%02" PRIu8, 2, &_Display.data->speed.distanceDec,
-                           "km", 2, (void*)0,
+    // addValueUnitsVertical("%2.0f", 2, &_Display.data->speed.velocity, "km","h", speed,
+    //                        Align::CENTER, true);
+    addValueValuesVertical("%2.0f", 2, &_Display.data->velocity,
+                           "%3.0f", 3, &_Display.data->cadence,
+                           "%3" PRIu8, 3, &_Display.data->gear.rear,
+                           //"kph", 3, (void*)0,
+                           speed,
+                            Align::RIGHT, false);
+
+    Frame distanceFrame = {0, get_frame_top_y(speed), DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
+    addValueValuesVertical("%3" PRIu16, 3, &_Display.session->speed.distance,
+                           "%02" PRIu8, 2, &_Display.session->speed.distanceDec,
+                           "km", 2, (void *)0,
                            distanceFrame,
-                            Align::CENTER, true);
+                           Align::CENTER, true);
 
     TRACE_DEBUG(4, TRACE_VIEWS, "view0 setup finished \n%s", "");
 }
 
 
-/* 
+/*
     max, avg display
 */
 void view1(void)
@@ -269,16 +275,15 @@ void view1(void)
 
 
     auto [max,avg] = split_vertical(max_avg_val);
-    add_value("%2.0f",2,&_Display.data->speed.velocityMax, max, Align::CENTER);
+    add_value("%2.0f", 2, &_Display.session->speed.velocityMax, max, Align::CENTER);
 
     auto [avg_curr, avg_global] = split_horizontal(avg);
-    add_value("%4.1f",4,&_Display.data->speed.avg, avg_curr, Align::LEFT);
-    add_value("%4.1f",4,&_Display.data->speed.avg_global, avg_global, Align::LEFT);
+    add_value("%4.1f",4,&_Display.session->speed.avg, avg_curr, Align::LEFT);
+    add_value("%4.1f",4,&_Display.session->speed.avg_global, avg_global, Align::LEFT);
 
 
     // Frame time_passed = {0, bottomLeft.y + bottomLeft.height, DISPLAY_WIDTH, DISPLAY_HEIGHT - time_passed.y};
-    add_value("%2d:%02d:%02d", 8 ,(mtime_t*)&_Display.data->speed.drive_time, time_passed, Align::CENTER);
-
+    add_value("%2d:%02d:%02d", 8, (mtime_t *)&_Display.session->speed.drive_time, time_passed, Align::CENTER);
 
     TRACE_DEBUG(4, TRACE_VIEWS, "view1 setup finished \n%s", "");
 }
@@ -302,7 +307,7 @@ void view2(void)
 
     //Frame topLeft = {0,TOP_BAR_HEIGHT, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2};
     //Frame topRight = {DISPLAY_WIDTH/2,topLeft.y, DISPLAY_WIDTH/2, topLeft.height};
-    addValueUnitsVertical("%2.0f", 2, &_Display.data->gps_data.speed, "km","h", gps_speed, 
+    addValueUnitsVertical("%2.0f", 2, &_Display.data->gps_data.speed, "km","h", gps_speed,
                            Align::CENTER, true);
     //add_value("%3.0f",3,&_Display.data->gps_data.msl, gps_height, Align::CENTER);
     add_value("%3.0fm",3,&_Display.data->altitude, gps_height, Align::CENTER);
@@ -327,8 +332,8 @@ void view3(void)
 
     auto frame  = get_frame_bar();
     auto [frame_hour, frame_date] = split_horizontal(frame);
-    add_value("",TIMES_LABEL_LENGTH,&_Display.data->hour, frame_hour, Align::CENTER);
-    add_value("",TIMES_LABEL_LENGTH,&_Display.data->date, frame_date, Align::CENTER);
+    add_value("",TIMES_LABEL_LENGTH,&_Display.data->current_time.hours, frame_hour, Align::CENTER);
+    add_value("",TIMES_LABEL_LENGTH,&_Display.data->current_time.date, frame_date, Align::CENTER);
 }
 
 void view4(void)
@@ -337,7 +342,7 @@ void view4(void)
     top_bar();
 
     auto frame = get_frame_bar();
-    
+
     //std::cout << "frame: " << frame_to_string(frame) << std::endl;
     //std::cout << "height left: " << get_height_left(frame) << std::endl;
 
@@ -347,33 +352,33 @@ void view4(void)
     Frame bottom{0, get_frame_top_y(top), frame.width, get_height_left(top)};
     //std::cout << "bottom: " << frame_to_string(bottom) << std::endl;
 
-    static float min = 0.0, max = 20.0;
+    static float min = 0.0, max = 40.0;
     {
-        PlotSettings plot_sett{top, false,false,&min, &max, 
-        &_Display.data->forecast.windgusts_10m.array, 
-        FORECAST_SENSOR_DATA_LEN, {0xf,0x0,0x1}}; 
+        PlotSettings plot_sett{top, false,false,&min, &max,
+        &_Display.data->forecast.windgusts_10m.array,
+        FORECAST_SENSOR_DATA_LEN, {0xf,0x0,0x1}};
         Settings set;
         set.plot = plot_sett;
-        Window plot_win{set, plot_float}; 
+        Window plot_win{set, plot_float};
         view_addNewWindow(&_Display.view,plot_win);
     }
     {
-        PlotSettings plot_sett{top, false,false,&min, &max, 
-        &_Display.data->forecast.windspeed_10m.array, 
-        FORECAST_SENSOR_DATA_LEN, {0,0xf,0}}; 
+        PlotSettings plot_sett{top, false,false,&min, &max,
+        &_Display.data->forecast.windspeed_10m.array,
+        FORECAST_SENSOR_DATA_LEN, {0,0xf,0}};
         Settings set;
         set.plot = plot_sett;
-        Window plot_win{set, plot_float}; 
+        Window plot_win{set, plot_float};
         view_addNewWindow(&_Display.view,plot_win);
     }
     {
         static float min = 0.0, max = 3.0;
-        PlotSettings plot_sett{top, false,false,&min, &max, 
-        &_Display.data->forecast.precipitation.array, 
-        FORECAST_SENSOR_DATA_LEN, {0,0,0xf}}; 
+        PlotSettings plot_sett{top, false,false,&min, &max,
+        &_Display.data->forecast.precipitation.array,
+        FORECAST_SENSOR_DATA_LEN, {0,0,0xf}};
         Settings set;
         set.plot = plot_sett;
-        Window plot_win{set, plot_float}; 
+        Window plot_win{set, plot_float};
         view_addNewWindow(&_Display.view,plot_win);
     }
 
@@ -388,7 +393,7 @@ void view_charge(void)
 
 void view_main(void)
 {
-    
+
 }
 
 
@@ -435,7 +440,7 @@ void view_main(void)
 //                        (void *)topBarSettings,
 //                        LastValDrawByte);
 
-    
+
 //     PlotSettings *plotSettings = (PlotSettings *)getSettings(1);
 //     *plotSettings = {
 //         .min = 0,

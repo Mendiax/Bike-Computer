@@ -2,6 +2,7 @@
 #include "core_utils.hpp"
 #include "common_types.h"
 #include "common_utils.hpp"
+#include "common_data.hpp"
 
 #include "buttons/buttons.h"
 #include "traces.h"
@@ -23,7 +24,9 @@
 #define MINIMAL_TIME_BTN 300
 
 // static variables
-static SensorData sensorDataDisplay = {0};
+static Sensor_Data sensorDataDisplay = {0};
+static Session_Data sessionDataDisplay;
+
 static volatile uint32_t lastBtn1Press = 0;
 static volatile uint32_t btnPressedCount = 0;
 
@@ -81,9 +84,9 @@ static void setup(void)
 
     interruptSetupCore1();
 
-    sensorDataDisplay = sensorData;
+    sensorDataDisplay = sensors_data;
 
-    Display_init(&sensorDataDisplay);
+    Display_init(&sensorDataDisplay, &sessionDataDisplay);
 }
 
 static int loop(void)
@@ -94,13 +97,14 @@ static int loop(void)
     {
         // copy data
         mutex_enter_blocking(&sensorDataMutex);
-        sensorDataDisplay = sensorData;
+        sensorDataDisplay = sensors_data;
+        if (session_p)
+            sessionDataDisplay = *session_p;
         // std::cout << "Core1: \n'"
         //      //<< sensorDataDisplay.clbs << "'\n'"
         //      << sensorDataDisplay.cipgsmloc << "'" << std::endl;
 
         mutex_exit(&sensorDataMutex);
-
 
         // if system state has changed execute proper code
         static SystemState last_system_state;
@@ -149,7 +153,7 @@ static int loop(void)
                     break;
             }
             mutex_enter_blocking(&sensorDataMutex);
-            sensorData.current_state = sensorDataDisplay.current_state;
+            sensors_data.current_state = sensorDataDisplay.current_state;
             mutex_exit(&sensorDataMutex);
         }
 
@@ -180,7 +184,7 @@ static int loop(void)
             // TODO improve add menu ???
             Session last_session;
             TimeS end_time; // TODO
-            last_session.end(end_time, sensorData.speed);
+            last_session.end(end_time, sessionDataDisplay.speed);
 
             Sd_File last_save("last_track.csv");
             if(last_save.is_empty())

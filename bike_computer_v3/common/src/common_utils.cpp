@@ -2,6 +2,9 @@
 #include "traces.h"
 #include "math.h"
 
+
+
+
 size_t check_free_mem()
 {
     size_t avaible_memory = SIZE_MAX;

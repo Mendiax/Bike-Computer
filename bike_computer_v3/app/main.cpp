@@ -8,6 +8,7 @@
 // my includes
 #include "traces.h"
 #include "common_types.h"
+#include "common_data.hpp"
 #include "core1.h"
 #include "core0.h"
 #include "speedometer/speedometer.hpp"
@@ -24,7 +25,7 @@
 
 
 
-//SensorData sensorData = {0};
+//Sensor_Data sensors_data = {0};
 /*
     setup function
 */
@@ -50,10 +51,10 @@ int main()
     //batterySetup();
 
     TRACE_DEBUG(0, TRACE_MAIN, "Init common data\n");
-    speedDataInit(sensorData.speed);
-    //sensorData.rearShockBuffer = ring_buffer_create(sizeof(uint8_t), SCREEN_WIDTH);
-    sensorData.current_state = SystemState::TURNED_ON;
-    
+    //speedDataInit(sensors_data.speed);
+    //sensors_data.rearShockBuffer = ring_buffer_create(sizeof(uint8_t), SCREEN_WIDTH);
+    sensors_data.current_state = SystemState::TURNED_ON;
+
     mutex_init(&sensorDataMutex);
 
 

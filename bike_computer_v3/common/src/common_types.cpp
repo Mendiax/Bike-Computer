@@ -4,5 +4,5 @@
 
 
 // global variables
-SensorData sensorData = {0};
-mutex_t sensorDataMutex;
+// SensorData sensorData = {0};
+// mutex_t sensorDataMutex;

@@ -1,11 +1,11 @@
 /**
   ******************************************************************************
   * @file    MPU9250.c
-  * @author  
+  * @author
   * @version V1.0
   * @date    27-January-2015
   * @brief   This file includes the MPU9250 driver functions
-  
+
   ******************************************************************************
   * @attention
   *
@@ -142,7 +142,7 @@ static uint8_t buf[7]; // common buffer for all reads
    sleep_ms(50);
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS);           // Set the I2C slave address of AK8963 and set for write.
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_CNTL);               // I2C slave 0 register address from where to begin data transfer
-   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0x00);                       // Power down magnetometer  
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0x00);                       // Power down magnetometer
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x81);                     // Enable I2C and write 1 byte
    sleep_ms(50);
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS);           // Set the I2C slave address of AK8963 and set for write.
@@ -150,24 +150,24 @@ static uint8_t buf[7]; // common buffer for all reads
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0x0F);                       // Enter fuze mode
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x81);                     // Enable I2C and write 1 byte
    sleep_ms(50);
-   
+
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS | 0x80);    // Set the I2C slave address of AK8963 and set for read.
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_ASAX);               // I2C slave 0 register address from where to begin data transfer
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x83);                     // Enable I2C and read 3 bytes
    sleep_ms(50);
    I2C_ReadBuff(DEFAULT_ADDRESS, EXT_SENS_DATA_00, 3, &rawData[0]);        // Read the x-, y-, and z-axis calibration values
    magCalibration[0] =  (float)(rawData[0] - 128)/256.0f + 1.0f;        // Return x-axis sensitivity adjustment values, etc.
-   magCalibration[1] =  (float)(rawData[1] - 128)/256.0f + 1.0f;  
-   magCalibration[2] =  (float)(rawData[2] - 128)/256.0f + 1.0f; 
-   
+   magCalibration[1] =  (float)(rawData[1] - 128)/256.0f + 1.0f;
+   magCalibration[2] =  (float)(rawData[2] - 128)/256.0f + 1.0f;
+
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS);           // Set the I2C slave address of AK8963 and set for write.
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_CNTL);               // I2C slave 0 register address from where to begin data transfer
-   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0x00);                       // Power down magnetometer  
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_DO, 0x00);                       // Power down magnetometer
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_CTRL, 0x81);                     // Enable I2C and transfer 1 byte
    sleep_ms(50);
 
    I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_ADDR, AK8963_ADDRESS);           // Set the I2C slave address of AK8963 and set for write.
-   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_CNTL);               // I2C slave 0 register address from where to begin data transfer 
+   I2C_WriteOneByte(DEFAULT_ADDRESS, I2C_SLV0_REG, AK8963_CNTL);               // I2C slave 0 register address from where to begin data transfer
    // Configure the magnetometer for continuous read and highest resolution
    // set Mscale bit 4 to 1 (0) to enable 16 (14) bit resolution in CNTL register,
    // and enable continuous mode data acquisition Mmode (bits [3:0]), 0010 for 8 Hz and 0110 for 100 Hz sample rates
@@ -179,7 +179,7 @@ static uint8_t buf[7]; // common buffer for all reads
     uint8_t readData = I2C_ReadOneByte(MAG_ADDRESS, 0x0);
     printf("MAG WHO AM I is (Must return 72): %d\r\n", readData == 72);
 
-	
+
     // /*
     //     disable the I2C Master I/F module; pins ES_DA and ES_SCL are isolated
     //     from pins SDA/SDI and SCL/ SCLK.
@@ -216,7 +216,7 @@ static uint8_t buf[7]; // common buffer for all reads
 
     // //wait for the mode changes
     // sleep_ms(100);
-	
+
 	sleep_ms(10);
 	if(!mpu9250::check())
 	{
@@ -229,7 +229,7 @@ static uint8_t buf[7]; // common buffer for all reads
   * @retval None
   */
 void mpu9250::read_accel(Vector3& accel_data)
-{ 
+{
   //consolep("MPU9250_READ_ACCEL()\n");
   I2C_ReadBuff(ACCEL_ADDRESS, ACCEL_XOUT_H, 6, ::buf);
   accel_data.x = (buf[0]<<8)|buf[1];
@@ -262,20 +262,20 @@ void mpu9250::read_gyro(Vector3& gyro_data)
 void mpu9250::read_mag(Vector3& mag_data)
 {
   // ?????????????????
-  I2C_WriteOneByte(GYRO_ADDRESS,0x37,0x02);//turn on Bypass Mode 
+  I2C_WriteOneByte(GYRO_ADDRESS,0x37,0x02);//turn on Bypass Mode
   sleep_ms(10);
-  I2C_WriteOneByte(MAG_ADDRESS,0x0A,0x01);	
+  I2C_WriteOneByte(MAG_ADDRESS,0x0A,0x01);
   sleep_ms(10);
   static Vector3 mag;
 
-  
+
   uint8_t wia_resp = I2C_ReadOneByte(MAG_ADDRESS, WIA_AD);
 
   if(wia_resp != WIA_VAL)
   {
     consolep("MAGNETOMETR FAILED\n");
   }
-  
+
 
   uint8_t status;
   I2C_ReadBuff(MAG_ADDRESS, STATUS_1_AD, 1, &status);
@@ -298,10 +298,10 @@ void mpu9250::read_mag(Vector3& mag_data)
   * @brief  Check MPU9250,ensure communication succeed
   * @param  None
   * @retval true: communicate succeed
-  *               false: communicate fualt 
+  *               false: communicate fualt
   */
-bool mpu9250::check(void) 
+bool mpu9250::check(void)
 {
-  consolep("MPU9250_Check()\n");
+  //consolep("MPU9250_Check()\n");
   return WHO_AM_I_VAL == I2C_ReadOneByte(DEFAULT_ADDRESS, WHO_AM_I);
 }
