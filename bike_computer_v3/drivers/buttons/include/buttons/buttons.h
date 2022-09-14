@@ -16,7 +16,7 @@
 // extern interrupt button3;
 
 
-#define LONG_PRESS_MS 500
+#define LONG_PRESS_MS 1000
 #define PRESS_TIMEOUT 200
 
 typedef void (*btn_call)(void);
@@ -27,8 +27,8 @@ private:
     volatile bool pressed;
 
     // TODO volatile
-    absolute_time_t time_press;
-    absolute_time_t time_release;
+    volatile uint32_t time_press;
+    volatile uint32_t time_release;
 
     btn_call short_call;
     btn_call long_call;

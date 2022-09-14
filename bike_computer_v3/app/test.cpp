@@ -243,7 +243,7 @@ void test_draw_line()
     // Paint_DrawLine(10,10,300,10);
     // Paint_DrawLine(12,1,120,200);
     // Paint_DrawLine(10,1,30,200);
-    
+
     Paint_DrawLine(0,0,319,239);
     // Paint_DrawLine(10,10,30,1);
     // Paint_DrawLine(12,1,12,20);
@@ -290,13 +290,13 @@ void test_atInternet()
     // AT+COPS=?   [ To return the list of available operators ]
     // AT+COPS=    [ To manually select an available operator ]
     // AT+COPS?    [ To check the current network ]
-    // AT+CGATT=1  [ to attach the terminal to GPRS service ] 
+    // AT+CGATT=1  [ to attach the terminal to GPRS service ]
     // AT+CGATT?   [ To return the current state of GPRS service : Attach/Detach ]
     // AT+CGDCONT=1,"IP","em"    [ To define PDP Context ]
-    // AT+CSQ      [ to measure signal quality ]  
-    // AT+CGACT=1  [ To activate a PDP context ]  
+    // AT+CSQ      [ to measure signal quality ]
+    // AT+CGACT=1  [ To activate a PDP context ]
     // AT+CGDCONT? [ To return the current state of the PDP context]
-    // AT+CGACT=0  [ To deactivate a PDP context ] 
+    // AT+CGACT=0  [ To deactivate a PDP context ]
     // */
     // sendCMD_waitResp("AT+CSQ?","OK",2000);
     // sendCMD_waitResp("AT+CSQ","OK",2000);
@@ -346,8 +346,9 @@ int main(void)
 
     run_tests();
     //test_DOF();
-    
-    test_SD();
+
+
+    //test_SD();
 
     /*
     display test
@@ -371,14 +372,14 @@ int main(void)
     console test
     */
     //test_console();
-    consoleLogInit();
+    //consoleLogInit();
 
     //init_i2c();
     //bmp_test();
     //test_DOF();
 
     // test_sim868_interface();
-    
+
 
     while (1)
     {

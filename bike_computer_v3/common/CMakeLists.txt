@@ -10,4 +10,5 @@ target_link_libraries(Common PUBLIC
                       IMU I2C
                       SD
                       Cadence Speedometer
+                      Actors
                       )

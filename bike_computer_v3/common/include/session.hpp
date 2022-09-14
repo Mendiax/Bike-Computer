@@ -17,7 +17,7 @@ public:
     Gear_Usage gear_usage;
 
     enum class Status {
-        STOPPED, RUNNING, ENDED
+        NOT_STARTED, PAUSED, RUNNING, ENDED
     };
 private:
     Status status;
@@ -25,11 +25,20 @@ private:
     absolute_time_t absolute_time_start;
     absolute_time_t absolute_time_last_stop;
 
+    inline void reset()
+    {
+        this->speed = {0};
+        this->gear_usage = {0};
+        this->status = Status::NOT_STARTED;
+        this->time_start = {0};
+        this->time_end = {0};
+    }
 public:
     Session_Data();
 
+
     void start(TimeS time);
-    void stop();
+    void pause();
     void cont();
     void end(TimeS time);
     // update data
@@ -44,6 +53,7 @@ public:
     int16_t* get_distance_var();
     void update(float speed_kph, float distance_m);
 
+
     // csv interface
     const char *get_header();
     std::string get_line();
@@ -53,27 +63,27 @@ public:
  * @brief structure that will be saved in memory
  *
  */
-class Session : public Csv_Interface
-{
-private:
-    TimeS time_start, time_end; // absolute values
-    Time_HourS duration; //only pedaling
-    float velocity_max;
-    float velocity_avg;
-    float velocity_avg_global; // with absolute time
-    int32_t distance; // in m
-    Gear_Usage gears; // TODO
-    // TODO weather ???
-public:
-    Session();
-    Session(Session_Data session_data); // TODO
-    void start(TimeS time_start);
-    void end(const TimeS& time_end, const  SpeedData& data);
-    std::string to_string();
+// class Session : public Csv_Interface
+// {
+// private:
+//     TimeS time_start, time_end; // absolute values
+//     Time_HourS duration; //only pedaling
+//     float velocity_max;
+//     float velocity_avg;
+//     float velocity_avg_global; // with absolute time
+//     int32_t distance; // in m
+//     Gear_Usage gears; // TODO
+//     // TODO weather ???
+// public:
+//     Session();
+//     Session(Session_Data session_data); // TODO
+//     void start(TimeS time_start);
+//     void end(const TimeS& time_end, const  SpeedData& data);
+//     std::string to_string();
 
-    // csv interface
-    const char* get_header();
-    std::string get_line();
-};
+//     // csv interface
+//     const char* get_header();
+//     std::string get_line();
+// };
 
 #endif

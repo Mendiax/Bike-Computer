@@ -33,9 +33,9 @@ static void blank()
 
 void Button::on_call_press(void)
 {
-    absolute_time_t current_time = get_absolute_time();
+    uint32_t current_time = to_ms_since_boot(get_absolute_time());
     //printf("btn pressed\n");
-    if(us_to_ms(absolute_time_diff_us(this->time_press, current_time)) < PRESS_TIMEOUT)
+    if(current_time - this->time_press < PRESS_TIMEOUT)
     {
         // too fast press -> error or unwanted press
         return;
@@ -49,8 +49,8 @@ void Button::on_call_press(void)
 
 void Button::on_call_release(void)
 {
-    absolute_time_t current_time = get_absolute_time();
-    if(us_to_ms(absolute_time_diff_us(this->time_release, current_time)) < PRESS_TIMEOUT)
+    uint32_t current_time = to_ms_since_boot(get_absolute_time());
+    if(current_time - this->time_release < PRESS_TIMEOUT)
     {
         // too fast press -> error or unwanted press
         return;
@@ -60,11 +60,12 @@ void Button::on_call_release(void)
 
     if(this->pressed)
     {
-        if(us_to_ms(absolute_time_diff_us(this->time_press, this->time_release)) >= LONG_PRESS_MS)
+        uint32_t press_time = this->time_release - this->time_press;
+        if(press_time >= LONG_PRESS_MS)
         {
             this->long_call();
         }
-        else if(us_to_ms(absolute_time_diff_us(this->time_press, this->time_release)) > 0)
+        else if(press_time > 0)
         {
             this->short_call();
         }
@@ -76,7 +77,7 @@ void Button::on_call_release(void)
 
 Button::Button(int pin)
 {
-    this->time_press = get_absolute_time();
+    this->time_press = to_ms_since_boot(get_absolute_time());
     this->time_release = this->time_press;
 
     this->interrupt_pressed = interrupt{pin, blank, GPIO_IRQ_EDGE_FALL};
@@ -114,8 +115,8 @@ bool Button::is_pressed()
 }
 bool Button::is_pressed_long()
 {
-    absolute_time_t current_time = get_absolute_time();
-    return this->pressed && (absolute_time_diff_us(time_press, current_time) >= LONG_PRESS_MS);
+    uint32_t current_time = to_ms_since_boot(get_absolute_time());
+    return this->pressed && (current_time - time_press >= LONG_PRESS_MS);
 }
 bool Button::is_pressed_execute()
 {
@@ -128,9 +129,9 @@ bool Button::is_pressed_execute()
 }
 bool Button::is_pressed_long_execute()
 {
-    absolute_time_t current_time = get_absolute_time();
+    uint32_t current_time = to_ms_since_boot(get_absolute_time());
     bool is_pressed = this->pressed &&
-                      (absolute_time_diff_us(time_press, current_time) >= LONG_PRESS_MS);
+                      (current_time - time_press >= LONG_PRESS_MS);
     if(is_pressed)
     {
         this->pressed = false;

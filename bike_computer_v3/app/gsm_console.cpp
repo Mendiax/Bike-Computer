@@ -26,7 +26,7 @@ void core1_entry()
     size_t i = 0;
     char buffer[500] = {0};
     while (1)
-    {   
+    {
         mutex_enter_blocking(&uart_mutex);
         while (uart_is_readable_within_us(UART_ID, 100 * 1000)) // 100ms
         {
@@ -55,106 +55,11 @@ void core1_entry()
     }
 }
 
-// void singleThreadConsole()
-// {
-//     DEV_GSM_Module_Init();
-//     powerOn;
-//     led_blink();
-//     DEV_GSM_Delay_ms(5000);
-//     check_start();
-//     //started
-//     consolep("console started\n");
-
-//     char consoleBuffer[1024] = {0};
-//     size_t posConsole = 0;
-//     char gsmBuffer[1024] = {0};
-//     size_t posGsm = 0;
-
-//     while (1)
-//     {
-//         int c;
-//         while((c = getchar_timeout_us(1 * 1000)) != STDIO_NO_INPUT)
-//         {
-//             //handle input from pc
-//             consoleBuffer[posConsole] = (char) c;
-//             if (consoleBuffer[posConsole] == '\n' || consoleBuffer[posConsole] == '\0')
-//             {
-//                 consoleBuffer[posConsole] = '\0';
-//                 consolef("%s", consoleBuffer);
-//                 memset(buffer, 0, sizeof(buffer));
-//                 posConsole = 0;
-//             }
-//             else
-//             {
-//                 posConsole++;
-//             }
-//         }
-//     }
-    
-//     powerDown;
-// }
-
 //APN = CMNET
 //AT+CGDCONT=2,"IP","internetipv6"
 
-void consoleGSM()
+static void gps_test_loop()
 {
-    // DEV_GSM_Module_Init();
-    // powerOn;
-    // led_blink();
-    // DEV_GSM_Delay_ms(5000);
-
-    // check_start();
-
-    sim868::boot();
-
-    // sendCMD_waitResp("AT+BTPOWER=1", "OK", 3000);
-    // sendCMD_waitResp("AT+BTHOST?", "OK", 3000);
-    // sendCMD_waitResp("AT+BTSTATUS?", "OK", 3000);
-    // sendCMD_waitResp("AT+BTSCAN=1,10", "OK", 8000);
-    
-
-    sleep_ms(2000);
-
-    // GSM setup
-    // sim868::sendRequestLong("AT+CSQ",1000); // signal strength
-    // std::string forecast_json;
-    // std::string http_req_addr = sim868::gsm::construct_http_request_url(52.52, 13.41, (Time_DateS){2022,8,21}, (Time_DateS){2022,8,21});
-    // //std::string http_req_addr = "http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m";
-
-    // bool success;
-    // while (!sim868::gsm::get_http_req(success, http_req_addr, forecast_json))
-    // {
-    //     sleep_ms(100);
-    // }
-    
-    // std::cout << "forecast: " << forecast_json << std::endl;
-    
-
-
-
-    // sim868::sendRequestLong("AT+HTTPINIT", 2000);
-    // sim868::sendRequestLong("AT+HTTPPARA=\"CID\",1", 2000);
-    // sim868::sendRequestLong("AT+HTTPPARA=\"URL\","
-    //     "\"http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m\"", 2000);
-    
-    // // sim868::sendRequestLong("AT+HTTPPARA=\"URL\","
-    // //     "\"https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,pressure_msl,precipitation,windspeed_10m,winddirection_10m,windgusts_10m&daily=sunrise,sunset,winddirection_10m_dominant&timezone=Europe%2FBerlin&start_date=2022-08-15&end_date=2022-08-15\""
-    // //     , 2000);
-    // // https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,pressure_msl,precipitation,windspeed_10m,winddirection_10m,windgusts_10m&daily=sunrise,sunset,winddirection_10m_dominant&timezone=Europe%2FBerlin&start_date=2022-08-15&end_date=2022-08-15
-    // if(sim868::is_respond_ok(sim868::sendRequestLong("AT+HTTPACTION=0", 5000)))
-    // {
-    //     sleep_ms(5000);
-    //     auto resp = sim868::sendRequestLong("AT+HTTPREAD", 16000, 40);
-    // }
-    // sleep_ms(3000);
-    // sim868::sendRequestLong("AT+HTTPTERM", 2000);
-
-
-    // AT+CLBSCFG=0,1
-    // AT+CLBSCFG=0,2
-    // AT+CLBSCFG=0,3
-
     while(1)
     {
         static float speed;
@@ -184,8 +89,49 @@ void consoleGSM()
                         sat2);
         });
     }
+}
 
-    
+static void http_test()
+{
+    std::string forecast_json;
+    std::string http_req_addr = sim868::gsm::construct_http_request_url(52.52, 13.41, (Time_DateS){2022,8,21}, (Time_DateS){2022,8,21});
+    //std::string http_req_addr = "http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m";
+
+    bool success;
+    while (!sim868::gsm::get_http_req(success, http_req_addr, forecast_json))
+    {
+        sleep_ms(100);
+    }
+
+    std::cout << "forecast: " << forecast_json << std::endl;
+}
+
+void consoleGSM()
+{
+    sim868::boot();
+
+    // sendCMD_waitResp("AT+BTPOWER=1", "OK", 3000);
+    // sendCMD_waitResp("AT+BTHOST?", "OK", 3000);
+    // sendCMD_waitResp("AT+BTSTATUS?", "OK", 3000);
+    // sendCMD_waitResp("AT+BTSCAN=1,10", "OK", 8000);
+
+
+    sleep_ms(2000);
+
+    // GSM setup
+    sim868::sendRequestLong("AT+CSQ",1000); // signal strength
+
+
+    // http_test();
+
+
+    // AT+CLBSCFG=0,1
+    // AT+CLBSCFG=0,2
+    // AT+CLBSCFG=0,3
+
+    // gps_test_loop();
+
+
     //http://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m
 
     multicore_launch_core1(core1_entry);
@@ -199,16 +145,11 @@ void consoleGSM()
         mutex_enter_blocking(&uart_mutex);
         printf("\nSending to GSM:\"%s\"\n", buffer);
         //consolef("\nSending to GSM:\"%s\"\n", buffer);
-        //sendCMD_waitResp(buffer, "OK", 8000);
-        //printf("mutex enter\n");
         uart_puts(UART_ID, buffer);
         uart_puts(UART_ID, "\r\n");
         mutex_exit(&uart_mutex);
-        //sendCMD_waitResp(buffer,"",2000);
     }
     sim868::turnOff();
-    //powerDown;
-    //at_test();
 }
 
 
@@ -219,24 +160,13 @@ int main(void)
     {
         sleep_ms(100);
     }
-    
+
     sleep_ms(1000);
     consoleLogInit();
     sleep_ms(2000);
     tracesSetup();
     TRACES_ON(1, TRACE_SIM868);
     TRACES_ON(3,TRACE_CORE_0);
-
-    // wait for intput
-    // while (true)
-    // {
-    //     printf("waiting for input...\n");
-    //     char c = getchar_timeout_us(1000000);
-    //     if ((c == '\r') || (c == '\n'))
-    //     {
-    //         break;
-    //     }
-    // }
 
     consoleGSM();
 }

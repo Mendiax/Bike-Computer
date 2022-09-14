@@ -4,6 +4,8 @@
 #include "common_types.h"
 #include "parser.hpp"
 
+#include <pico/mutex.h>
+
 #include <string>
 #include <inttypes.h>
 #include <stdlib.h>
@@ -14,7 +16,20 @@
  *
  */
 
-
+class Unique_Mutex
+{
+    mutex_t* mutex_p;
+public:
+    Unique_Mutex(mutex_t* mutex_p)
+        :mutex_p{mutex_p}
+    {
+        mutex_enter_blocking(mutex_p);
+    }
+    ~Unique_Mutex()
+    {
+        mutex_exit(mutex_p);
+    }
+};
 
 /**
  * @brief checks avaible memory with malloc

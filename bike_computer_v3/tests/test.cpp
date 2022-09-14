@@ -23,6 +23,8 @@
 #include "massert.h"
 #include "traces.h"
 
+#include "test_actors.h"
+
 #define BC_CHECK_VERBAL(statement, fmt, ...) if(!(statement)){fprintf(stderr, "[ERROR] line:%d " #statement " failed " fmt "\n",  __LINE__, ##__VA_ARGS__); return ERROR;}
 #define BC_CHECK(statement) if(!(statement)){fprintf(stderr, "[ERROR] line:%d " #statement " failed \n", __LINE__); return ERROR;}
 
@@ -213,97 +215,98 @@ int altitude_test(void)
 
 int sd_drive_test(void)
 {
-    const char* file_name = "sd_test.csv";
-    mount_drive();
-    f_unlink(file_name);
-    Sd_File file(file_name);
-    PRINTF("File opened\n");
-    //file.clear();
-    PRINTF("File cleared\n");
+    // const char* file_name = "sd_test.csv";
+    // mount_drive();
+    // f_unlink(file_name);
+    // Sd_File file(file_name);
+    // PRINTF("File opened\n");
+    // //file.clear();
+    // PRINTF("File cleared\n");
 
 
-    TimeS time_start{2022,8,9,19,54,13.01};
-    TimeS time_end{2022,8,9,20,54,13.01};
+    // TimeS time_start{2022,8,9,19,54,13.01};
+    // TimeS time_end{2022,8,9,20,54,13.01};
 
-    SpeedData data{};
+    // SpeedData data{};
 
-    data.drive_time = 3650;
-    data.velocityMax = 30;
-    data.avg = 20;
-    data.avg_global = 15;
-    data.distance = 13;
-    data.distanceDec = 11;
+    // data.drive_time = 3650;
+    // data.velocityMax = 30;
+    // data.avg = 20;
+    // data.avg_global = 15;
+    // data.distance = 13;
+    // data.distanceDec = 11;
 
-    Session session;
-    session.start(time_start);
-    session.end(time_end, data);
+    // Session session;
+    // session.start(time_start);
+    // session.end(time_end, data);
 
-    const char* header_line = "time_start;time_end;duration;velocity_max;velocity_avg;velocity_avg_global;distance\n";
-    const char* first_line = "16720.83.83,69:68:6.56e;2022.08.09,20:54:13.01;01:00:50.00;30.0000;20.0000;15.0000;13110\n";
-    PRINTF("header_line: %s\n", header_line);
-    PRINTF("first_line: %s\n", first_line);
+    // const char* header_line = "time_start;time_end;duration;velocity_max;velocity_avg;velocity_avg_global;distance\n";
+    // const char* first_line = "16720.83.83,69:68:6.56e;2022.08.09,20:54:13.01;01:00:50.00;30.0000;20.0000;15.0000;13110\n";
+    // PRINTF("header_line: %s\n", header_line);
+    // PRINTF("first_line: %s\n", first_line);
 
-    if(file.is_empty())
-    {
-        file.append(header_line);
-    }
-    file.append(first_line);
-    PRINTF("File written\n");
-
-
-    FIL fp;
-    auto res = f_open(&fp, file_name, FA_OPEN_EXISTING | FA_WRITE | FA_READ);
-    BC_CHECK_VERBAL(res == FR_OK, "%d", res);
-    PRINTF("Open ok\n");
+    // if(file.is_empty())
+    // {
+    //     file.append(header_line);
+    // }
+    // file.append(first_line);
+    // PRINTF("File written\n");
 
 
-    //res = f_truncate(&fp);
-    res = f_rewind(&fp);
-    BC_CHECK_VERBAL(res == FR_OK, "%d", res);
-    PRINTF("Rewind ok\n");
-
-    FILINFO info;
-    auto fres = f_stat(file_name, &info);
-    PRINTF("file size == %" PRIu64 " \n", info.fsize);
+    // FIL fp;
+    // auto res = f_open(&fp, file_name, FA_OPEN_EXISTING | FA_WRITE | FA_READ);
+    // BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+    // PRINTF("Open ok\n");
 
 
+    // //res = f_truncate(&fp);
+    // res = f_rewind(&fp);
+    // BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+    // PRINTF("Rewind ok\n");
 
-    {
-        auto test_string = header_line;
-        enum{BUFFER_SIZE=256};
-        char buffer[BUFFER_SIZE] = {0};
-        UINT bytes_read = 0;
-        PRINTF("Reading\n");
-        auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
-        PRINTF("Reading ok\n");
-        BC_CHECK_VERBAL(res == FR_OK, "%d", res);
-        PRINTF(" read: %s\n", buffer);
-        BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
-        BC_CHECK(strcmp(test_string, buffer) == 0);
-    }
+    // FILINFO info;
+    // auto fres = f_stat(file_name, &info);
+    // PRINTF("file size == %" PRIu64 " \n", info.fsize);
 
-    {
-        auto test_string = first_line;
-        enum{BUFFER_SIZE=256};
-        char buffer[BUFFER_SIZE] = {0};
-       // auto res = f_gets(buffer, BUFFER_SIZE, &fp);
-        // BC_CHECK_VERBAL(res != NULL, "%d", res);
-        // printf(" read: %s\n", res);
-        // BC_CHECK(strcmp(test_string, res) == 0);
-        UINT bytes_read = 0;
-        PRINTF("Reading\n");
-        auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
-        BC_CHECK_VERBAL(res == FR_OK, "%d", res);
-        BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
-        PRINTF("Reading ok\n");
-        //PRINTF(" read: %s\n", buffer);
-        BC_CHECK(strcmp(test_string, buffer) == 0);
-        PRINTF("Reading ok2\n");
 
-    }
-    f_close(&fp);
-    PRINTF("Close\n");
 
+    // {
+    //     auto test_string = header_line;
+    //     enum{BUFFER_SIZE=256};
+    //     char buffer[BUFFER_SIZE] = {0};
+    //     UINT bytes_read = 0;
+    //     PRINTF("Reading\n");
+    //     auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
+    //     PRINTF("Reading ok\n");
+    //     BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+    //     PRINTF(" read: %s\n", buffer);
+    //     BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
+    //     BC_CHECK(strcmp(test_string, buffer) == 0);
+    // }
+
+    // {
+    //     auto test_string = first_line;
+    //     enum{BUFFER_SIZE=256};
+    //     char buffer[BUFFER_SIZE] = {0};
+    //    // auto res = f_gets(buffer, BUFFER_SIZE, &fp);
+    //     // BC_CHECK_VERBAL(res != NULL, "%d", res);
+    //     // printf(" read: %s\n", res);
+    //     // BC_CHECK(strcmp(test_string, res) == 0);
+    //     UINT bytes_read = 0;
+    //     PRINTF("Reading\n");
+    //     auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
+    //     BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+    //     BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
+    //     PRINTF("Reading ok\n");
+    //     //PRINTF(" read: %s\n", buffer);
+    //     BC_CHECK(strcmp(test_string, buffer) == 0);
+    //     PRINTF("Reading ok2\n");
+
+    // }
+    // f_close(&fp);
+    // PRINTF("Close\n");
+
+    return 0;
 }
 
 void run_tests(void)
@@ -316,8 +319,9 @@ void run_tests(void)
     BC_TEST(parser_test);
     BC_TEST(url_test);
     BC_TEST(altitude_test);
-    sd_drive_test();
+    //sd_drive_test();
     //BC_TEST(sd_drive_test);
+    BC_TEST(test_actors);
 
     BC_TEST_END();
 }

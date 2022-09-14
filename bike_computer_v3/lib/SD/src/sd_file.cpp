@@ -107,6 +107,8 @@ FILE_OPEN:
         TRACE_ABNORMAL(TRACE_SD, "Could not truncate (%d)\n",  ret);
     }
     f_close(&file_p);
+
+    return true;
 }
 
 

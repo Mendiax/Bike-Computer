@@ -3,6 +3,7 @@
 #include "common_types.h"
 #include "common_utils.hpp"
 #include "common_data.hpp"
+#include "common_actors.hpp"
 
 #include "buttons/buttons.h"
 #include "traces.h"
@@ -24,7 +25,7 @@
 #define MINIMAL_TIME_BTN 300
 
 // static variables
-static Sensor_Data sensorDataDisplay = {0};
+static Sensor_Data sensors_data_display = {0};
 static Session_Data sessionDataDisplay;
 
 static volatile uint32_t lastBtn1Press = 0;
@@ -84,9 +85,9 @@ static void setup(void)
 
     interruptSetupCore1();
 
-    sensorDataDisplay = sensors_data;
+    sensors_data_display = sensors_data;
 
-    Display_init(&sensorDataDisplay, &sessionDataDisplay);
+    Display_init(&sensors_data_display, &sessionDataDisplay);
 }
 
 static int loop(void)
@@ -97,21 +98,21 @@ static int loop(void)
     {
         // copy data
         mutex_enter_blocking(&sensorDataMutex);
-        sensorDataDisplay = sensors_data;
+        sensors_data_display = sensors_data;
         if (session_p)
             sessionDataDisplay = *session_p;
         // std::cout << "Core1: \n'"
-        //      //<< sensorDataDisplay.clbs << "'\n'"
-        //      << sensorDataDisplay.cipgsmloc << "'" << std::endl;
+        //      //<< sensors_data_display.clbs << "'\n'"
+        //      << sensors_data_display.cipgsmloc << "'" << std::endl;
 
         mutex_exit(&sensorDataMutex);
 
         // if system state has changed execute proper code
         static SystemState last_system_state;
-        if(sensorDataDisplay.current_state != last_system_state)
+        if(sensors_data_display.current_state != last_system_state)
         {
-            last_system_state = sensorDataDisplay.current_state;
-            switch(sensorDataDisplay.current_state)
+            last_system_state = sensors_data_display.current_state;
+            switch(sensors_data_display.current_state)
             {
                 case SystemState::TURNED_ON:
                     Display_set_main_display_type();
@@ -119,7 +120,7 @@ static int loop(void)
                 case SystemState::CHARGING:
                     Display_set_charge_display_type();
                     break;
-                case SystemState::STOPPED:
+                case SystemState::ENDED:
                     // TODO ??
                 case SystemState::PAUSED:
                 case SystemState::RUNNING:
@@ -140,20 +141,44 @@ static int loop(void)
         {
             TRACE_DEBUG(2, TRACE_CORE_1, "pause btn pressed %d\n", change_state);
             change_state = false;
-            switch(sensorDataDisplay.current_state)
+            mutex_enter_blocking(&sensorDataMutex);
+            switch(sensors_data_display.current_state)
             {
                 case SystemState::PAUSED:
-                    sensorDataDisplay.current_state = SystemState::RUNNING;
+                    {
+                        sensors_data_display.current_state = SystemState::AUTOSTART;
+                        session_p->cont();
+                        Signal sig(SIG_CONTINUE);
+                        actor_core0.send_signal(sig);
+                        TRACE_DEBUG(2, TRACE_CORE_1, "sending signal continue %d\n", (int) sig.get_sig_id());
+
+                    }
                     break;
+                case SystemState::AUTOSTART:
                 case SystemState::RUNNING:
-                    sensorDataDisplay.current_state = SystemState::PAUSED;
+                    {
+                        sensors_data_display.current_state = SystemState::PAUSED;
+                        session_p->pause();
+                        Signal sig(SIG_PAUSE);
+                        actor_core0.send_signal(sig);
+                        TRACE_DEBUG(2, TRACE_CORE_1, "sending signal pause %d\n", (int) sig.get_sig_id());
+
+                    }
+                    break;
+                case SystemState::TURNED_ON:
+                    {
+                        sensors_data_display.current_state = SystemState::AUTOSTART;
+                        session_p->start(sensors_data_display.current_time);
+                        Signal sig(SIG_START);
+                        actor_core0.send_signal(sig);
+                        TRACE_DEBUG(2, TRACE_CORE_1, "sending signal start %d\n", (int) sig.get_sig_id());
+                    }
                     break;
                 default:
-                    TRACE_DEBUG(2, TRACE_CORE_1, "pause has no effect %d\n", (int) sensorDataDisplay.current_state);
+                    TRACE_ABNORMAL(TRACE_CORE_1, "pause has no effect %d\n", (int) sensors_data_display.current_state);
                     break;
             }
-            mutex_enter_blocking(&sensorDataMutex);
-            sensors_data.current_state = sensorDataDisplay.current_state;
+            sensors_data.current_state = sensors_data_display.current_state;
             mutex_exit(&sensorDataMutex);
         }
 
@@ -169,7 +194,7 @@ static int loop(void)
         //     // display::display();
         // // }
 
-        if(stop)
+        if (btn2.is_pressed_long_execute())
         {
             display::clear();
             Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
@@ -182,18 +207,23 @@ static int loop(void)
             display::display();
             // save track and wait for restart
             // TODO improve add menu ???
-            Session last_session;
-            TimeS end_time; // TODO
-            last_session.end(end_time, sessionDataDisplay.speed);
+            mutex_enter_blocking(&sensorDataMutex);
+
+            Signal sig(SIG_STOP);
+            actor_core0.send_signal(sig);
+
+            sessionDataDisplay.end(sensors_data.current_time);
 
             Sd_File last_save("last_track.csv");
             if(last_save.is_empty())
             {
-                last_save.append(last_session.get_header());
+                last_save.append(sessionDataDisplay.get_header());
             }
-            last_save.append(last_session.get_line().c_str());
+            last_save.append(sessionDataDisplay.get_line().c_str());
+            mutex_exit(&sensorDataMutex);
 
-            while(stop)
+
+            // while(stop)
             {
                 //PRINTF("STOPPED\n");
                 display::clear();
@@ -205,13 +235,25 @@ static int loop(void)
                 getFontSize(width_char, pause_label.height, &font, &scale);
                 Paint_Println(pause_label.x, pause_label.y, label, font, {0x0,0xf,0x0}, scale);
                 display::display();
-                sleep_ms(500);
+                sleep_ms(1000);
             }
+
+
+            mutex_enter_blocking(&sensorDataMutex);
+            delete session_p;
+            session_p = new Session_Data();
+            mutex_exit(&sensorDataMutex);
+            Signal sig_start(SIG_START);
+            actor_core0.send_signal(sig_start);
         }
+
+        mutex_enter_blocking(&sensorDataMutex);
+        auto system_sate = sensors_data_display.current_state;
+        mutex_exit(&sensorDataMutex);
 
         // render
         Display_update();
-        if(sensorDataDisplay.current_state == SystemState::PAUSED)
+        if(system_sate == SystemState::PAUSED)
         {
             TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label %d\n", change_state);
             Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};

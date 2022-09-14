@@ -13,10 +13,11 @@
 enum class SystemState
 {
     TURNED_ON,
+    // SESSION_AUTOSTART,
     AUTOSTART,
     RUNNING,
     PAUSED,
-    STOPPED,
+    ENDED,
     CHARGING
 };
 
@@ -66,6 +67,8 @@ struct TimeS
             float seconds;
         };
     };
+    absolute_time_t time_stamp;
+    void update_time(absolute_time_t current);
 };
 
 

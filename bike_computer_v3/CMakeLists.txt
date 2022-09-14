@@ -14,7 +14,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 
-add_compile_options(-Wfatal-errors )
+add_compile_options(-Wfatal-errors -Werror=return-type)
 
 # add_compile_options(-Wint-to-pointer-cast
 #                     -Wl,-print-memory-usage
@@ -37,6 +37,8 @@ include_directories(lib/views/include)
 include_directories(lib/Console)
 include_directories(lib/SD/include)
 include_directories(lib/Parser/include)
+include_directories(lib/Actors/include)
+
 
 include_directories(drivers/display/include)
 include_directories(drivers/speedometer/include)
@@ -67,6 +69,8 @@ add_subdirectory(lib/views)
 add_subdirectory(lib/Console)
 add_subdirectory(lib/Parser)
 add_subdirectory(lib/SD)
+add_subdirectory(lib/Actors)
+
 add_subdirectory(drivers/display)
 add_subdirectory(drivers/speedometer)
 add_subdirectory(drivers/cadence)
@@ -161,6 +165,7 @@ target_link_libraries( ${PICO_TEST_FILE}
 
         Parser
 
+        Actors
         test_main # tests
 )
 

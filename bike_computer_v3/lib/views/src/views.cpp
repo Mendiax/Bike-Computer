@@ -202,7 +202,9 @@ void addValueValuesVertical(const char* format, size_t commonLength, T* data,
 void top_bar()
 {
     Frame bar_frame = {0, 0, DISPLAY_WIDTH, TOP_BAR_HEIGHT};
-    add_value("/\\%3d" PRIu8, BAT_LEVEL_LABEL_LENGTH, &_Display.data->lipo, bar_frame, Align::RIGHT);
+    auto[frame_hour, frame_battery] = split_vertical(bar_frame);
+    add_value("/\\%3d" PRIu8, BAT_LEVEL_LABEL_LENGTH, &_Display.data->lipo, frame_battery, Align::RIGHT);
+    add_value("",TIMES_LABEL_LENGTH, &_Display.data->current_time.hours, frame_hour, Align::LEFT);
 }
 
 static constexpr Frame get_frame_bar()

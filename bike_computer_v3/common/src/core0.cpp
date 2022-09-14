@@ -17,6 +17,7 @@
 #include "cadence/cadence.hpp"
 #include "interrupts/interrupts.hpp"
 #include "parser.hpp"
+#include "common_actors.hpp"
 // SIM868
 #include "sim868/interface.hpp"
 #include "sim868/gps.hpp"
@@ -28,12 +29,14 @@
 
 #define DATA_PER_SECOND 10
 #define BAT_LEV_CYCLE_MS (29*1000)
-#define WEATHER_CYCLE_MS (10*1000)
+#define WEATHER_CYCLE_MS (1*1000)
 
 #define HEART_BEAT_CYCLE_MS (1*1000)
 
 
 #define GPS_FETCH_CYCLE_MS (5*1000)
+#define TIME_FETCH_CYCLE_MS (10*1000)
+
 
 // http requests per 10min
 #define GSM_FETCH_CYCLE_MS (10*60*1000)
@@ -43,6 +46,14 @@ static Bike_Config_S config;
 // static functions
 static void setup(void);
 static int loop(void);
+static int loop_frame_update();
+
+static void cycle_print_heart_beat();
+static void cycle_get_battery_status();
+static void cycle_get_gps_data();
+static void cycle_get_forecast_data();
+static void cycle_get_weather_data();
+
 
 void core0_launch_thread(void)
 {
@@ -88,125 +99,22 @@ static void setup(void)
     mutex_enter_blocking(&sensorDataMutex);
     session_p = new Session_Data();
     //memcpy(sensors_data.cipgsmloc, "0,0.000000,0.000000", sizeof("0,0.000000,0.000000"));
-    sensors_data.current_state = SystemState::AUTOSTART;
+    // sensors_data.current_state = SystemState::SESSION_AUTOSTART;
+    // sensors_data.current_state = SystemState::TURNED_ON;
+
     mutex_exit(&sensorDataMutex);
 
     //I2C_Init();
     IMU_Init();
 }
 
-static void cycle_print_heart_beat();
-static void cycle_get_battery_status();
-static void cycle_get_gps_data();
-static void cycle_get_forecast_data();
-static void cycle_get_weather_data();
-
 static int loop(void)
 {
     absolute_time_t frameStart = get_absolute_time();
 
     // data update
-    {
-        //cycle_print_heart_beat();
-        //size_t avaible_memory = check_free_mem();
-        //printf("Avaible memory = %zu\n", avaible_memory);
+    loop_frame_update();
 
-        // battery
-        cycle_get_battery_status();
-
-        //cycle_get_gps_data();
-
-
-        // static char cipgsmloc[20] = {0};
-        // CYCLE_UPDATE(sim868::gsm::get_cipgsmloc(cipgsmloc), GPS_FETCH_CYCLE_MS + 100,
-        // {},
-        // {
-        //     mutex_enter_blocking(&sensorDataMutex);
-        //     memcpy(sensors_data.cipgsmloc, cipgsmloc, sizeof(cipgsmloc));
-        //     mutex_exit(&sensorDataMutex);
-        //     // std::cout << "Core0: \n:"
-        //     //  << "'"
-        //     //  << sensors_data.clbs << "'\n'"
-        //     //  << sensors_data.cipgsmloc << "'" << std::endl;
-        // });
-        // static char clbs[27] = {0};
-        // CYCLE_UPDATE(sim868::gsm::get_clbs(clbs), GPS_FETCH_CYCLE_MS + 300,
-        // {},
-        // {
-        //     mutex_enter_blocking(&sensorDataMutex);
-        //     memcpy(sensors_data.clbs, clbs, sizeof(clbs));
-        //     mutex_exit(&sensorDataMutex);
-        //     std::cout << "Core0: \n'"
-        //      << sensors_data.clbs << "'\n'"
-        //      << sensors_data.cipgsmloc << "'" << std::endl;
-        // });
-        cycle_get_weather_data();
-
-        // TODO time
-        //sim868::gps::get_date(current_time);
-        mutex_enter_blocking(&sensorDataMutex);
-        sensors_data.velocity = speed::get_velocity_kph();
-        sensors_data.cadence = cadence::get_cadence();
-        float wheel_rpm = speed::kph_to_rpm(sensors_data.velocity);
-        float read_ratio = wheel_rpm / sensors_data.cadence;
-        sensors_data.gear = config.get_current_gear(read_ratio);
-
-        absolute_time_t time_update_current = get_absolute_time();
-        static absolute_time_t time_update_prev;
-        auto delta_ms = us_to_ms(absolute_time_diff_us(time_update_prev, time_update_current));
-        time_update_prev = time_update_current;
-
-        switch (sensors_data.current_state)
-        {
-            case SystemState::TURNED_ON:
-                break;
-            case SystemState::AUTOSTART:
-                if(sensors_data.velocity > 0.0)
-                {
-                    speed::start();
-                    sensors_data.current_state = SystemState::RUNNING;
-                }
-                PRINTF("AUTOSTART\n");
-
-            case SystemState::STOPPED:
-            case SystemState::PAUSED:
-                speed::stop();
-                break;
-            case SystemState::RUNNING:
-            {
-                speed::start();
-                static uint8_t last_gear_idx = 0;
-                uint8_t current_gear_idx = config.to_idx(sensors_data.gear);
-                if (last_gear_idx == current_gear_idx)
-                {
-                    session_p->add_gear_time(current_gear_idx, sensors_data.cadence, delta_ms);
-                }
-                last_gear_idx = current_gear_idx;
-                PRINTF("RUNNUNG\n");
-            }
-            break;
-            case SystemState::CHARGING:
-            default:
-                break;
-        }
-        //memcpy(&sensors_data.hour, &current_time.hour, sizeof(sensors_data.hour));
-        const float distance = speed::get_distance_m();
-        session_p->update(sensors_data.velocity, distance);
-        // std::cout << "Core0: \n";
-        //  print(sensors_data.forecast.windgusts_10m);
-        //  std::cout << "len: " << sensors_data.forecast.len << std::endl;
-
-        // speedDataUpdate(sensors_data.speed, sensors_data.current_state);
-
-        TRACE_DEBUG(5, TRACE_CORE_0,
-                    "dist=%f wheel_rpm=%f, cadence=%f, read_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
-                    distance, wheel_rpm, sensors_data.cadence, read_ratio, sensors_data.gear.front, sensors_data.gear.rear);
-
-        //sensors_data.time.t = to_ms_since_boot(get_absolute_time()) / 1000;
-
-        mutex_exit(&sensorDataMutex);
-
-    }
     absolute_time_t frameEnd = get_absolute_time();
     auto frameTimeUs = absolute_time_diff_us(frameStart, frameEnd);
 
@@ -229,6 +137,158 @@ static int loop(void)
     }
     return 1;
 }
+
+
+
+void Core0::handle_sig_pause(const Signal &sig)
+{
+    speed::stop();
+    Unique_Mutex mutex_lock(&sensorDataMutex);
+    sensors_data.current_state = SystemState::PAUSED;
+    session_p->pause();
+
+}
+void Core0::handle_sig_start(const Signal &sig)
+{
+    speed::reset();
+    speed::start();
+    Unique_Mutex mutex_lock(&sensorDataMutex);
+    sensors_data.current_state = SystemState::AUTOSTART;
+    session_p->start(sensors_data.current_time);
+    session_p->pause();
+
+}
+void Core0::handle_sig_stop(const Signal &sig)
+{
+    speed::stop();
+    Unique_Mutex mutex_lock(&sensorDataMutex);
+    sensors_data.current_state = SystemState::ENDED;
+    session_p->end(sensors_data.current_time);
+
+}
+void Core0::handle_sig_continue(const Signal &sig)
+{
+    speed::start();
+    Unique_Mutex mutex_lock(&sensorDataMutex);
+    sensors_data.current_state = SystemState::RUNNING;
+    session_p->cont();
+}
+
+
+static int loop_frame_update()
+{
+    actor_core0.handle_all();
+    //cycle_print_heart_beat();
+    //size_t avaible_memory = check_free_mem();
+    //printf("Avaible memory = %zu\n", avaible_memory);
+
+    // battery
+    cycle_get_battery_status();
+
+    //cycle_get_gps_data();
+
+
+    // static char cipgsmloc[20] = {0};
+    // CYCLE_UPDATE(sim868::gsm::get_cipgsmloc(cipgsmloc), GPS_FETCH_CYCLE_MS + 100, {},{});
+    // static char clbs[27] = {0};
+    // CYCLE_UPDATE(sim868::gsm::get_clbs(clbs), GPS_FETCH_CYCLE_MS + 300,{},{});
+    static TimeS current_time;
+    CYCLE_UPDATE(sim868::gsm::get_time(current_time), (current_time.year < 2022), TIME_FETCH_CYCLE_MS, {},{
+        //time_print(current_time);
+    });
+    current_time.update_time(get_absolute_time());
+    mutex_enter_blocking(&sensorDataMutex);
+    sensors_data.current_time = current_time;
+    // time_print(sensors_data.current_time);
+    mutex_exit(&sensorDataMutex);
+
+
+    cycle_get_weather_data();
+
+    // TODO time
+    //sim868::gps::get_date(current_time);
+    // read data first
+    const float velocity = speed::get_velocity_kph();
+    const float cadence = cadence::get_cadence();
+
+    // get gear
+    const float wheel_rpm = speed::kph_to_rpm(velocity);
+    const float read_ratio = wheel_rpm / cadence;
+    const Gear_S gear = config.get_current_gear(read_ratio);
+
+    // this gets distance without paused fragments
+    const float distance = speed::get_distance_m();
+
+    TRACE_DEBUG(5, TRACE_CORE_0,
+        "dist=%f wheel_rpm=%f, cadence=%f, read_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
+        distance, wheel_rpm, cadence, read_ratio, gear.front, gear.rear);
+
+    mutex_enter_blocking(&sensorDataMutex);
+    // calc delta
+    const absolute_time_t time_update_current = get_absolute_time();
+    static absolute_time_t time_update_prev;
+    const auto delta_ms = us_to_ms(absolute_time_diff_us(time_update_prev, time_update_current));
+    time_update_prev = time_update_current;
+
+    // update sensor
+    sensors_data.velocity = velocity;
+    sensors_data.cadence = cadence;
+    sensors_data.gear = gear;
+
+    // update if running
+    session_p->update(velocity, distance);
+    {
+        static uint8_t last_gear_idx = 0;
+        uint8_t current_gear_idx = config.to_idx(gear);
+        if (last_gear_idx == current_gear_idx)
+        {
+            // add gear time if is running
+            session_p->add_gear_time(current_gear_idx, cadence, delta_ms);
+        }
+        last_gear_idx = current_gear_idx;
+    }
+
+
+
+    switch (sensors_data.current_state)
+    {
+        case SystemState::AUTOSTART:
+            if(velocity > 0.0)
+            {
+                // TODO send start signal
+                PRINTF("AUTOSTART\n");
+                actor_core0.send_signal(SIG_CONTINUE);
+            }
+
+        case SystemState::ENDED:
+        case SystemState::PAUSED:
+        case SystemState::RUNNING:
+        if(velocity == 0.0)
+        {
+            // TODO autostop
+            //actor_core0.send_signal(SIG_STOP);
+            Unique_Mutex mutex_lock(&sensorDataMutex);
+            sensors_data.current_state = SystemState::AUTOSTART;
+            session_p->pause();
+            speed::stop();
+        }
+        case SystemState::TURNED_ON:
+        case SystemState::CHARGING:
+        default:
+            break;
+    }
+    //memcpy(&sensors_data.hour, &current_time.hour, sizeof(sensors_data.hour));
+    // std::cout << "Core0: \n";
+    //  print(sensors_data.forecast.windgusts_10m);
+    //  std::cout << "len: " << sensors_data.forecast.len << std::endl;
+    // speedDataUpdate(sensors_data.speed, sensors_data.current_state);
+    //sensors_data.time.t = to_ms_since_boot(get_absolute_time()) / 1000;
+
+    mutex_exit(&sensorDataMutex);
+    return 0;
+}
+
+
 
 //========================================================================
 //                           CYCLE FUNCTIONS
@@ -400,10 +460,13 @@ static void cycle_get_weather_data()
                      }
                      else
                      {
+                        // set as base third read from sensor
                          static float start_press = 0.0;
-                         if (start_press == 0.0)
+                         static uint8_t req_id = 0;
+                         if (req_id < 2) // (10*1000 / WEATHER_CYCLE_MS)
                          {
                              start_press = (float)press;
+                             req_id++;
                          }
                          altitude = bmp280::get_height(start_press,
                                                        (float)press,

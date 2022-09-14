@@ -81,10 +81,7 @@
 // number of calibration registers to be read
 #define NUM_CALIB_PARAMS 24
 
-#define I2C_PIN_SDA 18
-#define I2C_PIN_SCL 19
-
-struct bmp280_calib_param {
+struct BMP280_Calib {
     // temperature params
     uint16_t dig_t1;
     int16_t dig_t2;
@@ -121,7 +118,7 @@ void bmp280_init() {
     i2c_write_blocking(i2c1, ADDR, buf, 2, false);
 }
 
-void bmp280_read_raw(int32_t* temp, int32_t* pressure) {
+void bmp280_read_raw(int32_t* const temp, int32_t* const pressure) {
     // BMP280 data registers are auto-incrementing and we have 3 temperature and
     // pressure registers each, so we start at 0xF7 and read 6 bytes to 0xFC
     // note: normal mode does not require further ctrl_meas and config register writes
@@ -146,23 +143,23 @@ void bmp280_reset() {
 
 // intermediate function that calculates the fine resolution temperature
 // used for both pressure and temperature conversions
-int32_t bmp280_convert(int32_t temp, struct bmp280_calib_param* params) {
+int32_t bmp280_convert(int32_t temp, struct BMP280_Calib* params) {
     // use the 32-bit fixed point compensation implementation given in the
     // datasheet
-    
+
     int32_t var1, var2;
     var1 = ((((temp >> 3) - ((int32_t)params->dig_t1 << 1))) * ((int32_t)params->dig_t2)) >> 11;
     var2 = (((((temp >> 4) - ((int32_t)params->dig_t1)) * ((temp >> 4) - ((int32_t)params->dig_t1))) >> 12) * ((int32_t)params->dig_t3)) >> 14;
     return var1 + var2;
 }
 
-int32_t bmp280_convert_temp(int32_t temp, struct bmp280_calib_param* params) {
+int32_t bmp280_convert_temp(int32_t temp, struct BMP280_Calib* params) {
     // uses the BMP280 calibration parameters to compensate the temperature value read from its registers
     int32_t t_fine = bmp280_convert(temp, params);
     return (t_fine * 5 + 128) >> 8;
 }
 
-int32_t bmp280_convert_pressure(int32_t pressure, int32_t temp, struct bmp280_calib_param* params) {
+int32_t bmp280_convert_pressure(int32_t pressure, int32_t temp, struct BMP280_Calib* params) {
     // uses the BMP280 calibration parameters to compensate the pressure value read from its registers
 
     int32_t t_fine = bmp280_convert(temp, params);
@@ -190,7 +187,7 @@ int32_t bmp280_convert_pressure(int32_t pressure, int32_t temp, struct bmp280_ca
     return converted;
 }
 
-void bmp280_get_calib_params(struct bmp280_calib_param* params) {
+void bmp280_get_calib_params(struct BMP280_Calib* params) {
     // raw temp and pressure values need to be calibrated according to
     // parameters generated during the manufacturing of the sensor
     // there are 3 temperature params, and 9 pressure params, each with a LSB
@@ -218,25 +215,7 @@ void bmp280_get_calib_params(struct bmp280_calib_param* params) {
     params->dig_p9 = (int16_t)(buf[23] << 8) | buf[22];
 }
 
-// void init_i2c()
-// {
-//     stdio_init_all();
-//     sleep_ms(3000);
-//     // useful information for picotool
-//     bi_decl(bi_2pins_with_func(I2C_PIN_SDA, I2C_PIN_SCL, GPIO_FUNC_I2C));
-//     bi_decl(bi_program_description("BMP280 I2C example for the Raspberry Pi Pico"));
-
-//     printf("Hello, BMP280! Reading temperaure and pressure values from sensor...\n");
-
-//     // I2C is "open drain", pull ups to keep signal high when no data is being sent
-//     i2c_init(i2c1, 100 * 1000);
-//     gpio_set_function(I2C_PIN_SDA, GPIO_FUNC_I2C);
-//     gpio_set_function(I2C_PIN_SCL, GPIO_FUNC_I2C);
-//     gpio_pull_up(I2C_PIN_SDA);
-//     gpio_pull_up(I2C_PIN_SCL);
-// }
-
-struct bmp280_calib_param params;
+struct BMP280_Calib params;
 
 std::tuple<int32_t, int32_t> bmp280::get_temp_press()
 {
@@ -259,9 +238,9 @@ void bmp280::init()
 float bmp280::get_height(float pressure_msl, float pressure_cl, float temp)
 {
     // https://keisan.casio.com/exec/system/1224585971
-    
+
     float h = (
-            (std::pow(((double)pressure_msl/(double)pressure_cl), (1.0/5.257)) - 1.0) * 
+            (std::pow(((double)pressure_msl/(double)pressure_cl), (1.0/5.257)) - 1.0) *
              (temp + 273.15)
              ) / 0.0065;
     return h;

@@ -12,4 +12,5 @@ target_link_libraries(test_main PUBLIC
     Display
     BMP280
     SD
+    Actors
 )

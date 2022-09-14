@@ -99,6 +99,10 @@ namespace sim868
          */
         bool get_http_req(bool& success, const std::string& request, std::string& response, size_t expected_size = 4000);
 
+
+        bool setup_gsm(bool& success);
+
+
         /**
          * @brief returns url for forecast with given parameters
          *
@@ -139,6 +143,11 @@ namespace sim868
         bool get_cipgsmloc(char cipgsmloc[20]);
 
         bool get_clbs(char clbs[27]);
+
+        bool setup_clts(bool& success);
+
+        bool get_time(TimeS& time);
+
     }
 }
 

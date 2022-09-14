@@ -38,6 +38,7 @@ namespace speed
     float kph_to_rpm(float kph);
     void start();
     void stop();
+    void reset();
 }
 
 

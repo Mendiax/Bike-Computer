@@ -60,6 +60,7 @@ void time_print(const TimeS& time)
     PRINTF("time: %s \n", time_to_str(time).c_str());
 }
 
+
 Time_HourS time_from_millis(uint64_t millis_to_add)
 {
     Time_HourS correct_time;

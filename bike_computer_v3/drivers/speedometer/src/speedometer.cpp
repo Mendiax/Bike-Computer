@@ -158,3 +158,10 @@ void speed::stop()
 {
     increment_wheelCounter = false;
 }
+
+void speed::reset()
+{
+    stop();
+    speed_wheelCounter = 0;
+}
+

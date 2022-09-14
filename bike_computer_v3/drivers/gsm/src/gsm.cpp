@@ -10,6 +10,10 @@
 #include <sstream>
 #include <string.h>
 
+#define SIM868_DEFAULT_TIMEOUT 2000
+#define SIM868_CONNECTION_FAIL_TIMEOUT 2000
+
+
 
 static HttpReadE http_state;
 static char* http_respond;
@@ -23,7 +27,7 @@ void on_uart_rx_http(void)
     switch (current_response.status)
     {
     case ResponseStatus::SENT:
-        current_response.status = ResponseStatus::STARTED; 
+        current_response.status = ResponseStatus::STARTED;
         break;
     case ResponseStatus::STARTED:
         if(absolute_time_diff_us(current_response.time_start, get_absolute_time()) > current_response.timeout * 1000)
@@ -38,7 +42,7 @@ void on_uart_rx_http(void)
     case ResponseStatus::TIME_OUT:
     case ResponseStatus::RECEIVED:
         // read data in buffer
-        while (uart_is_readable(UART_ID)) 
+        while (uart_is_readable(UART_ID))
         {
             uart_getc(UART_ID);
         }
@@ -50,7 +54,7 @@ void on_uart_rx_http(void)
     static char str_size[10];
     static uint_fast8_t pos;
     static uint32_t data_size;
-    while (uart_is_readable(UART_ID)) 
+    while (uart_is_readable(UART_ID))
     {
         const char c = uart_getc(UART_ID);
         switch (http_state)
@@ -119,7 +123,7 @@ std::string sim868::gsm::get_respond_httpread(uint64_t id)
     if(sim868::check_response(id))
     {
         http_req_irq = false;
-        current_response.status = ResponseStatus::RECEIVED; 
+        current_response.status = ResponseStatus::RECEIVED;
         auto resp = std::string(http_respond);
         if(http_respond != NULL)
             free(http_respond);
@@ -159,6 +163,22 @@ bool sim868::gsm::get_signal_strength(uint8_t& rssi, uint8_t& ber)
 
 bool sim868::gsm::check_connection(bool& connected)
 {
+    static bool timeout = false;
+    static absolute_time_t timeout_time;
+
+    if (timeout)
+    {
+        if(us_to_ms(absolute_time_diff_us(timeout_time, get_absolute_time())) > SIM868_CONNECTION_FAIL_TIMEOUT)
+        {
+            // timout has finished
+            timeout = false;
+        }
+        else
+        {
+            connected = false;
+            return true;
+        }
+    }
     static uint64_t id;
     if(check_response(id)) // it will return false if id == 0
     {
@@ -167,13 +187,19 @@ bool sim868::gsm::check_connection(bool& connected)
         {
             sim868::clear_respond(respond);
             connected = (respond == "1");
+            if(connected == false)
+            {
+                // set timeout
+                timeout = true;
+                timeout_time = get_absolute_time();
+            }
         }
         id = 0;
         return true;
     }
     else if(id == 0)
     {
-        id = send_request("AT+CGATT?",2000);
+        id = send_request("AT+CGATT?",SIM868_DEFAULT_TIMEOUT);
     }
     return false;
 }
@@ -197,7 +223,7 @@ bool sim868::gsm::setup_connection(bool& connected)
     {
 
         auto respond = get_respond(id);
-        //std::cout << "[" << state << "] " << respond << std::endl; 
+        //std::cout << "[" << state << "] " << respond << std::endl;
         id = 0;
         if(!sim868::is_respond_error(respond) && respond.length() > 0)
         {
@@ -267,7 +293,7 @@ bool sim868::gsm::bearer_setup(bool& connected, std::string* ip)
     {
 
         auto respond = get_respond(id);
-        //std::cout << "[" << state << "] " << respond << std::endl; 
+        //std::cout << "[" << state << "] " << respond << std::endl;
         id = 0;
         if(sim868::is_respond_ok(respond))
         {
@@ -281,7 +307,7 @@ bool sim868::gsm::bearer_setup(bool& connected, std::string* ip)
                 }
                 else
                 {
-                    *ip = params[2]; 
+                    *ip = params[2];
                 }
             }
             // go to next state
@@ -349,7 +375,7 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
     {
 
         auto respond = get_respond(id);
-        std::cout << "[" << state << "] " << respond << std::endl; 
+        std::cout << "[" << state << "] " << respond << std::endl;
         id = 0;
         if(sim868::is_respond_ok(respond))
         {
@@ -424,7 +450,7 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
                 auto current_time = get_absolute_time();
                 if(us_to_ms(absolute_time_diff_us(action0_time, current_time)) < 1000)
                 {
-                    return false; 
+                    return false;
                 }
                 id = send_request(at_cmds[state], 8000 + expected_size);
             }
@@ -441,8 +467,83 @@ bool sim868::gsm::send_http_req(bool& success, const std::string& request, std::
             id = send_request(at_cmds[state], 8000);
         }
     }
-    return false;  
+    return false;
 }
+
+bool sim868::gsm::setup_gsm(bool& success)
+{
+    static int fails;
+    if (current_state != GsmStateE::BEARER_OK)
+    {
+        success = false;
+        switch (current_state)
+        {
+        case GsmStateE::ON:
+            {
+                bool is_connected = false;
+                if(sim868::gsm::check_connection(is_connected))
+                {
+                    if(is_connected)
+                    {
+                        current_state = GsmStateE::IS_CONNECTED;
+                    }
+                    else
+                    {
+                        // setup failed
+                        // TODO error handling
+                        ++fails;
+                    }
+
+                }
+            }
+            break;
+        case GsmStateE::IS_CONNECTED:
+            {
+                bool is_logged_in = false;
+                if(sim868::gsm::setup_connection(is_logged_in))
+                {
+                    if(is_logged_in)
+                    {
+                        current_state = GsmStateE::LOGGED_IN;
+                    }
+                    else
+                    {
+                        // setup failed
+                        // TODO error handling
+                        ++fails;
+                    }
+
+                }
+            }
+            break;
+        case GsmStateE::LOGGED_IN:
+            {
+                bool bearer_ok = false;
+                if(sim868::gsm::bearer_setup(bearer_ok))
+                {
+                    if(bearer_ok)
+                    {
+                        current_state = GsmStateE::BEARER_OK;
+                    }
+                    else
+                    {
+                        // setup failed
+                        // TODO error handling
+                        ++fails;
+                    }
+                }
+            }
+            break;
+        default:
+            break;
+        }
+        // setup is not done return false
+        return false;
+    }
+    success = true;
+    return true;
+}
+
 
 bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::string& response, size_t expected_size)
 {
@@ -465,73 +566,13 @@ bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::s
     //std::cout << "get_http_req in [" << (int)current_state << "] " << std::endl;
     if (current_state != GsmStateE::BEARER_OK)
     {
-        switch (current_state)
-        {
-        case GsmStateE::ON:
-            {
-                bool is_connected = false;
-                if(sim868::gsm::check_connection(is_connected))
-                {
-                    if(is_connected)
-                    {
-                        current_state = GsmStateE::IS_CONNECTED;
-                    }
-                    else
-                    {
-                        // setup failed 
-                        // TODO error handling
-                        //++fails;
-                    }
-
-                }
-            }
-            break;
-        case GsmStateE::IS_CONNECTED:
-            {
-                bool is_logged_in = false;
-                if(sim868::gsm::setup_connection(is_logged_in))
-                {
-                    if(is_logged_in)
-                    {
-                        current_state = GsmStateE::LOGGED_IN;
-                    }
-                    else
-                    {
-                        // setup failed 
-                        // TODO error handling
-                        //++fails;
-                    }
-
-                }
-            }
-            break;
-        case GsmStateE::LOGGED_IN:
-            {
-                bool bearer_ok = false;
-                if(sim868::gsm::bearer_setup(bearer_ok))
-                {
-                    if(bearer_ok)
-                    {
-                        current_state = GsmStateE::BEARER_OK;
-                    }
-                    else
-                    {
-                        // setup failed 
-                        // TODO error handling
-                        //++fails;
-                    }
-                }
-            }
-            break;
-        default:
-            break;
-        }
-        // setup is not done return false
+        bool success;
+        setup_gsm(success);
         return false;
     }
     else
     {
-        //std::cout << "get_http_req configured " << std::endl; 
+        //std::cout << "get_http_req configured " << std::endl;
         if(sim868::gsm::send_http_req(success, request, response, 2100))
         {
             if(success == false)
@@ -578,7 +619,7 @@ bool sim868::gsm::get_cipgsmloc(char cipgsmloc[20])
     {
         if(current_state >= GsmStateE::BEARER_OK)
         {
-            id = send_request("AT+CIPGSMLOC=1,1",2000);
+            id = send_request("AT+CIPGSMLOC=1,1",SIM868_DEFAULT_TIMEOUT);
         }
         else
         {
@@ -611,12 +652,115 @@ bool sim868::gsm::get_clbs(char clbs[27])
     {
         if(current_state >= GsmStateE::BEARER_OK)
         {
-            id = send_request("AT+CLBS=1,1",2000);
+            id = send_request("AT+CLBS=1,1",SIM868_DEFAULT_TIMEOUT);
         }
         else
         {
             return true;
         }
+    }
+    return false;
+}
+
+bool sim868::gsm::setup_clts(bool& success)
+{
+    static uint64_t id;
+    if(check_response(id)) // it will return false if id == 0
+    {
+        auto respond = get_respond(id);
+        if(sim868::is_respond_ok(respond))
+        {
+            success = true;
+        }
+        id = 0;
+        return true;
+    }
+    else if(id == 0)
+    {
+        if(current_state >= GsmStateE::BEARER_OK)
+        {
+            id = send_request("AT+CLTS=1",SIM868_DEFAULT_TIMEOUT);
+            success = false;
+        }
+        else
+        {
+            bool success;
+            setup_gsm(success);
+            //return true;
+        }
+    }
+    return false;
+}
+
+bool sim868::gsm::get_time(TimeS& time)
+{
+    static uint64_t id;
+    if(check_response(id)) // it will return false if id == 0
+    {
+        auto respond = get_respond(id);
+        if(sim868::is_respond_ok(respond))
+        {
+            sim868::clear_respond(respond);
+            auto first_bracket_pos = respond.find_first_of('\"');
+            auto last_bracket_pos = respond.find_last_of('\"');
+            if(first_bracket_pos == std::string::npos || last_bracket_pos == std::string::npos)
+            {
+                TRACE_ABNORMAL(TRACE_SIM868, " could not find \" %zu, %zu\n", first_bracket_pos, last_bracket_pos);
+                return true;
+            }
+            if(last_bracket_pos > 0 && first_bracket_pos < respond.length() - 1)
+            {
+                last_bracket_pos--;
+                first_bracket_pos++;
+                auto len = last_bracket_pos - first_bracket_pos + 1;
+                respond = respond.substr(first_bracket_pos, len);
+            }
+
+            std::cout << "time: " << respond << std::endl;
+            // "yy/MM/dd,hh:mm:ss±zz"
+            auto date_hour = split_string(respond, ',');
+            if(date_hour.size() != 2)
+            {
+                // error
+                return true;
+            }
+            auto date = split_string(date_hour[0], '/');
+            if(date.size() != 3)
+            {
+                // error
+                return true;
+            }
+            time.year = atoi(date[0].c_str()) + 2000;
+            time.month = atoi(date[1].c_str());
+            time.day = atoi(date[2].c_str());
+
+            auto hour = split_string(date_hour[1], ':');
+            if(hour.size() != 3)
+            {
+                // error
+                return true;
+            }
+            time.hour = atoi(hour[0].c_str());
+            time.minutes = atoi(hour[1].c_str());
+            time.seconds = atoi(hour[2].substr(0, 2).c_str());
+
+            time.time_stamp = get_absolute_time();
+        }
+        id = 0;
+        return true;
+    }
+    else if(id == 0)
+    {
+        id = send_request("AT+CCLK?",SIM868_DEFAULT_TIMEOUT);
+        // if(current_state >= GsmStateE::BEARER_OK)
+        // {
+        // }
+        // else
+        // {
+        //     bool success;
+        //     setup_gsm(success);
+        //     //return true;
+        // }
     }
     return false;
 }
