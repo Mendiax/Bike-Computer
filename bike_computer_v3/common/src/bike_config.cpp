@@ -67,6 +67,8 @@ const char* Bike_Config_S::to_string()
 
 void Bike_Config_S::from_string(const char* str)
 {
+    this->wheel_size = 2.0; // default
+
     std::istringstream iss(str);
     std::string line;
     while (std::getline(iss, line)) {

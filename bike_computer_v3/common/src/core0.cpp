@@ -67,7 +67,7 @@ static void setup(void);
 static int loop(void);
 static int loop_frame_update();
 
-static void load_config_from_file(const char* file_name);
+static void load_config_from_file(const char* config_str, const char* file_name);
 
 static void update_total_stats();
 
@@ -117,8 +117,16 @@ static void setup(void)
     //     "WS:2.186484\n"
     // );
 
-    load_config_from_file("giant_trance.cfg");
+    // load_config_from_file("giant_trance.cfg");
+
+    // wait for config
+    while(config.name == "")
+    {
+        actor_core0.handle_all();
+        sleep_ms(100);
+    }
     config.to_string();
+
 #endif
 
     // for testing purpose
@@ -190,7 +198,12 @@ static int loop(void)
     return 1;
 }
 
-
+void Core0::handle_sig_set_config(const Signal &sig)
+{
+    const auto payload = sig.get_payload<Sig_Core0_Set_Config*>();
+    load_config_from_file(payload->file_content.c_str(), payload->file_name.c_str());
+    delete payload;
+}
 
 void Core0::handle_sig_pause(const Signal &sig)
 {
@@ -251,6 +264,8 @@ static void on_stop()
 
 static int loop_frame_update()
 {
+    // update_total_stats();
+
     actor_core0.handle_all();
     //cycle_print_heart_beat();
     //size_t avaible_memory = check_free_mem();
@@ -267,9 +282,8 @@ static int loop_frame_update()
     // static char clbs[27] = {0};
     // CYCLE_UPDATE(sim868::gsm::get_clbs(clbs), GPS_FETCH_CYCLE_MS + 300,{},{});
     static TimeS current_time;
-    CYCLE_UPDATE(sim868::gsm::get_time(current_time), (current_time.year < 2022), TIME_FETCH_CYCLE_MS, {
-        if(us_to_ms(absolute_time_diff_us(__last_update, __current_time)) < 1000){break;}
-    },{
+    CYCLE_UPDATE_SLOW_RERUN(sim868::gsm::get_time(current_time), (current_time.year < 2022), TIME_FETCH_CYCLE_MS, 1000,
+     {}, {
         //time_print(current_time);
     });
     current_time.update_time(get_absolute_time());
@@ -378,11 +392,11 @@ static int loop_frame_update()
     return 0;
 }
 
-static void load_config_from_file(const char* file_name)
+static void load_config_from_file(const char* config_str, const char* file_name)
 {
-    Sd_File config_file(file_name);
-    const std::string config_str = config_file.read_all();
-    config.from_string(config_str.c_str());
+    //Sd_File config_file(file_name);
+    //const std::string config_str = config_file.read_all();
+    config.from_string(config_str);
     auto name = split_string(file_name, '.');
     if(name.size() > 0)
         config.name = name.at(0);
@@ -400,29 +414,12 @@ static void update_total_stats()
         // calc drive time
         const float ridden_time = speed::get_time_total();
 
-        // read from file dist and time
-        Sd_File total_stats("total_stats.txt");
-        const auto stats = total_stats.read_all();
-        const auto dist_time = split_string(stats, ';');
-        float dist = 0.0f, time = 0.0f;
-        if(dist_time.size() == 2)
-        {
-            dist = std::atof(dist_time.at(0).c_str());
-            time = std::atof(dist_time.at(1).c_str());
-        }
+        auto payload = new Sig_Core1_Total_Update();
+        payload->ridden_dist = ridden_dist;
+        payload->ridden_time = ridden_time;
+        Signal sig(SIG_CORE1_TOTAL_UPDATE, payload);
+        actor_core1.send_signal(sig);
 
-        // TODO send this to core 1
-        // update data
-        dist += ridden_dist;
-        time += ridden_time;
-
-        // write to file
-        std::string new_dist_time = std::to_string(dist) + ';' + std::to_string(time);
-        if(new_dist_time.length() < stats.length())
-        {
-            total_stats.clear();
-        }
-        total_stats.overwrite(new_dist_time.c_str());
         ridden_dist = 0.0;
     }
 }
@@ -435,8 +432,8 @@ static void update_total_stats()
 
 static void cycle_print_heart_beat()
 {
-    CYCLE_UPDATE(true, false, HEART_BEAT_CYCLE_MS,
-        {},{
+    CYCLE_UPDATE_SIMPLE(true, HEART_BEAT_CYCLE_MS,
+        {
            PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
         });
 }
@@ -446,11 +443,7 @@ static void cycle_get_battery_status()
     bool is_charging = 0;
     uint8_t bat_lev = 0;
     uint16_t voltage = 0;
-    CYCLE_UPDATE(sim868::get_bat_level(is_charging, bat_lev, voltage), false, BAT_LEV_CYCLE_MS,
-                 {
-                     // TRACE_DEBUG(1,TRACE_CORE_0,
-                     //             "Entering get_bat_level\n");
-                 },
+    CYCLE_UPDATE_SIMPLE_SLOW_RERUN(sim868::get_bat_level(is_charging, bat_lev, voltage), BAT_LEV_CYCLE_MS, 500,
                  {
                      mutex_enter_blocking(&sensorDataMutex);
                      sensors_data.lipo.is_charging = is_charging;
@@ -469,11 +462,7 @@ static void cycle_get_gps_data()
     static float longitude;
     static float msl;
     static TimeS current_time;
-    CYCLE_UPDATE(sim868::gps::fetch_data(), false, GPS_FETCH_CYCLE_MS,
-        {
-            // TRACE_DEBUG(3,TRACE_CORE_0,
-            //             "entering fetch_data\n");
-        },
+    CYCLE_UPDATE_SIMPLE(sim868::gps::fetch_data(), GPS_FETCH_CYCLE_MS,
         {
             sim868::gps::get_speed(speed);
             sim868::gps::get_position(latitude, longitude);
@@ -585,8 +574,7 @@ static void cycle_get_weather_data()
     int32_t temp, press;
     float altitude;
     TimeS current_time{0, 0, 0, 0, 0, 0.0f}; // fix xd
-    CYCLE_UPDATE(true, false, WEATHER_CYCLE_MS,
-                 {},
+    CYCLE_UPDATE_SIMPLE(true, WEATHER_CYCLE_MS,
                  {
                      std::tie(temp, press) = bmp280::get_temp_press();
                      mutex_enter_blocking(&sensorDataMutex);

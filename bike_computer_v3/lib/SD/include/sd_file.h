@@ -13,7 +13,7 @@ private:
     Result last_result;
     const char* file_name;
 public:
-    Sd_File(const char* file_name);
+    Sd_File(const std::string& file_name);
     ~Sd_File();
     void remove();
     inline Result get_result()

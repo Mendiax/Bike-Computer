@@ -6,7 +6,7 @@
 #include "ff.h"
 #include "traces.h"
 
-Sd_File::Sd_File(const char* file_name)
+Sd_File::Sd_File(const std::string& file_name)
 {
     mount_drive();
     if(!sd_mounted)
@@ -16,7 +16,7 @@ Sd_File::Sd_File(const char* file_name)
     FIL file_p;
     FRESULT res;
 FILE_OPEN:
-    res = f_open(&file_p, file_name,  FA_READ | FA_WRITE | FA_OPEN_APPEND);
+    res = f_open(&file_p, file_name.c_str(),  FA_READ | FA_WRITE | FA_OPEN_APPEND);
     if (res != FR_OK)
     {
         // failed
@@ -28,7 +28,7 @@ FILE_OPEN:
         goto FILE_OPEN;
     }
     f_close(&file_p);
-    this->file_name = file_name;
+    this->file_name = file_name.c_str();
 }
 
 Sd_File::~Sd_File()

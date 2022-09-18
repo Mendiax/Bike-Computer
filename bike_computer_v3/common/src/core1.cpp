@@ -56,6 +56,37 @@ void core1LaunchThread(void)
     }
 }
 
+void Core1::handle_sig_total_update(const Signal &sig)
+{
+     // read from file dist and time
+    Sd_File total_stats("total_stats.txt");
+    const auto stats = total_stats.read_all();
+    const auto dist_time = split_string(stats, ';');
+    float dist = 0.0f, time = 0.0f;
+    if(dist_time.size() == 2)
+    {
+        dist = std::atof(dist_time.at(0).c_str());
+        time = std::atof(dist_time.at(1).c_str());
+    }
+
+    auto payload = sig.get_payload<Sig_Core1_Total_Update*>();
+
+    // TODO send this to core 1
+    // update data
+    dist += payload->ridden_dist;
+    time += payload->ridden_time;
+    delete payload;
+
+    // write to file
+    std::string new_dist_time = std::to_string(dist) + ';' + std::to_string(time);
+    if(new_dist_time.length() < stats.length())
+    {
+        total_stats.clear();
+    }
+    total_stats.overwrite(new_dist_time.c_str());
+}
+
+
 //static functions definitions
 
 
@@ -88,12 +119,22 @@ static void setup(void)
     sensors_data_display = sensors_data;
 
     Display_init(&sensors_data_display, &sessionDataDisplay);
+
+    const std::string config_file_name = "giant_trance.cfg";
+    Sd_File config_file(config_file_name);
+    auto content = config_file.read_all();
+
+    auto payload = new Sig_Core0_Set_Config();
+    payload->file_content = config_file.read_all();
+    payload->file_name = config_file_name;
+    Signal sig(SIG_CORE0_SET_CONFIG ,payload);
+    actor_core0.send_signal(sig);
 }
 
 static int loop(void)
 {
     absolute_time_t frameStart = get_absolute_time();
-
+    actor_core1.handle_all();
     // frame update
     {
         // copy data

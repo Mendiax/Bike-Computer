@@ -6,6 +6,7 @@
 // pico includes
 
 // c/c++ includes
+#include <string>
 
 // my includes
 #include "actors.hpp"
@@ -26,13 +27,20 @@ enum Sig_Ids
     SIG_CORE0_START,
     SIG_CORE0_STOP,
     SIG_CORE0_CONTINUE,
+    SIG_CORE0_SET_CONFIG,
     // core 1
+    SIG_CORE1_TOTAL_UPDATE,
     SIG_NO_MAX
 };
 
 struct Sig_Core1_Total_Update{
     float ridden_dist;
     float ridden_time;
+};
+
+struct Sig_Core0_Set_Config{
+    std::string file_name;
+    std::string file_content;
 };
 
 class Core0 : public Actor
@@ -46,6 +54,9 @@ private:
     static void handle_sig_stop(const Signal &sig);
     static void handle_sig_continue(const Signal &sig);
 
+    static void handle_sig_set_config(const Signal &sig);
+
+
     void handler_setup()
     {
         this->handler_add(handle_sig_pause, SIG_CORE0_PAUSE);
@@ -53,6 +64,8 @@ private:
         this->handler_add(handle_sig_start, SIG_CORE0_START);
         this->handler_add(handle_sig_stop, SIG_CORE0_STOP);
         this->handler_add(handle_sig_session_start, SIG_CORE0_SESION_START);
+        this->handler_add(handle_sig_set_config, SIG_CORE0_SET_CONFIG);
+
     }
 public:
     Core0()
@@ -65,9 +78,14 @@ class Core1 : public Actor
 {
 private:
     // definde in core1.cpp
+    static void handle_sig_total_update(const Signal &sig);
+    // static void handle_sig_get_file(const Signal &sig);
+
 
     void handler_setup()
     {
+        this->handler_add(handle_sig_total_update, SIG_CORE1_TOTAL_UPDATE);
+        // this->handler_add(handle_sig_get_file, SIG_CORE1_GET_FILE);
 
     }
 public:
