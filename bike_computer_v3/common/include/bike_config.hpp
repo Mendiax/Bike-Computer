@@ -4,6 +4,9 @@
 #include <vector>
 #include <stdint.h>
 #include <string>
+#include <sstream>
+
+#include "traces.h"
 
 struct Gear_S
 {
@@ -17,7 +20,32 @@ struct Bike_Config_S
     std::vector<uint8_t> gear_rear; // chaing rings sizes for rear
     double wheel_size; // circumstance of wheel
 
-    uint8_t to_idx(const Gear_S &gear);
+    std::string name;
+
+    inline const char* get_file_name()
+    {
+        const std::string file_name = name + ".cfg";
+        return file_name.c_str();
+    }
+    /**
+     * @brief write current config to file
+     *
+     * File looks like this:
+     * GF:{32} \\ gears on the front
+     * GR:{51,45,39,33,28,24,21,18,15,13,11} \\ gears on the rear
+     * WS:1.2 \\ wheel size in meters
+     *
+     *
+     * @return const char*
+     */
+    const char* to_string();
+
+    void from_string(const char* str);
+
+    inline uint8_t to_idx(const Gear_S &gear)
+    {
+        return (gear.front - 1) * this->gear_rear.size() + (gear.rear - 1);
+    }
 
     Gear_S get_current_gear(float ratio);
     float get_gear_ratio(Gear_S gear);
@@ -47,8 +75,8 @@ struct Bike_Config_S
 
 #define MAX_NO_OF_GEARS 11
 #define CADENCE_DATA_DELTA 5
-#define CADENCE_DATA_MIN 50
-#define CADENCE_DATA_MAX 120
+#define CADENCE_DATA_MIN 60
+#define CADENCE_DATA_MAX 110
 
 #define CADENCE_DATA_LEN ((CADENCE_DATA_MAX - CADENCE_DATA_MIN) / CADENCE_DATA_DELTA + 2)
 
@@ -96,6 +124,7 @@ static inline void add_gear_usage(Gear_Usage &gear_usage, uint8_t gear, float ca
         cadence_int += 1;
     }
     gear_usage.usage[gear - 1][cadence_int] += time;
+    PRINTF("added gear usage for gear %d with cadence id %d made it to %f\n", (int)gear, (int)cadence_int, gear_usage.usage[gear - 1][cadence_int]);
 }
 
 #endif

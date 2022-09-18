@@ -3,7 +3,22 @@
 #include "math.h"
 
 
+std::vector<std::string> split_string(const std::string& string, char sep)
+{
+    std::vector<std::string> strings; // this will be returned
 
+    size_t begin_idx, end_idx;
+    begin_idx = 0;
+    while((end_idx = string.find(sep, begin_idx)) != std::string::npos)
+    {
+        //end_idx = string.find(sep, begin_idx);
+        strings.emplace_back(string.substr(begin_idx, end_idx - begin_idx));
+        begin_idx = end_idx + 1;
+    }
+    if(begin_idx < string.length())
+        strings.emplace_back(string.substr(begin_idx));
+    return strings;
+}
 
 size_t check_free_mem()
 {
@@ -45,7 +60,7 @@ std::string time_to_str(const TimeS& time)
             "%02" PRIu8 ","
             "%02" PRIu8 ":"
             "%02" PRIu8 ":"
-            "%02.2f",
+            "%05.2f",
             time.year,
             time.month,
             time.day,

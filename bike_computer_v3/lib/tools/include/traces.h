@@ -42,6 +42,7 @@ enum tracesE{
     TRACE_MAIN,
     TRACE_SPEED,
     TRACE_CADENCE,
+    TRACE_BIKE_CONFIG,
     BUTTONS,
     TRACE_VIEWS,
     TRACE_DISPLAY_PRINT,
@@ -138,6 +139,16 @@ static inline void tracesSetup()
     //TRACES_ON(1, TRACE_CADENCE); // emulate
     //TRACES_ON(2, TRACE_CADENCE); // sensor update
     //TRACES_ON(3, TRACE_CADENCE); // get cadence
+
+    // ==================================================
+    //                   CADENCE TRACES
+    // ==================================================
+    TRACES_ON(1, TRACE_BIKE_CONFIG); // to str
+
+    // ==================================================
+    //                   SD TRACES
+    // ==================================================
+    //TRACES_ON(1, TRACE_SD);  // read file size
 
     // ==================================================
     //                   ACTORES TRACES

@@ -4,4 +4,4 @@ include_directories(include)
 
 
 add_library(Interrupts ${DIR_Interrupt_SRCS})
-target_link_libraries(Interrupts PUBLIC pico_stdlib)
+target_link_libraries(Interrupts PUBLIC pico_stdlib Common)

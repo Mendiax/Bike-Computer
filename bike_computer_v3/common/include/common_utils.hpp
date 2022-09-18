@@ -9,12 +9,22 @@
 #include <string>
 #include <inttypes.h>
 #include <stdlib.h>
+#include <vector>
 
 
 /**
  * @brief file containg functions for common types
  *
  */
+
+/**
+ * @brief splits given string by given sepparator
+ *
+ * @param string
+ * @param sep
+ * @return std::vector<std::string>
+ */
+std::vector<std::string> split_string(const std::string& string, char sep = ',');
 
 class Unique_Mutex
 {

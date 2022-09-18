@@ -103,14 +103,7 @@ void Session_Data::cont()
 }
 void Session_Data::end(TimeS time)
 {
-    switch (this->status)
-    {
-    case Session_Data::Status::PAUSED:
-        this->pause();
-        break;
-    default:
-        break;
-    }
+    this->pause();
     this->status = Session_Data::Status::ENDED;
     this->time_end = time;
 }

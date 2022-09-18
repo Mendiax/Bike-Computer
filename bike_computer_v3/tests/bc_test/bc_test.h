@@ -16,7 +16,13 @@
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
 
+#include <iostream>
+
 #define ERROR 1
+
+#define BC_CHECK_VERBAL(statement, fmt, ...) if(!(statement)){fprintf(stderr, "[ERROR] line:%d " #statement " failed " fmt "\n",  __LINE__, ##__VA_ARGS__); return ERROR;}
+#define BC_CHECK(statement) if(!(statement)){fprintf(stderr, "[ERROR] line:%d " #statement " failed \n", __LINE__); return ERROR;}
+#define BC_CHECK_EQ(x,y) if(x != y){std::cerr << __LINE__  << ":" #x ":" << x << "!=" #y ":" << y << std::endl; return ERROR;}
 
 extern int bc_testError;
 

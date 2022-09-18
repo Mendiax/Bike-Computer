@@ -6,7 +6,7 @@ include_directories(../interrupts/include)
 
 
 add_library(Speedometer ${DIR_Speedometer_SRCS})
-target_link_libraries(Speedometer PUBLIC pico_stdlib Interrupts)
+target_link_libraries(Speedometer PUBLIC pico_stdlib Interrupts Common)
 
 # if (NOT TARGET pico_stdlib_headers)
 #     add_library(pico_stdlib_headers INTERFACE)

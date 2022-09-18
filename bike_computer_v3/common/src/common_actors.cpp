@@ -18,6 +18,7 @@
 // #------------------------------#
 
 Core0 actor_core0;
+Core1 actor_core1;
 
 // #------------------------------#
 // | static variables definitions |

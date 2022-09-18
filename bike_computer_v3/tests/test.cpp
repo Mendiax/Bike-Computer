@@ -3,8 +3,8 @@
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
 
-#include <iostream>
 #include <string.h>
+
 
 #include "sim868/interface.hpp"
 #include "sim868/gps.hpp"
@@ -25,8 +25,6 @@
 
 #include "test_actors.h"
 
-#define BC_CHECK_VERBAL(statement, fmt, ...) if(!(statement)){fprintf(stderr, "[ERROR] line:%d " #statement " failed " fmt "\n",  __LINE__, ##__VA_ARGS__); return ERROR;}
-#define BC_CHECK(statement) if(!(statement)){fprintf(stderr, "[ERROR] line:%d " #statement " failed \n", __LINE__); return ERROR;}
 
 void print_c_str(const char* msg)
 {
@@ -112,7 +110,7 @@ int gps_data_test(void)
             "\r\n"
             "OK\r\n";
         sim868::clear_respond(gps_respond);
-        auto data_arr = sim868::split_string(gps_respond);
+        auto data_arr = split_string(gps_respond);
         const size_t expected_no_arr_size = 20;
         if(data_arr.size() != expected_no_arr_size)
         {
@@ -215,13 +213,13 @@ int altitude_test(void)
 
 int sd_drive_test(void)
 {
-    // const char* file_name = "sd_test.csv";
-    // mount_drive();
-    // f_unlink(file_name);
-    // Sd_File file(file_name);
-    // PRINTF("File opened\n");
-    // //file.clear();
-    // PRINTF("File cleared\n");
+    const char* file_name = "sd_test.csv";
+    mount_drive();
+    f_unlink(file_name);
+    Sd_File file(file_name);
+    PRINTF("File opened\n");
+    //file.clear();
+    PRINTF("File cleared\n");
 
 
     // TimeS time_start{2022,8,9,19,54,13.01};
@@ -240,72 +238,122 @@ int sd_drive_test(void)
     // session.start(time_start);
     // session.end(time_end, data);
 
-    // const char* header_line = "time_start;time_end;duration;velocity_max;velocity_avg;velocity_avg_global;distance\n";
-    // const char* first_line = "16720.83.83,69:68:6.56e;2022.08.09,20:54:13.01;01:00:50.00;30.0000;20.0000;15.0000;13110\n";
-    // PRINTF("header_line: %s\n", header_line);
-    // PRINTF("first_line: %s\n", first_line);
+    const char* header_line = "time_start;time_end;duration;velocity_max;velocity_avg;velocity_avg_global;distance\n";
+    const char* first_line = "16720.83.83,69:68:6.56e;2022.08.09,20:54:13.01;01:00:50.00;30.0000;20.0000;15.0000;13110\n";
+    PRINTF("header_line: %s\n", header_line);
+    PRINTF("first_line: %s\n", first_line);
 
-    // if(file.is_empty())
-    // {
-    //     file.append(header_line);
-    // }
-    // file.append(first_line);
-    // PRINTF("File written\n");
-
-
-    // FIL fp;
-    // auto res = f_open(&fp, file_name, FA_OPEN_EXISTING | FA_WRITE | FA_READ);
-    // BC_CHECK_VERBAL(res == FR_OK, "%d", res);
-    // PRINTF("Open ok\n");
-
-
-    // //res = f_truncate(&fp);
-    // res = f_rewind(&fp);
-    // BC_CHECK_VERBAL(res == FR_OK, "%d", res);
-    // PRINTF("Rewind ok\n");
-
-    // FILINFO info;
-    // auto fres = f_stat(file_name, &info);
-    // PRINTF("file size == %" PRIu64 " \n", info.fsize);
+    if(file.is_empty())
+    {
+        file.append(header_line);
+    }
+    file.append(first_line);
+    {
+        const size_t file_size = strlen(header_line) + strlen(first_line);
+        const size_t get_size = file.get_size();
+        BC_CHECK_EQ(get_size, file_size);
+    }
+    PRINTF("File written\n");
 
 
+    FIL fp;
+    auto res = f_open(&fp, file_name, FA_OPEN_EXISTING | FA_WRITE | FA_READ);
+    BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+    PRINTF("Open ok\n");
 
-    // {
-    //     auto test_string = header_line;
-    //     enum{BUFFER_SIZE=256};
-    //     char buffer[BUFFER_SIZE] = {0};
-    //     UINT bytes_read = 0;
-    //     PRINTF("Reading\n");
-    //     auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
-    //     PRINTF("Reading ok\n");
-    //     BC_CHECK_VERBAL(res == FR_OK, "%d", res);
-    //     PRINTF(" read: %s\n", buffer);
-    //     BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
-    //     BC_CHECK(strcmp(test_string, buffer) == 0);
-    // }
 
-    // {
-    //     auto test_string = first_line;
-    //     enum{BUFFER_SIZE=256};
-    //     char buffer[BUFFER_SIZE] = {0};
-    //    // auto res = f_gets(buffer, BUFFER_SIZE, &fp);
-    //     // BC_CHECK_VERBAL(res != NULL, "%d", res);
-    //     // printf(" read: %s\n", res);
-    //     // BC_CHECK(strcmp(test_string, res) == 0);
-    //     UINT bytes_read = 0;
-    //     PRINTF("Reading\n");
-    //     auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
-    //     BC_CHECK_VERBAL(res == FR_OK, "%d", res);
-    //     BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
-    //     PRINTF("Reading ok\n");
-    //     //PRINTF(" read: %s\n", buffer);
-    //     BC_CHECK(strcmp(test_string, buffer) == 0);
-    //     PRINTF("Reading ok2\n");
+    //res = f_truncate(&fp);
+    res = f_rewind(&fp);
+    BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+    PRINTF("Rewind ok\n");
 
-    // }
-    // f_close(&fp);
-    // PRINTF("Close\n");
+    FILINFO info;
+    auto fres = f_stat(file_name, &info);
+    PRINTF("file size == %" PRIu64 " \n", info.fsize);
 
+
+
+    {
+        auto test_string = header_line;
+        enum{BUFFER_SIZE=256};
+        char buffer[BUFFER_SIZE] = {0};
+        UINT bytes_read = 0;
+        PRINTF("Reading\n");
+        auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
+        PRINTF("Reading ok\n");
+        BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+        PRINTF(" read: %s\n", buffer);
+        BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
+        BC_CHECK(strcmp(test_string, buffer) == 0);
+    }
+
+    {
+        auto test_string = first_line;
+        enum{BUFFER_SIZE=256};
+        char buffer[BUFFER_SIZE] = {0};
+       // auto res = f_gets(buffer, BUFFER_SIZE, &fp);
+        // BC_CHECK_VERBAL(res != NULL, "%d", res);
+        // printf(" read: %s\n", res);
+        // BC_CHECK(strcmp(test_string, res) == 0);
+        UINT bytes_read = 0;
+        PRINTF("Reading\n");
+        auto res = f_read(&fp, buffer, strlen(test_string), &bytes_read);
+        BC_CHECK_VERBAL(res == FR_OK, "%d", res);
+        BC_CHECK_VERBAL(bytes_read == strlen(test_string), "%d", bytes_read);
+        PRINTF("Reading ok\n");
+        //PRINTF(" read: %s\n", buffer);
+        BC_CHECK(strcmp(test_string, buffer) == 0);
+        PRINTF("Reading ok2\n");
+
+    }
+    f_close(&fp);
+    PRINTF("Close\n");
+
+    const std::string file_content_expected = std::string(header_line) + std::string(first_line);
+    const std::string file_content = file.read_all();
+    BC_CHECK_EQ(file_content_expected, file_content);
+
+    file.clear();
+    {
+        const size_t file_size = 0;
+        const size_t get_size = file.get_size();
+        BC_CHECK_EQ(get_size, file_size);
+    }
+    {
+        const std::string content = "1234567890";
+        file.append(content.c_str());
+        {
+            const size_t file_size = content.length();
+            const size_t get_size = file.get_size();
+            BC_CHECK_EQ(get_size, file_size);
+        }
+
+        const std::string second_content = "0987654321";
+        file.append(second_content.c_str());
+        // file = content second_content
+        BC_CHECK(content.length() == second_content.length());
+
+
+        {
+            const std::string file_content_expected = content + second_content;
+            const std::string file_content = file.read_all();
+            BC_CHECK_EQ(file_content_expected, file_content);
+        }
+        file.overwrite(second_content.c_str(), 0);
+        {
+            const std::string file_content_expected = second_content + second_content;
+            const std::string file_content = file.read_all();
+            BC_CHECK_EQ(file_content_expected, file_content);
+        }
+        file.overwrite(content.c_str(), second_content.length());
+        {
+            const std::string file_content_expected = second_content + content;
+            const std::string file_content = file.read_all();
+            BC_CHECK_EQ(file_content_expected, file_content);
+        }
+    }
+
+    file.remove();
     return 0;
 }
 
@@ -320,8 +368,9 @@ void run_tests(void)
     BC_TEST(url_test);
     BC_TEST(altitude_test);
     //sd_drive_test();
-    //BC_TEST(sd_drive_test);
-    BC_TEST(test_actors);
+    BC_TEST(sd_drive_test);
+
+    //BC_TEST(test_actors);
 
     BC_TEST_END();
 }

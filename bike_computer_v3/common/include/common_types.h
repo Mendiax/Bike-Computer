@@ -165,6 +165,7 @@ typedef struct Sensor_Data
     float altitude; // height in m
     float cadence;  // rpm
     float velocity; // speed in kph
+    float slope; // slope in %
     GpsDataS gps_data;
     Battery lipo; // battery info
     Gear_S gear;  // gear {front, rear}

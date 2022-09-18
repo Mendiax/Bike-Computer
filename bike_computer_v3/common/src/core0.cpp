@@ -1,3 +1,6 @@
+// #-------------------------------#
+// |           includes            |
+// #-------------------------------#
 // pico includes
 #include "pico/stdlib.h"
 
@@ -18,6 +21,7 @@
 #include "interrupts/interrupts.hpp"
 #include "parser.hpp"
 #include "common_actors.hpp"
+#include "sd_file.h"
 // SIM868
 #include "sim868/interface.hpp"
 #include "sim868/gps.hpp"
@@ -26,27 +30,46 @@
 #include "IMU.h"
 #include "I2C.h"
 
-
+// #-------------------------------#
+// |            macros             |
+// #-------------------------------#
 #define DATA_PER_SECOND 10
+
+// cycles times
 #define BAT_LEV_CYCLE_MS (29*1000)
 #define WEATHER_CYCLE_MS (1*1000)
-
 #define HEART_BEAT_CYCLE_MS (1*1000)
-
-
 #define GPS_FETCH_CYCLE_MS (5*1000)
 #define TIME_FETCH_CYCLE_MS (10*1000)
-
-
 // http requests per 10min
 #define GSM_FETCH_CYCLE_MS (10*60*1000)
 
+
+//switches
+#define SIM_WHEEL_CADENCE 1
+#define PREDEFINED_BIKE_SETUP 1
+
+
+// #------------------------------#
+// | global variables definitions |
+// #------------------------------#
+
+
+// #------------------------------#
+// | static variables definitions |
+// #------------------------------#
 static Bike_Config_S config;
 
-// static functions
+// #------------------------------#
+// | static functions declarations|
+// #------------------------------#
 static void setup(void);
 static int loop(void);
 static int loop_frame_update();
+
+static void load_config_from_file(const char* file_name);
+
+static void update_total_stats();
 
 static void cycle_print_heart_beat();
 static void cycle_get_battery_status();
@@ -54,7 +77,9 @@ static void cycle_get_gps_data();
 static void cycle_get_forecast_data();
 static void cycle_get_weather_data();
 
-
+// #------------------------------#
+// | global function definitions  |
+// #------------------------------#
 void core0_launch_thread(void)
 {
     setup();
@@ -64,15 +89,40 @@ void core0_launch_thread(void)
     }
 }
 
+// #------------------------------#
+// | static functions definitions |
+// #------------------------------#
 static void setup(void)
 {
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
-    uint8_t gears_front[] = {32};
-    uint8_t gears_rear[] = {51, 45, 39, 33, 28, 24, 21, 18, 15, 13, 11};
-    BIKE_CONFIG_SET_GEARS(config, gears_front, gears_rear);
+
+#if PREDEFINED_BIKE_SETUP == 1
+    // uint8_t gears_front[] = {32};
+    // uint8_t gears_rear[] = {51, 45, 39, 33, 28, 24, 21, 18, 15, 13, 11};
+    // BIKE_CONFIG_SET_GEARS(config, gears_front, gears_rear);
+    // config.from_string(
+    //     "GF:32\n"
+    //     "GR:51,45,39,33,28,24,21,18,15,13,11\n"
+    //     "WS:2.186484\n"
+    // );
+    // config.to_string();
+    //PRINTF("%s\n", config.to_string());
+
+    // Sd_File config_file("giant_trance.cfg");
+    // config_file.clear();
+    // config_file.append(
+    //     "GF:32\n"
+    //     "GR:51,45,39,33,28,24,21,18,15,13,11\n"
+    //     "WS:2.186484\n"
+    // );
+
+    load_config_from_file("giant_trance.cfg");
+    config.to_string();
+#endif
 
     // for testing purpose
+#if SIM_WHEEL_CADENCE == 1
     float emulated_speed = 25.0;
     speed_emulate(emulated_speed);
     PRINTF("emulated_speed=%f\n", emulated_speed);
@@ -83,6 +133,7 @@ static void setup(void)
     float cadence = wheel_rpm / ratio;
     PRINTF("cadence=%f\n",cadence);
     cadence::emulate(cadence);
+#endif
 
     // sensors_data.forecast.windgusts_10m.array[0] = 1.8;
     // sensors_data.forecast.windgusts_10m.array[1] = 5.9;
@@ -125,6 +176,7 @@ static int loop(void)
         TRACE_DEBUG(2, TRACE_CORE_0,
                     "frame took %" PRIi64 " max time is %" PRIi64 " sleeping %" PRIi64 "\n",
                     frameTimeUs, fpsToUs(DATA_PER_SECOND), timeToSleep);
+        // TODO handle here signals instead of sleep
         sleep_us(timeToSleep);
 
     }
@@ -146,25 +198,6 @@ void Core0::handle_sig_pause(const Signal &sig)
     Unique_Mutex mutex_lock(&sensorDataMutex);
     sensors_data.current_state = SystemState::PAUSED;
     session_p->pause();
-
-}
-void Core0::handle_sig_start(const Signal &sig)
-{
-    speed::reset();
-    speed::start();
-    Unique_Mutex mutex_lock(&sensorDataMutex);
-    sensors_data.current_state = SystemState::AUTOSTART;
-    session_p->start(sensors_data.current_time);
-    session_p->pause();
-
-}
-void Core0::handle_sig_stop(const Signal &sig)
-{
-    speed::stop();
-    Unique_Mutex mutex_lock(&sensorDataMutex);
-    sensors_data.current_state = SystemState::ENDED;
-    session_p->end(sensors_data.current_time);
-
 }
 void Core0::handle_sig_continue(const Signal &sig)
 {
@@ -172,6 +205,47 @@ void Core0::handle_sig_continue(const Signal &sig)
     Unique_Mutex mutex_lock(&sensorDataMutex);
     sensors_data.current_state = SystemState::RUNNING;
     session_p->cont();
+}
+
+
+void Core0::handle_sig_session_start(const Signal &sig)
+{
+    speed::stop();
+    speed::reset();
+    {
+        Unique_Mutex mutex_lock(&sensorDataMutex);
+        sensors_data.current_state = SystemState::AUTOSTART;
+        if(session_p != nullptr)
+            delete session_p;
+        session_p = new Session_Data();
+        session_p->start(sensors_data.current_time);
+        session_p->pause();
+    }
+    speed::start();
+}
+
+void Core0::handle_sig_start(const Signal &sig)
+{
+    Unique_Mutex mutex_lock(&sensorDataMutex);
+    session_p->pause();
+    sensors_data.current_state = SystemState::AUTOSTART;
+    speed::start();
+    // session_p->start(sensors_data.current_time);
+
+}
+void Core0::handle_sig_stop(const Signal &sig)
+{
+    speed::stop();
+    Unique_Mutex mutex_lock(&sensorDataMutex);
+    sensors_data.current_state = SystemState::TURNED_ON;
+    session_p->end(sensors_data.current_time);
+}
+
+
+static void on_stop();
+static void on_stop()
+{
+    update_total_stats();
 }
 
 
@@ -193,7 +267,9 @@ static int loop_frame_update()
     // static char clbs[27] = {0};
     // CYCLE_UPDATE(sim868::gsm::get_clbs(clbs), GPS_FETCH_CYCLE_MS + 300,{},{});
     static TimeS current_time;
-    CYCLE_UPDATE(sim868::gsm::get_time(current_time), (current_time.year < 2022), TIME_FETCH_CYCLE_MS, {},{
+    CYCLE_UPDATE(sim868::gsm::get_time(current_time), (current_time.year < 2022), TIME_FETCH_CYCLE_MS, {
+        if(us_to_ms(absolute_time_diff_us(__last_update, __current_time)) < 1000){break;}
+    },{
         //time_print(current_time);
     });
     current_time.update_time(get_absolute_time());
@@ -218,6 +294,23 @@ static int loop_frame_update()
 
     // this gets distance without paused fragments
     const float distance = speed::get_distance_m();
+
+    {
+        static float last_distance = 0.0f;
+        static float last_altitude = 0.0f;
+        if(distance - last_distance > 5.0f)
+        {
+            Unique_Mutex mutex(&sensorDataMutex);
+            const float current_alt = sensors_data.altitude;
+            const float d_alt = current_alt - last_altitude;
+            const float d_dis = distance - last_distance;
+            const float tg = d_alt / d_dis;
+            sensors_data.slope = tg * 100.0f;
+
+            last_distance = distance;
+            last_altitude = current_alt;
+        }
+    }
 
     TRACE_DEBUG(5, TRACE_CORE_0,
         "dist=%f wheel_rpm=%f, cadence=%f, read_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
@@ -247,17 +340,17 @@ static int loop_frame_update()
         }
         last_gear_idx = current_gear_idx;
     }
+    const auto state = sensors_data.current_state;
+    mutex_exit(&sensorDataMutex);
 
-
-
-    switch (sensors_data.current_state)
+    switch (state)
     {
         case SystemState::AUTOSTART:
             if(velocity > 0.0)
             {
                 // TODO send start signal
                 PRINTF("AUTOSTART\n");
-                actor_core0.send_signal(SIG_CONTINUE);
+                actor_core0.send_signal(SIG_CORE0_CONTINUE);
             }
 
         case SystemState::ENDED:
@@ -266,11 +359,8 @@ static int loop_frame_update()
         if(velocity == 0.0)
         {
             // TODO autostop
-            //actor_core0.send_signal(SIG_STOP);
-            Unique_Mutex mutex_lock(&sensorDataMutex);
-            sensors_data.current_state = SystemState::AUTOSTART;
-            session_p->pause();
-            speed::stop();
+            actor_core0.send_signal(SIG_CORE0_START);
+            on_stop();
         }
         case SystemState::TURNED_ON:
         case SystemState::CHARGING:
@@ -284,10 +374,58 @@ static int loop_frame_update()
     // speedDataUpdate(sensors_data.speed, sensors_data.current_state);
     //sensors_data.time.t = to_ms_since_boot(get_absolute_time()) / 1000;
 
-    mutex_exit(&sensorDataMutex);
+    actor_core0.handle_all();
     return 0;
 }
 
+static void load_config_from_file(const char* file_name)
+{
+    Sd_File config_file(file_name);
+    const std::string config_str = config_file.read_all();
+    config.from_string(config_str.c_str());
+    auto name = split_string(file_name, '.');
+    if(name.size() > 0)
+        config.name = name.at(0);
+    else
+        config.name = "unknown";
+    speed::set_wheel(config.wheel_size);
+}
+
+static void update_total_stats()
+{
+    static float ridden_dist = 0.0f;
+    ridden_dist += speed::get_distance_total();
+    if(ridden_dist >= 100.0f)
+    {
+        // calc drive time
+        const float ridden_time = speed::get_time_total();
+
+        // read from file dist and time
+        Sd_File total_stats("total_stats.txt");
+        const auto stats = total_stats.read_all();
+        const auto dist_time = split_string(stats, ';');
+        float dist = 0.0f, time = 0.0f;
+        if(dist_time.size() == 2)
+        {
+            dist = std::atof(dist_time.at(0).c_str());
+            time = std::atof(dist_time.at(1).c_str());
+        }
+
+        // TODO send this to core 1
+        // update data
+        dist += ridden_dist;
+        time += ridden_time;
+
+        // write to file
+        std::string new_dist_time = std::to_string(dist) + ';' + std::to_string(time);
+        if(new_dist_time.length() < stats.length())
+        {
+            total_stats.clear();
+        }
+        total_stats.overwrite(new_dist_time.c_str());
+        ridden_dist = 0.0;
+    }
+}
 
 
 //========================================================================

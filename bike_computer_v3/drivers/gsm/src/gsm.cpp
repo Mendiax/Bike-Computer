@@ -140,7 +140,7 @@ bool sim868::gsm::get_signal_strength(uint8_t& rssi, uint8_t& ber)
         auto respond = get_respond(id);
         if(sim868::is_respond_ok(respond))
         {
-            auto data_arr = sim868::split_string(respond); // data in arr
+            auto data_arr = split_string(respond); // data in arr
             if(data_arr.size() == 2)
             {
                 rssi = std::atoi(data_arr[0].c_str());

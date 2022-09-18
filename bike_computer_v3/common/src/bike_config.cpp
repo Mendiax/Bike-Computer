@@ -1,12 +1,9 @@
 #include "bike_config.hpp"
+#include "common_utils.hpp"
+
 #include "traces.h"
 #include <string.h>
 #include <cstdlib>
-
-uint8_t Bike_Config_S::to_idx(const Gear_S& gear)
-{
-    return gear.front * this->gear_rear.size() + gear.rear;
-}
 
 class Gear_Iterator
 {
@@ -42,6 +39,75 @@ float Gear_Iterator::get_next()
 Gear_S Gear_Iterator::get_gear()
 {
     return {current_front, current_rear};
+}
+
+#define GEARS_FRONT_STR "GF"
+#define GEARS_REAR_STR "GR"
+#define WHEEL_SIZE_STR "WS"
+
+
+
+const char* Bike_Config_S::to_string()
+{
+    std::stringstream ss;
+    ss << GEARS_FRONT_STR ":";
+    TRACE_DEBUG(1, TRACE_BIKE_CONFIG, " gear_front size %zu\n", gear_front.size());
+    for(auto&& gear :gear_front){ss << (int)gear << ',';}
+    ss.seekp(-1,ss.cur); ss << "\n"; //  overwrite last char
+
+    TRACE_DEBUG(1, TRACE_BIKE_CONFIG, " gear_rear size %zu\n", gear_rear.size());
+    ss << GEARS_REAR_STR ":"; for(auto&& gear :gear_rear) { ss << (int)gear << ','; }
+    ss.seekp(-1,ss.cur); ss << "\n"; //  overwrite last char
+
+    ss << WHEEL_SIZE_STR ":" << wheel_size << '\n';
+    TRACE_DEBUG(1, TRACE_BIKE_CONFIG, " config to str:\n%s\n", ss.str().c_str());
+
+    return ss.str().c_str();
+}
+
+void Bike_Config_S::from_string(const char* str)
+{
+    std::istringstream iss(str);
+    std::string line;
+    while (std::getline(iss, line)) {
+        // PRINTF("line %s\n", line.c_str());
+        const auto line_arr = split_string(line, ':');
+        if(line_arr.size() < 2) {
+            continue;
+        }
+        // PRINTF("[0] = %s\n", line_arr.at(0).c_str());
+        // PRINTF("[1] = %s\n", line_arr.at(1).c_str());
+        if(line_arr.at(0).compare(GEARS_FRONT_STR) == 0)
+        {
+            // PRINTF( GEARS_FRONT_STR "\n");
+            auto gears = split_string(line_arr.at(1), ',');
+            // TRACE_DEBUG(1, TRACE_BIKE_CONFIG, " read front gears size %zu\n", gears.size());
+
+            gear_front.clear();
+            for(auto&& gear_str : gears)
+            {
+                // PRINTF( " gear %s\n", gear_str.c_str());
+                gear_front.emplace_back(std::atoi(gear_str.c_str()));
+            }
+            // TRACE_DEBUG(1, TRACE_BIKE_CONFIG, " read front gears size %zu\n", gears.size());
+
+        }
+        else if(line_arr.at(0).compare(GEARS_REAR_STR) == 0)
+        {
+            // PRINTF( GEARS_REAR_STR "\n");
+            auto gears = split_string(line_arr.at(1), ',');
+            gear_rear.clear();
+            for(auto&& gear_str : gears)
+            {
+                gear_rear.emplace_back(std::atoi(gear_str.c_str()));
+            }
+        }
+        else if(line_arr.at(0).compare(WHEEL_SIZE_STR) == 0)
+        {
+            // PRINTF( WHEEL_SIZE_STR "\n");
+            wheel_size = std::atof(line_arr.at(1).c_str());
+        }
+    }
 }
 
 /**

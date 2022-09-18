@@ -146,9 +146,9 @@ static int loop(void)
             {
                 case SystemState::PAUSED:
                     {
-                        sensors_data_display.current_state = SystemState::AUTOSTART;
-                        session_p->cont();
-                        Signal sig(SIG_CONTINUE);
+                        // sensors_data_display.current_state = SystemState::AUTOSTART;
+                        // session_p->cont();
+                        Signal sig(SIG_CORE0_CONTINUE);
                         actor_core0.send_signal(sig);
                         TRACE_DEBUG(2, TRACE_CORE_1, "sending signal continue %d\n", (int) sig.get_sig_id());
 
@@ -157,9 +157,9 @@ static int loop(void)
                 case SystemState::AUTOSTART:
                 case SystemState::RUNNING:
                     {
-                        sensors_data_display.current_state = SystemState::PAUSED;
-                        session_p->pause();
-                        Signal sig(SIG_PAUSE);
+                        // sensors_data_display.current_state = SystemState::PAUSED;
+                        // session_p->pause();
+                        Signal sig(SIG_CORE0_PAUSE);
                         actor_core0.send_signal(sig);
                         TRACE_DEBUG(2, TRACE_CORE_1, "sending signal pause %d\n", (int) sig.get_sig_id());
 
@@ -167,9 +167,9 @@ static int loop(void)
                     break;
                 case SystemState::TURNED_ON:
                     {
-                        sensors_data_display.current_state = SystemState::AUTOSTART;
-                        session_p->start(sensors_data_display.current_time);
-                        Signal sig(SIG_START);
+                        // sensors_data_display.current_state = SystemState::AUTOSTART;
+                        // session_p->start(sensors_data_display.current_time);
+                        Signal sig(SIG_CORE0_SESION_START);
                         actor_core0.send_signal(sig);
                         TRACE_DEBUG(2, TRACE_CORE_1, "sending signal start %d\n", (int) sig.get_sig_id());
                     }
@@ -207,11 +207,11 @@ static int loop(void)
             display::display();
             // save track and wait for restart
             // TODO improve add menu ???
-            mutex_enter_blocking(&sensorDataMutex);
 
-            Signal sig(SIG_STOP);
+            Signal sig(SIG_CORE0_STOP);
             actor_core0.send_signal(sig);
 
+            mutex_enter_blocking(&sensorDataMutex);
             sessionDataDisplay.end(sensors_data.current_time);
 
             Sd_File last_save("last_track.csv");
@@ -239,12 +239,8 @@ static int loop(void)
             }
 
 
-            mutex_enter_blocking(&sensorDataMutex);
-            delete session_p;
-            session_p = new Session_Data();
-            mutex_exit(&sensorDataMutex);
-            Signal sig_start(SIG_START);
-            actor_core0.send_signal(sig_start);
+            // Signal sig_start(SIG_CORE0_SESION_START);
+            // actor_core0.send_signal(sig_start);
         }
 
         mutex_enter_blocking(&sensorDataMutex);

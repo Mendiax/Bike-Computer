@@ -10,7 +10,8 @@
 //defined wheel size [m]
 //hand measure r = 34.8cm -> d = 0.696m
 //from 27.5" -> d = 0.6985m
-#define WHEEL_SIZE (0.696 * 3.1415)
+// my size = 2.186484
+// #define WHEEL_SIZE (0.696 * 3.1415)
 // [m/s]
 #define MIN_SPEED 2.0
 
@@ -33,9 +34,21 @@ void speed_emulate(float speed = 20.0);
 
 namespace speed
 {
+    /**
+     * @brief Set the wheel object
+     *
+     * @param wheel_diameter in meters
+     */
+    void set_wheel(float wheel_diameter);
+
+    float get_time_total();
+    float get_distance_total();
+
     float get_velocity_kph();
     float get_distance_m();
+
     float kph_to_rpm(float kph);
+
     void start();
     void stop();
     void reset();

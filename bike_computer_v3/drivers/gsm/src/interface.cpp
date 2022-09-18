@@ -14,6 +14,7 @@
 #include "console/console.h"
 #include "traces.h"
 #include "massert.h"
+#include "common_utils.hpp"
 
 // static variables
 bool gps_on;
@@ -527,22 +528,5 @@ void sim868::clear_respond(std::string& respond)
     // {
     //     // check for ERROR
     // }
-}
-
-std::vector<std::string> sim868::split_string(const std::string& string, char sep)
-{
-    std::vector<std::string> strings; // this will be returned
-
-    size_t begin_idx, end_idx;
-    begin_idx = 0;
-    while((end_idx = string.find(sep, begin_idx)) != std::string::npos)
-    {
-        //end_idx = string.find(sep, begin_idx);
-        strings.emplace_back(string.substr(begin_idx, end_idx - begin_idx));
-        begin_idx = end_idx + 1;
-    }
-    if(begin_idx < string.length())
-        strings.emplace_back(string.substr(begin_idx));
-    return strings;
 }
 

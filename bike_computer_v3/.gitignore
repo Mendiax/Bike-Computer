@@ -12,3 +12,4 @@ lib/Parser/src/lexer.cpp
 lib/Parser/test_data.json
 drivers/DOF/Mag/
 
+data/log

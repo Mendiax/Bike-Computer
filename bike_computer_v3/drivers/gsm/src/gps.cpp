@@ -2,6 +2,7 @@
 #include "sim868/interface.hpp"
 #include "massert.h"
 #include "traces.h"
+#include "common_utils.hpp"
 
 #include <string.h>
 #include <inttypes.h>
@@ -25,7 +26,7 @@ void get_time_from_str(TimeS& time, const std::string& str)
         return;
     }
     // yyyyMMddhhmmss.sss
-    
+
     time.year = std::atoi(str.substr(0,4).c_str());
     time.month = std::atoi(str.substr(4,2).c_str());
     time.day = std::atoi(str.substr(6,2).c_str());
@@ -52,9 +53,9 @@ GpsRawData sim868::gps::get_gps_from_respond(const std::string& respond)
     #define DOC_IDX(idx) (idx-1)
     // if empty return 0
     #define EMPTY(str) strcmp(str,"") == 0 ? "0" : str
-    #define EXTRACT_DOC_IDX(data, idx) EMPTY(data[DOC_IDX(idx)].c_str()) 
+    #define EXTRACT_DOC_IDX(data, idx) EMPTY(data[DOC_IDX(idx)].c_str())
     PRINTF("str = %s\n", respond.c_str());
-    auto data_arr = sim868::split_string(respond);
+    auto data_arr = split_string(respond);
 
     GpsRawData data_from_gps = {0};
     data_from_gps.data_time_stamp = get_absolute_time();
@@ -291,7 +292,7 @@ TimeS correct_time(const GpsRawData& gps_data)
 
     uint64_t millis_to_add = us_to_ms(absolute_time_diff_us(gps_data.data_time_stamp, get_absolute_time()));
     add_millis(current_time, millis_to_add);
-    
+
     add_millis(current_time, 7200 * 1000); // time offset
 
     return current_time;

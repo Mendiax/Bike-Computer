@@ -16,11 +16,11 @@
 #define DEBUG_SPEED(__info, ...)
 #endif
 
-#define SPEED_TO_TIME(speed) (WHEEL_SIZE / speed * 1000.0)
+#define SPEED_TO_TIME(speed) (wheel_size / speed * 1000.0)
 
 // time after speed is set to 0 [s]
-#define MAX_TIME (WHEEL_SIZE / MIN_SPEED * 1000.0)
-#define MAX_TIME_INTERR (WHEEL_SIZE)
+#define MAX_TIME (wheel_size / MIN_SPEED * 1000.0)
+#define MAX_TIME_INTERR (wheel_size)
 
 
  // static variables definitions
@@ -30,17 +30,26 @@ static volatile absolute_time_t speed_lastupdate;
 //[m/s]
 static volatile float speed_velocity = 0.0f;
 static volatile uint_fast64_t speed_wheelCounter = 0;
+static volatile uint_fast64_t speed_wheelCounter_total = 0;
+static volatile uint_fast64_t speed_total_time = 0;
+
 // check if last value was read by speed_getSpeed() function
 static volatile bool dataReady = false;
 static bool increment_wheelCounter = 0;
-static uint16_t* distance_counter_p;
+static float wheel_size = 2.0;
 
 // static declarations
 static void speed_update();
 //static absolute_time_t absolute_time_copy_volatile(volatile absolute_time_t* time);
 static bool repeating_timer_callback(struct repeating_timer *t);
-static constexpr uint16_t speed_to_ms(float speed);
-static float speed_velocity_from_delta(float delta_time);
+static uint16_t speed_to_ms(float speed_kph);
+/**
+ * @brief calc speed from wheel rotation time
+ *
+ * @param delta_time in ms
+ * @return float speed in m/s
+ */
+static float speed_velocity_from_delta(int64_t delta_time);
 
 // global definitions
 interrupt interruptSpeed = {PIN_SPEED, speed_update, GPIO_IRQ_EDGE_RISE}; // GPIO_IRQ_EDGE_FALL
@@ -56,7 +65,7 @@ float speed_mps_to_kmph(float speed_mps)
 }
 float speed_getDistance()
 {
-    return (double)speed_wheelCounter * WHEEL_SIZE;
+    return (float)speed_wheelCounter * wheel_size;
 }
 
 /*returns last read speed [m/s]*/
@@ -98,11 +107,11 @@ void speed_emulate(float speed)
 // static definitions
 
 // speed in km/h
-constexpr static uint16_t speed_to_ms(float speed_kph)
+static uint16_t speed_to_ms(float speed_kph)
 {
     const float speed_mps = speed_kph / 3.6;
     // t = s/v
-    return WHEEL_SIZE / speed_mps * 1000.0;
+    return wheel_size / speed_mps * 1000.0;
 }
 
 bool repeating_timer_callback(struct repeating_timer *t) {
@@ -111,9 +120,9 @@ bool repeating_timer_callback(struct repeating_timer *t) {
 }
 
 
-static float speed_velocity_from_delta(float delta_time)
+static float speed_velocity_from_delta(int64_t delta_time)
 {
-    return WHEEL_SIZE / ((float)delta_time / 1000.0);
+    return wheel_size / ((double)delta_time / 1000.0);
 }
 static void speed_update()
 {
@@ -128,10 +137,35 @@ static void speed_update()
         }
         //PRINTF("speed delta %" PRId64 "\n", delta_time);
         speed_wheelCounter += (increment_wheelCounter == 1);
+        speed_wheelCounter_total++;
         speed_velocity = speed_velocity_from_delta(delta_time);
+        // TODO if speed > MIN add time to counter
+        if(speed_velocity >= speed_kph_to_mps(MIN_SPEED))
+        {
+            speed_total_time += delta_time;
+        }
         //DEBUG_SPEED("interrupt : %lu speed : %f delta : %lld last : %lu\n", to_ms_since_boot(update_us), speed_velocity, delta_time,  to_ms_since_boot(last_update_us));
         absolute_time_copy_to_volatile(speed_lastupdate, update_us);
         dataReady = true;
+}
+
+float speed::get_time_total()
+{
+    float time_s = (float)speed_total_time / 1000.0f;
+    speed_total_time = 0;
+    return time_s;
+}
+
+float speed::get_distance_total()
+{
+    float dist = (float)speed_wheelCounter_total * wheel_size;
+    speed_wheelCounter_total = 0;
+    return dist;
+}
+
+void speed::set_wheel(float wheel_diameter)
+{
+    wheel_size = wheel_diameter;
 }
 
 float speed::get_velocity_kph()
@@ -146,7 +180,7 @@ float speed::get_distance_m()
 
 float speed::kph_to_rpm(float kph)
 {
-    float rph = (kph * 1000.0f) / WHEEL_SIZE;
+    float rph = (kph * 1000.0f) / wheel_size;
     return rph  / 60.0f;
 }
 

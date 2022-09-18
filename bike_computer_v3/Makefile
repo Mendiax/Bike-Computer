@@ -25,6 +25,9 @@ cmake: parser
 cmaker:
 	cmake -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Release
 
+release:
+	cp $(BUILD)/$(PICO_MAIN_FILE).uf2 ./release
+
 w: write_main
 wt: write_test
 write_main:
