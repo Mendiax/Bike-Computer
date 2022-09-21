@@ -153,14 +153,14 @@ float speed::get_time_total()
 {
     float time_s = (float)speed_total_time / 1000.0f;
     speed_total_time = 0;
-    return time_s;
+    return time_s / 3600.0f;
 }
 
 float speed::get_distance_total()
 {
     float dist = (float)speed_wheelCounter_total * wheel_size;
     speed_wheelCounter_total = 0;
-    return dist;
+    return dist / 1000.0f;
 }
 
 void speed::set_wheel(float wheel_diameter)

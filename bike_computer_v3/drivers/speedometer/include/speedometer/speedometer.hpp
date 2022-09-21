@@ -41,7 +41,17 @@ namespace speed
      */
     void set_wheel(float wheel_diameter);
 
+    /**
+     * @brief Get the time total
+     *
+     * @return float time in h
+     */
     float get_time_total();
+    /**
+     * @brief Get the distance total
+     *
+     * @return float distance in km
+     */
     float get_distance_total();
 
     float get_velocity_kph();

@@ -10,6 +10,7 @@
 #include <string.h>
 //#include <stdarg.h>
 #include <inttypes.h>
+#include <iostream>
 
 #include <pico/stdlib.h>
 #include <pico/multicore.h>
@@ -130,7 +131,7 @@ void test_DOF()
 {
     //init_i2c();
     I2C_Init();
-    //scan();
+    // scan();
     // bmp_test();
     consolep("I2C init\n");
     IMU_Init();
@@ -344,6 +345,65 @@ int main(void)
     }
     tracesSetup();
 
+    // IMU_Init();
+    // scan();
+    // // test magnetometr
+    // #define MAG_ADDR 0x1e
+    // #define Register_A    0              // Address of Configuration register A
+    // #define Register_B    0x01           // Address of configuration register B
+    // #define Register_mode 0x02           // Address of mode register
+
+    // #define X_axis_H   0x03              // Address of X-axis MSB data register
+    // #define Z_axis_H   0x05              // Address of Z-axis MSB data register
+    // #define Y_axis_H   0x07              // Address of Y-axis MSB data register
+
+    // #define Reg_id 0x0a
+    // {
+    //     // auto chip_id = I2C_ReadOneByte(MAG_ADDR, 0x0d); // read drdy
+    //     // std::cout << "chip_id " << (int)chip_id << std::endl;
+
+    //     // char id[4] = {0};
+    //     // I2C_ReadBuff(MAG_ADDR, Reg_id, 3, (uint8_t*)id);
+    //     // std::cout << id << std::endl; // H43
+
+    //     // init
+    //     // I2C_WriteOneByte(MAG_ADDR, Register_A, 0x70); // 0 11 100 00
+    //     // I2C_WriteOneByte(MAG_ADDR, Register_B, 0xa0); // 101 00000    ± 4.7 Ga range
+    //     // I2C_WriteOneByte(MAG_ADDR, Register_mode, 0); // 0 00000 00   Continuous-Measurement Mode.
+    //     I2C_WriteOneByte(MAG_ADDR, Register_A, 0b00000010); // 0 11 100 00
+    //     I2C_WriteOneByte(MAG_ADDR, Register_B, 0x00); // 101 00000    ± 4.7 Ga range
+    //     I2C_WriteOneByte(MAG_ADDR, Register_mode, 0); // 0 00000 00   Continuous-Measurement Mode.
+
+    //     sleep_ms(6); // wait a bit
+
+
+    //     auto read_reg = [](uint8_t addr) -> int16_t
+    //     {
+    //         uint8_t h = I2C_ReadOneByte(MAG_ADDR, addr);
+    //         uint8_t l = I2C_ReadOneByte(MAG_ADDR, addr + 1);
+
+    //         uint16_t value_raw = ((uint16_t)h << 8 | (uint16_t)l);
+    //         int16_t value = value_raw > 32768 ? value_raw - 65536 : value_raw;
+    //         return value;
+    //     };
+
+    //     // I2C_WriteOneByte(MAG_ADDR, Register_mode, 0x01); // 0 00000 00   Continuous-Measurement Mode.
+    //     while(1)
+    //     {
+    //         auto drdy = I2C_ReadOneByte(MAG_ADDR, 0x09); // read drdy
+    //         std::cout << "drdy " << (int)drdy << std::endl;
+    //         if(drdy & 1)
+    //         {
+    //             //uint8_t buff[6];
+    //             //I2C_ReadBuff(MAG_ADDR, 0x03, 6, buff);
+    //             std::cout << "  X " << read_reg(X_axis_H);
+    //             std::cout << "  Z " << read_reg(Z_axis_H);
+    //             std::cout << "  Y " << read_reg(Y_axis_H) << std::endl;
+    //         }
+
+    //         sleep_ms(1000);
+    //     }
+    // }
     run_tests();
     //test_DOF();
 

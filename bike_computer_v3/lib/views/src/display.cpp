@@ -20,13 +20,15 @@ extern void view1(void);
 extern void view2(void);
 extern void view3(void);
 extern void view4(void);
+extern void view5(void);
+
 
 
 extern void view_charge(void);
 extern void view_main(void);
 
 // view3, ,  view4
-view_new_func views_all[] = {view0, view1, view2, view4};
+view_new_func views_all[] = {view0, view1, view2, view4, view5};
 #define DISPLAY_TYPES_LENGTH (sizeof(views_all) / sizeof(view_new_func))
 void Display_init(Sensor_Data *data, Session_Data *session)
 {

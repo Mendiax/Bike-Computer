@@ -54,7 +54,7 @@ class GearData:
 
 
 
-def analyze_db(file_name : str, id : str):
+def analyze_db(file_name : str, id : str, gear_range : tuple = None):
     print(f"loading record from {file_name} at {id}")
     file = pd.read_csv(file_name, delimiter=";")
 
@@ -71,11 +71,13 @@ def analyze_db(file_name : str, id : str):
     xAxis = labels
 
     plt.title('Gear time(cadence)')
+    print(gear_range)
     index = 1
     for gear_data in data_analyze.get_gear_all():
-        label = f"gear{index}"
-        yAxis = gear_data
-        plt.plot(xAxis, yAxis, color=colors[index], marker='.', label=label)
+        if gear_range[0] <= index and index <= gear_range[1]:
+            label = f"gear{index}"
+            yAxis = gear_data
+            plt.plot(xAxis, yAxis, color=colors[index], marker='.', label=label)
         index += 1
     plt.xlabel('cadence [rpm]')
     plt.ylabel("time [s]")
@@ -107,7 +109,11 @@ def main():
     file_name = get_sys_arg("file", "log/last_track.csv")
     analyze = get_sys_arg("analyze")
     if analyze is not None:
-        analyze_db(file_name, analyze)
+        gear_range = get_sys_arg("gears")
+        if gear_range is not None:
+            gear_range_split = gear_range.split(",")
+            gear_range = [int(x) for x in gear_range_split]
+        analyze_db(file_name, analyze, gear_range)
     else:
         print_db(file_name)
 

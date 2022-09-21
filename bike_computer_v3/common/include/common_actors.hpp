@@ -28,6 +28,8 @@ enum Sig_Ids
     SIG_CORE0_STOP,
     SIG_CORE0_CONTINUE,
     SIG_CORE0_SET_CONFIG,
+    SIG_CORE0_SET_TOTAL,
+
     // core 1
     SIG_CORE1_TOTAL_UPDATE,
     SIG_NO_MAX
@@ -43,6 +45,11 @@ struct Sig_Core0_Set_Config{
     std::string file_content;
 };
 
+struct Sig_Core0_Set_Total{
+    float ridden_dist_total;
+    float ridden_time_total;
+};
+
 class Core0 : public Actor
 {
 private:
@@ -55,6 +62,8 @@ private:
     static void handle_sig_continue(const Signal &sig);
 
     static void handle_sig_set_config(const Signal &sig);
+    static void handle_sig_set_total(const Signal &sig);
+
 
 
     void handler_setup()
@@ -65,6 +74,8 @@ private:
         this->handler_add(handle_sig_stop, SIG_CORE0_STOP);
         this->handler_add(handle_sig_session_start, SIG_CORE0_SESION_START);
         this->handler_add(handle_sig_set_config, SIG_CORE0_SET_CONFIG);
+        this->handler_add(handle_sig_set_total, SIG_CORE0_SET_TOTAL);
+
 
     }
 public:

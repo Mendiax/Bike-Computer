@@ -47,6 +47,8 @@ include_directories(drivers/interrupts/include)
 include_directories(drivers/buttons/include)
 include_directories(drivers/battery/include)
 include_directories(drivers/gsm/include)
+include_directories(drivers/EPROM/include)
+
 #DOF
 include_directories(./drivers/DOF/BMP280)
 include_directories(./drivers/DOF/I2C)
@@ -78,6 +80,8 @@ add_subdirectory(drivers/interrupts)
 add_subdirectory(drivers/buttons)
 add_subdirectory(drivers/battery)
 add_subdirectory(drivers/gsm)
+add_subdirectory(drivers/EPROM)
+
 # DOF
 add_subdirectory(drivers/DOF/BMP280)
 add_subdirectory(drivers/DOF/I2C)
@@ -166,6 +170,7 @@ target_link_libraries( ${PICO_TEST_FILE}
         Parser
 
         Actors
+        EPROM
         test_main # tests
 )
 

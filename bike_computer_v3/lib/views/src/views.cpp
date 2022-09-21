@@ -153,7 +153,8 @@ static constexpr auto split_vertical(const Frame& frame)
 {
     const uint16_t half_width = frame.width / 2;
     const Frame f1 = {frame.x, frame.y, half_width, frame.height};
-    const Frame f2 = {frame.x + half_width, frame.y, half_width, frame.height};
+    const uint16_t next_x = frame.x + half_width;
+    const Frame f2 = {next_x, frame.y, half_width, frame.height};
     return std::make_tuple(f1,f2);
 }
 /**
@@ -386,6 +387,25 @@ void view4(void)
 
 
     //add_label("|    |    |    |    |", bottom);
+}
+
+//
+/**
+ * @brief display total data
+ *
+ * time: 123.5
+ * dist: 65000.1
+ */
+void view5(void)
+{
+    view_new_inAllocatedPlace(&_Display.view);
+    top_bar();
+
+    auto frame = get_frame_bar();
+    auto [frame_time, frame_dist] = split_horizontal(frame);
+    add_value("time:%.1f",(5+5),&_Display.data->total_time_ridden, frame_time, Align::LEFT);
+    add_value("dist:%.1f",(5+5),&_Display.data->total_distance_ridden, frame_dist, Align::LEFT);
+
 }
 
 void view_charge(void)

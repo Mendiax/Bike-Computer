@@ -13,4 +13,5 @@ target_link_libraries(test_main PUBLIC
     BMP280
     SD
     Actors
+    EPROM
 )

@@ -47,6 +47,11 @@ static void change_state_irq_handler();
 static void setup(void);
 static int loop(void);
 
+static void get_total_data(float& time, float& dist);
+static void set_total_data(float time, float dist);
+
+
+
 // global functions
 void core1LaunchThread(void)
 {
@@ -58,32 +63,29 @@ void core1LaunchThread(void)
 
 void Core1::handle_sig_total_update(const Signal &sig)
 {
-     // read from file dist and time
-    Sd_File total_stats("total_stats.txt");
-    const auto stats = total_stats.read_all();
-    const auto dist_time = split_string(stats, ';');
-    float dist = 0.0f, time = 0.0f;
-    if(dist_time.size() == 2)
+    float dist, time;
+    // read from file dist and time
+    get_total_data(time, dist);
     {
-        dist = std::atof(dist_time.at(0).c_str());
-        time = std::atof(dist_time.at(1).c_str());
+        auto payload = sig.get_payload<Sig_Core1_Total_Update*>();
+
+        // update data
+        dist += payload->ridden_dist;
+        time += payload->ridden_time;
+        delete payload;
     }
 
-    auto payload = sig.get_payload<Sig_Core1_Total_Update*>();
-
-    // TODO send this to core 1
-    // update data
-    dist += payload->ridden_dist;
-    time += payload->ridden_time;
-    delete payload;
+    {
+        auto payload = new Sig_Core0_Set_Total();
+        // update data
+        payload->ridden_dist_total = dist;
+        payload->ridden_time_total = time;
+        Signal sig(SIG_CORE0_SET_TOTAL, payload);
+        actor_core0.send_signal(sig);
+    }
 
     // write to file
-    std::string new_dist_time = std::to_string(dist) + ';' + std::to_string(time);
-    if(new_dist_time.length() < stats.length())
-    {
-        total_stats.clear();
-    }
-    total_stats.overwrite(new_dist_time.c_str());
+    set_total_data(time, dist);
 }
 
 
@@ -120,15 +122,31 @@ static void setup(void)
 
     Display_init(&sensors_data_display, &sessionDataDisplay);
 
-    const std::string config_file_name = "giant_trance.cfg";
-    Sd_File config_file(config_file_name);
-    auto content = config_file.read_all();
+    // TODO move it to menu
+    {
+        const std::string config_file_name = "giant_trance.cfg";
+        Sd_File config_file(config_file_name);
+        auto content = config_file.read_all();
 
-    auto payload = new Sig_Core0_Set_Config();
-    payload->file_content = config_file.read_all();
-    payload->file_name = config_file_name;
-    Signal sig(SIG_CORE0_SET_CONFIG ,payload);
-    actor_core0.send_signal(sig);
+        auto payload = new Sig_Core0_Set_Config();
+        payload->file_content = config_file.read_all();
+        payload->file_name = config_file_name;
+        Signal sig(SIG_CORE0_SET_CONFIG ,payload);
+        actor_core0.send_signal(sig);
+    }
+
+    // update data on start
+    {
+        float dist = 0.0f, time = 0.0f;
+        get_total_data(time, dist);
+        auto payload = new Sig_Core0_Set_Total();
+        // update data
+        payload->ridden_dist_total = dist;
+        payload->ridden_time_total = time;
+        Signal sig(SIG_CORE0_SET_TOTAL, payload);
+        actor_core0.send_signal(sig);
+    }
+
 }
 
 static int loop(void)
@@ -319,4 +337,29 @@ static int loop(void)
         TRACE_ABNORMAL(TRACE_CORE_1, "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",frameTimeUs, fpsToUs(FRAME_PER_SECOND), timeToSleep);
     }
     return 1;
+}
+
+static void set_total_data(float time, float dist)
+{
+    Sd_File total_stats("total_stats.txt");
+    const auto stats = total_stats.read_all();
+    std::string new_dist_time = std::to_string(dist) + ';' + std::to_string(time);
+    if(new_dist_time.length() < stats.length())
+    {
+        total_stats.clear();
+    }
+    total_stats.overwrite(new_dist_time.c_str());
+}
+
+static void get_total_data(float& time, float& dist)
+{
+    Sd_File total_stats("total_stats.txt");
+    const auto stats = total_stats.read_all();
+    const auto dist_time = split_string(stats, ';');
+    dist = 0.0f, time = 0.0f;
+    if(dist_time.size() == 2)
+    {
+        dist = std::atof(dist_time.at(0).c_str());
+        time = std::atof(dist_time.at(1).c_str());
+    }
 }

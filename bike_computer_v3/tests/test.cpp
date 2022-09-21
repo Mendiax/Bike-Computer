@@ -22,6 +22,7 @@
 
 #include "massert.h"
 #include "traces.h"
+#include "eprom.hpp"
 
 #include "test_actors.h"
 
@@ -357,6 +358,22 @@ int sd_drive_test(void)
     return 0;
 }
 
+int eprom_test(void)
+{
+    const uint8_t variable = 123;
+    const uint8_t variable_address = 0;
+
+    // reset
+    eprom::write_byte(variable_address, variable_address);
+
+    eprom::write_byte(variable_address, variable);
+    const uint8_t read_value = eprom::read_byte(variable_address);
+
+    BC_CHECK_EQ(variable, read_value);
+    return 0;
+}
+
+
 void run_tests(void)
 {
     stdio_init_all();
@@ -367,10 +384,11 @@ void run_tests(void)
     BC_TEST(parser_test);
     BC_TEST(url_test);
     BC_TEST(altitude_test);
-    //sd_drive_test();
-    BC_TEST(sd_drive_test);
+    // BC_TEST(sd_drive_test);
 
-    //BC_TEST(test_actors);
+    // BC_TEST(test_actors);
+    // BC_TEST(eprom_test);
+
 
     BC_TEST_END();
 }

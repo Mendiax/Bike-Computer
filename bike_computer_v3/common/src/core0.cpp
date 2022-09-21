@@ -130,7 +130,7 @@ static void setup(void)
 #endif
 
     // for testing purpose
-#if SIM_WHEEL_CADENCE == 1
+#if SIM_WHEEL_CADENCE == 0
     float emulated_speed = 25.0;
     speed_emulate(emulated_speed);
     PRINTF("emulated_speed=%f\n", emulated_speed);
@@ -204,6 +204,16 @@ void Core0::handle_sig_set_config(const Signal &sig)
     load_config_from_file(payload->file_content.c_str(), payload->file_name.c_str());
     delete payload;
 }
+
+void Core0::handle_sig_set_total(const Signal &sig)
+{
+    const auto payload = sig.get_payload<Sig_Core0_Set_Total*>();
+    Unique_Mutex mutex_lock(&sensorDataMutex);
+    sensors_data.total_time_ridden = payload->ridden_time_total;
+    sensors_data.total_distance_ridden = payload->ridden_dist_total;
+    delete payload;
+}
+
 
 void Core0::handle_sig_pause(const Signal &sig)
 {
@@ -409,7 +419,7 @@ static void update_total_stats()
 {
     static float ridden_dist = 0.0f;
     ridden_dist += speed::get_distance_total();
-    if(ridden_dist >= 100.0f)
+    if(ridden_dist >= 0.1f)
     {
         // calc drive time
         const float ridden_time = speed::get_time_total();

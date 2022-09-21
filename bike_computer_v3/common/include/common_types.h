@@ -130,23 +130,6 @@ struct Weather_BMP280_S
     int32_t pressure;
 };
 
-/**
- * @brief Contains data from sensors
- *
- */
-// struct Sensor_Data
-// {
-//     ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
-//     TimeS current_time;
-//     Weather_BMP280_S weather;
-//     float altitude; // height in m
-//     float cadence;  // rpm
-//     float velocity; // speed in kph
-//     GpsDataS gps_data;
-//     Battery lipo;   // battery info
-//     Gear_S gear;    // gear {front, rear}
-// };
-
 
 
 // void reset_session_data(Session_Data& data)
@@ -155,9 +138,11 @@ struct Weather_BMP280_S
 // }
 
 
-
-// TODO optimize size
-typedef struct Sensor_Data
+/**
+ * @brief Contains data from sensors
+ *
+ */
+typedef struct Sensor_Data // TODO optimize size
 {
     ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
     TimeS current_time;
@@ -166,23 +151,12 @@ typedef struct Sensor_Data
     float cadence;  // rpm
     float velocity; // speed in kph
     float slope; // slope in %
+    float total_time_ridden; // in h
+    float total_distance_ridden; // in km
     GpsDataS gps_data;
     Battery lipo; // battery info
     Gear_S gear;  // gear {front, rear}
     SystemState current_state;
-
-    // ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
-    // Weather_BMP280_S weather;
-    // //RingBuffer* rearShockBuffer;
-    // SpeedData speed;
-    // GpsDataS gps_data;
-    // mtime_t time;   // absolute time frtom boot in seconds
-    // Battery lipo;
-    // Time_HourS hour;
-    // Time_DateS date;
-    // float altitude;
-    // float cadence;
-    // Gear_S gear;
 
     // char cipgsmloc[20];
     // char clbs[27];
