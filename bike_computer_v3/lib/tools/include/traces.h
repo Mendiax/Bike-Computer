@@ -54,6 +54,7 @@ enum tracesE{
     TRACE_SIM868,
     TRACE_SD,
     TRACE_ACTOR,
+    TRACE_GUI,
     NO_TRACES
 };
 
@@ -77,15 +78,15 @@ static inline void tracesSetup()
     // ==================================================
     // TRACES_ON_ALL(TRACE_VIEWS);
     // TRACES_ON(0,TRACE_VIEWS);
-    // TRACES_ON(1,TRACE_VIEWS);
+    // TRACES_ON(1,TRACE_VIEWS); // split frame
     // TRACES_ON(2,TRACE_VIEWS);
     // TRACES_ON(3,TRACE_VIEWS);
-    // TRACES_ON(4,TRACE_VIEWS);
+    // TRACES_ON(4,TRACE_VIEWS); // render view
     // 5 6 drawing windows
     // TRACES_ON(5,TRACE_VIEWS);
     // TRACES_ON(6,TRACE_VIEWS);
 
-    //TRACES_ON(7,TRACE_VIEWS); // adding new window
+    // TRACES_ON(7,TRACE_VIEWS); // adding new window
 
     // ==================================================
     //                   CORE 0 TRACES
@@ -93,7 +94,7 @@ static inline void tracesSetup()
     TRACES_ON(1,TRACE_CORE_0); // bat info
     // TRACES_ON(2, TRACE_CORE_0); // data update time
     TRACES_ON(3, TRACE_CORE_0); // gps update
-    TRACES_ON(4, TRACE_CORE_0); // BMP280 updatre
+    // TRACES_ON(4, TRACE_CORE_0); // BMP280 updatre
     //TRACES_ON(5, TRACE_CORE_0); // gear ratio
 
 
@@ -130,7 +131,7 @@ static inline void tracesSetup()
     //                   SIM 868 TRACES
     // ==================================================
     //TRACES_ON(1, TRACE_SIM868);  // send request log long
-    TRACES_ON(2, TRACE_SIM868);  // send_request log
+    // TRACES_ON(2, TRACE_SIM868);  // send_request log
 
 
     // ==================================================
@@ -151,7 +152,11 @@ static inline void tracesSetup()
     //TRACES_ON(1, TRACE_SD);  // read file size
 
     // ==================================================
-    //                   ACTORES TRACES
+    //                   ACTORS TRACES
+    // ==================================================
+
+    // ==================================================
+    //                   GUI TRACES
     // ==================================================
 
 }

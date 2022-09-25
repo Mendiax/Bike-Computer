@@ -7,17 +7,17 @@
 #include <stdint.h>
 
 template<typename T>
-void drawFormatVariable(void *settings);
+void drawFormatVariable(const void *settings);
 
-void drawFormatVariableVoid(void *settings);
+void drawFormatVariableVoid(const void *settings);
 
 
 #define CREATE_FUNC(type) \
-    void drawFormat_##type(void *settings) \
+    void drawFormat_##type(const void *settings) \
     { \
         drawFormatVariable<type>(settings); \
     } \
-    drawFunc_p getDrawFunc(type* var) \
+    drawFunc_p getDrawFunc(const type* var) \
     { \
         return drawFormat_##type; \
     }
@@ -35,47 +35,47 @@ CREATE_FUNC(float)
 CREATE_FUNC(double)
 
 // void drawFormat_time_t(void *settings)
-// { 
-//     ValDrawTime(settings); 
-// } 
-drawFunc_p getDrawFunc(mtime_t* var) 
-{ 
-    return ValDrawTime; 
+// {
+//     ValDrawTime(settings);
+// }
+drawFunc_p getDrawFunc(const mtime_t* var)
+{
+    return ValDrawTime;
 }
 
-drawFunc_p getDrawFunc(TimeS* var)
+drawFunc_p getDrawFunc(const TimeS* var)
 {
     return drawFormat_TimeS;
 }
 
 
-drawFunc_p getDrawFunc(char* var)
+drawFunc_p getDrawFunc(const char* var)
 {
     return drawFormat_char_p;
 }
 
-drawFunc_p getDrawFunc(Time_HourS* var) 
-{ 
-    return drawFormat_Time_HourS; 
+drawFunc_p getDrawFunc(const Time_HourS* var)
+{
+    return drawFormat_Time_HourS;
 }
 
-drawFunc_p getDrawFunc(Time_DateS* var) 
-{ 
-    return drawFormat_Time_DateS; 
+drawFunc_p getDrawFunc(const Time_DateS* var)
+{
+    return drawFormat_Time_DateS;
 }
 
-drawFunc_p getDrawFunc(Battery* var) 
-{ 
-    return draw_battery_level; 
+drawFunc_p getDrawFunc(const Battery* var)
+{
+    return draw_battery_level;
 }
 
-void drawFormat_void(void *settings)
-{ 
-    drawFormatVariableVoid(settings); 
-} 
-drawFunc_p getDrawFunc(void* var) 
-{ 
-    return drawFormat_void; 
+void drawFormat_void(const void *settings)
+{
+    drawFormatVariableVoid(settings);
+}
+drawFunc_p getDrawFunc(const void* var)
+{
+    return drawFormat_void;
 }
 
 // void drawFormatInt8(void *settings)
@@ -105,7 +105,7 @@ drawFunc_p getDrawFunc(void* var)
 
 
 template<typename T>
-void drawFormatVariable(void *settings)
+void drawFormatVariable(const void *settings)
 {
     ValSettings *valSettings = (ValSettings *)settings;
 
@@ -125,7 +125,7 @@ void drawFormatVariable(void *settings)
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
-void drawFormat_char_p(void *settings)
+void drawFormat_char_p(const void *settings)
 {
     ValSettings *valSettings = (ValSettings *)settings;
 
@@ -144,21 +144,21 @@ void drawFormat_char_p(void *settings)
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
-void drawFormatVariableVoid(void *settings)
+void drawFormatVariableVoid(const void *settings)
 {
     ValSettings *valSettings = (ValSettings *)settings;
 
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, valSettings->text.string, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
-void ValDrawTime(void *settings)
+void ValDrawTime(const void *settings)
 {
     ValSettings *valSettings = (ValSettings *)settings;
     uint64_t time = *((uint64_t *)valSettings->data);
 
     const int hours = time / 3600;
     const int min = (time % 3600) / 60;
-    const int sec = time % 60; 
+    const int sec = time % 60;
 
 
     unsigned max_str_len = valSettings->text.str_len + 1;
@@ -173,7 +173,7 @@ void ValDrawTime(void *settings)
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
-void draw_battery_level(void *settings)
+void draw_battery_level(const void *settings)
 {
     const ValSettings *valSettings = (ValSettings *)settings;
 
@@ -200,7 +200,7 @@ void draw_battery_level(void *settings)
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
-void drawFormat_Time_DateS(void *settings)
+void drawFormat_Time_DateS(const void *settings)
 {
     const ValSettings *valSettings = (ValSettings *)settings;
 
@@ -214,7 +214,7 @@ void drawFormat_Time_DateS(void *settings)
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
-void drawFormat_Time_HourS(void *settings)
+void drawFormat_Time_HourS(const void *settings)
 {
     const ValSettings *valSettings = (ValSettings *)settings;
 
@@ -229,7 +229,7 @@ void drawFormat_Time_HourS(void *settings)
 }
 
 
-void drawFormat_TimeS(void *settings)
+void drawFormat_TimeS(const void *settings)
 {
     const ValSettings *valSettings = (ValSettings *)settings;
 
@@ -252,7 +252,7 @@ void drawFormat_TimeS(void *settings)
     13.08.22
     15:32:12
     */
-    
+
     // TODO
     // PRINTF("%4" PRIu16 "\t"
     //         "%2" PRIu8 "\t"

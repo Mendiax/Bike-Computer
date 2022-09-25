@@ -38,6 +38,10 @@ include_directories(lib/Console)
 include_directories(lib/SD/include)
 include_directories(lib/Parser/include)
 include_directories(lib/Actors/include)
+include_directories(lib/gui/include)
+include_directories(lib/gui/common/include)
+
+
 
 
 include_directories(drivers/display/include)
@@ -50,10 +54,10 @@ include_directories(drivers/gsm/include)
 include_directories(drivers/EPROM/include)
 
 #DOF
-include_directories(./drivers/DOF/BMP280)
-include_directories(./drivers/DOF/I2C)
-include_directories(./drivers/DOF/IMU)
-include_directories(./drivers/DOF/MPU9250)
+include_directories(drivers/DOF/BMP280)
+include_directories(drivers/DOF/I2C)
+include_directories(drivers/DOF/IMU)
+include_directories(drivers/DOF/MPU9250)
 
 #tests
 include_directories(tests/bc_test)
@@ -72,6 +76,8 @@ add_subdirectory(lib/Console)
 add_subdirectory(lib/Parser)
 add_subdirectory(lib/SD)
 add_subdirectory(lib/Actors)
+add_subdirectory(lib/gui)
+
 
 add_subdirectory(drivers/display)
 add_subdirectory(drivers/speedometer)

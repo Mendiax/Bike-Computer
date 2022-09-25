@@ -5,7 +5,7 @@
 
 #define BTN0 15
 #define BTN1 21
-#define BTN2 2 // speed emulation
+#define BTN2 2
 #define BTN3 3
 
 // extern interrupt button0;

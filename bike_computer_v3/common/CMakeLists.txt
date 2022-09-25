@@ -11,4 +11,5 @@ target_link_libraries(Common PUBLIC
                       SD
                       Cadence Speedometer
                       Actors
+                      Gui
                       )

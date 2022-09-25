@@ -6,7 +6,7 @@
 #include "traces.h"
 
 /* data ptr, additional data ptr, window(size) */
-typedef void (*drawFunc_p)(void *);
+typedef void (*drawFunc_p)(const void *);
 
 enum class Align{
     LEFT,
@@ -22,7 +22,7 @@ struct DisplayData
 {
     const char* format;
     uint16_t format_length;
-    void* data;
+    const void* data;
     drawFunc_p func;
 };
 
@@ -50,7 +50,7 @@ typedef struct LabelSettings
 typedef struct ValSettings
 {
     TextSettings text;
-    void *data;
+    const void *data;
 } ValSettings;
 
 typedef struct PlotSettings
@@ -59,7 +59,7 @@ typedef struct PlotSettings
     bool auto_max;
     bool auto_min;
     void * min, *max;
-    void *data; // ptr to array
+    const void *data; // ptr to array
     uint16_t len; // len of drawing mus be less than data
     //uint16_t* offset; // movable offset null if not used
     display::DisplayColor color;

@@ -33,7 +33,7 @@
 // #-------------------------------#
 // |            macros             |
 // #-------------------------------#
-#define DATA_PER_SECOND 10
+#define DATA_PER_SECOND 1
 
 // cycles times
 #define BAT_LEV_CYCLE_MS (29*1000)
@@ -101,11 +101,11 @@ static void setup(void)
     // uint8_t gears_front[] = {32};
     // uint8_t gears_rear[] = {51, 45, 39, 33, 28, 24, 21, 18, 15, 13, 11};
     // BIKE_CONFIG_SET_GEARS(config, gears_front, gears_rear);
-    // config.from_string(
-    //     "GF:32\n"
-    //     "GR:51,45,39,33,28,24,21,18,15,13,11\n"
-    //     "WS:2.186484\n"
-    // );
+    config.from_string(
+        "GF:32\n"
+        "GR:51,45,39,33,28,24,21,18,15,13,11\n"
+        "WS:2.186484\n"
+    );
     // config.to_string();
     //PRINTF("%s\n", config.to_string());
 
@@ -120,17 +120,17 @@ static void setup(void)
     // load_config_from_file("giant_trance.cfg");
 
     // wait for config
-    while(config.name == "")
-    {
-        actor_core0.handle_all();
-        sleep_ms(100);
-    }
+    // while(config.name == "")
+    // {
+    //     actor_core0.handle_all();
+    //     sleep_ms(100);
+    // }
     config.to_string();
 
 #endif
 
     // for testing purpose
-#if SIM_WHEEL_CADENCE == 0
+#if SIM_WHEEL_CADENCE == 1
     float emulated_speed = 25.0;
     speed_emulate(emulated_speed);
     PRINTF("emulated_speed=%f\n", emulated_speed);

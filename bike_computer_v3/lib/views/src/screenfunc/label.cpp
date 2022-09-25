@@ -8,29 +8,29 @@
 
 /**
  * @brief sets font and scale and offset that fits to frame
- * 
- * @param settings 
- * @param frame 
- * @param length 
+ *
+ * @param settings
+ * @param frame
+ * @param length
  */
-static void fitToFrame(TextSettings* settings, const Frame& frame, size_t length);
+static void fitToFrame(TextSettings& settings, const Frame& frame, size_t length);
 
 
-void labelSettingsNew(LabelSettings* settings, const Frame& frame, const char* string, size_t commonLength)
+void labelSettingsNew(LabelSettings& settings, const Frame& frame, const char* string, size_t commonLength)
 {
-    settings->text.string = string;
-    settings->text.str_len = commonLength;
-    fitToFrame(&settings->text, frame, commonLength);
+    settings.text.string = string;
+    settings.text.str_len = commonLength;
+    fitToFrame(settings.text, frame, commonLength);
 }
 
-void labelSettingsNew(LabelSettings* settings, const Frame& frame, const char* string)
+void labelSettingsNew(LabelSettings& settings, const Frame& frame, const char* string)
 {
     labelSettingsNew(settings, frame, string, strlen(string));
 }
 
 /*print string*/
-void LabelDraw(void *settings)
-{   
+void LabelDraw(const void *settings)
+{
     LabelSettings *labelSettings = (LabelSettings *)settings;
 
     //TRACE_DEBUG(0, TRACE_DISPLAY_PRINT, "Drawing label %s at [%d, %d]\n", labelSettings->text.string, x, y);
@@ -44,36 +44,36 @@ void LabelDraw(void *settings)
 
 }
 
-uint16_t labelSettingsGetWidth(LabelSettings* settings)
+uint16_t labelSettingsGetWidth(const LabelSettings& settings)
 {
-    return settings->text.str_len * settings->text.font->width * settings->text.scale; 
+    return settings.text.str_len * settings.text.font->width * settings.text.scale;
 }
 
-uint16_t labelSettingsGetHeight(LabelSettings* settings)
+uint16_t labelSettingsGetHeight(const LabelSettings& settings)
 {
-    return settings->text.font->height * settings->text.scale;
+    return settings.text.font->height * settings.text.scale;
 }
 
-void labelSettingsAlign(LabelSettings* settings, const Frame& frame, Align align)
+void labelSettingsAlign(LabelSettings& settings, const Frame& frame, Align align)
 {
     switch (align)
     {
     case Align::CENTER:
-        { 
+        {
             auto spaceLeft = frame.width - labelSettingsGetWidth(settings);
-            settings->text.offsetX = frame.x + spaceLeft / 2;
+            settings.text.offsetX = frame.x + spaceLeft / 2;
             TRACE_DEBUG(3, TRACE_DISPLAY_PRINT, "Center space left = %d\n", spaceLeft);
         }
         break;
     case Align::RIGHT:
-        { 
+        {
             auto spaceLeft = frame.width - labelSettingsGetWidth(settings);
-            settings->text.offsetX = frame.x + spaceLeft;
+            settings.text.offsetX = frame.x + spaceLeft;
         }
         break;
     case Align::LEFT:
         {
-            settings->text.offsetX = frame.x;
+            settings.text.offsetX = frame.x;
         }
         break;
     default:
@@ -82,16 +82,16 @@ void labelSettingsAlign(LabelSettings* settings, const Frame& frame, Align align
 }
 
 // ============= static functions ================
-static void fitToFrame(TextSettings* settings, const Frame& frame, size_t length)
+static void fitToFrame(TextSettings& settings, const Frame& frame, size_t length)
 {
     // we need to calculate
     // font size and scale
     //  based on frame size and text length
-    // not used // size_t length = settings->str_len;
+    // not used // size_t length = settings.str_len;
     u_int16_t widthPerChar = frame.width / length;
     uint8_t scale = 0;
 
-    getFontSizePreferBiggerFonts(widthPerChar, frame.height, &settings->font, &settings->scale);
-    settings->offsetX = frame.x;
-    settings->offsetY = frame.y;
+    getFontSizePreferBiggerFonts(widthPerChar, frame.height, &settings.font, &settings.scale);
+    settings.offsetX = frame.x;
+    settings.offsetY = frame.y;
 }

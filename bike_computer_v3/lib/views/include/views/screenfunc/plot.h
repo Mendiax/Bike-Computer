@@ -8,8 +8,8 @@
 
 //drawFunc_p get_draw_func_plot(float* arr);
 
-void plot_float(void *settings);
-void plot_arrayminmax(void *settings);
+void plot_float(const void *settings);
+void plot_arrayminmax(const void *settings);
 
 
 

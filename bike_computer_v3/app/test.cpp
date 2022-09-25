@@ -413,19 +413,19 @@ int main(void)
     /*
     display test
     */
-    // printf("[TEST] starting test_driver()\n");
-    // test_driver();
-    // printf("[TEST] ending test_driver()\n");
-    // sleep_ms(1000);
-    // printf("[TEST] starting test_print()\n");
-    // test_print();
-    // printf("[TEST] ending test_print()\n");
-    // sleep_ms(1000);
-    // printf("[TEST] starting test_draw_line()\n");
-    // test_draw_line();
-    // printf("[TEST] ending test_draw_line()\n");
+    printf("[TEST] starting test_driver()\n");
+    test_driver();
+    printf("[TEST] ending test_driver()\n");
+    sleep_ms(1000);
+    printf("[TEST] starting test_print()\n");
+    test_print();
+    printf("[TEST] ending test_print()\n");
+    sleep_ms(1000);
+    printf("[TEST] starting test_draw_line()\n");
+    test_draw_line();
+    printf("[TEST] ending test_draw_line()\n");
 
-    // sleep_ms(1000);
+    sleep_ms(1000);
 
 
     /*
@@ -438,7 +438,7 @@ int main(void)
     //bmp_test();
     //test_DOF();
 
-    // test_sim868_interface();
+    test_sim868_interface();
 
 
     while (1)

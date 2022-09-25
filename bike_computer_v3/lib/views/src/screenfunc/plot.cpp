@@ -37,10 +37,10 @@ static inline O map(const T& val, const T& min, const T& max, const O& min_o, co
         return max_o;
     }
     return val_o; // not tested
-    
+
 }
 
-void plot_float(void *settings)
+void plot_float(const void *settings)
 {
     typedef float f_t;
     PlotSettings* plot_settings = (PlotSettings*)settings;

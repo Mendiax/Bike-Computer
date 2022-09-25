@@ -13,8 +13,10 @@
 
 // display
 #include "display/print.h"
+#include "structure.hpp"
 //veiws
-#include "views/display.h"
+#include "views/view.hpp"
+// #include "views/display.h"
 
 #include <string>
 #include <iostream>
@@ -120,31 +122,42 @@ static void setup(void)
 
     sensors_data_display = sensors_data;
 
-    Display_init(&sensors_data_display, &sessionDataDisplay);
+
+    auto gui = gui::Gui::get_gui(&sensors_data_display, &sessionDataDisplay);
+
+    gui->render();
+    gui->refresh();
+    // while (1)
+    // {
+    //     PRINTF("gui render done\n");
+    //     sleep_ms(1000);
+    // }
+
+    // Display_init(&sensors_data_display, &sessionDataDisplay);
 
     // TODO move it to menu
     {
-        const std::string config_file_name = "giant_trance.cfg";
-        Sd_File config_file(config_file_name);
-        auto content = config_file.read_all();
+        // const std::string config_file_name = "giant_trance.cfg";
+        // Sd_File config_file(config_file_name);
+        // auto content = config_file.read_all();
 
-        auto payload = new Sig_Core0_Set_Config();
-        payload->file_content = config_file.read_all();
-        payload->file_name = config_file_name;
-        Signal sig(SIG_CORE0_SET_CONFIG ,payload);
-        actor_core0.send_signal(sig);
+        // auto payload = new Sig_Core0_Set_Config();
+        // payload->file_content = config_file.read_all();
+        // payload->file_name = config_file_name;
+        // Signal sig(SIG_CORE0_SET_CONFIG ,payload);
+        // actor_core0.send_signal(sig);
     }
 
     // update data on start
     {
-        float dist = 0.0f, time = 0.0f;
-        get_total_data(time, dist);
-        auto payload = new Sig_Core0_Set_Total();
-        // update data
-        payload->ridden_dist_total = dist;
-        payload->ridden_time_total = time;
-        Signal sig(SIG_CORE0_SET_TOTAL, payload);
-        actor_core0.send_signal(sig);
+        // float dist = 0.0f, time = 0.0f;
+        // get_total_data(time, dist);
+        // auto payload = new Sig_Core0_Set_Total();
+        // // update data
+        // payload->ridden_dist_total = dist;
+        // payload->ridden_time_total = time;
+        // Signal sig(SIG_CORE0_SET_TOTAL, payload);
+        // actor_core0.send_signal(sig);
     }
 
 }
@@ -174,10 +187,10 @@ static int loop(void)
             switch(sensors_data_display.current_state)
             {
                 case SystemState::TURNED_ON:
-                    Display_set_main_display_type();
+                    // Display_set_main_display_type();
                     break;
                 case SystemState::CHARGING:
-                    Display_set_charge_display_type();
+                    // Display_set_charge_display_type();
                     break;
                 case SystemState::ENDED:
                     // TODO ??
@@ -191,7 +204,8 @@ static int loop(void)
         // if button has been pressed change view
         if(btnPressedCount > 0)
         {
-            Display_incDisplayType();
+            // TODO next display
+            // Display_incDisplayType();
             btnPressedCount = 0;
         }
 
@@ -307,7 +321,10 @@ static int loop(void)
         mutex_exit(&sensorDataMutex);
 
         // render
-        Display_update();
+        // Display_update(); TODO
+        auto gui = gui::Gui::get_gui();
+        gui->refresh();
+
         if(system_sate == SystemState::PAUSED)
         {
             TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label %d\n", change_state);

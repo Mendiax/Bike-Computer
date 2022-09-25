@@ -4,11 +4,6 @@
 #include "views/window.h"
 #include "views/screenfunc/common.h"
 
-// Window::Window()
-// {
-
-// }
-
 
 void Window_new_inPlace(Window *this_p, const Settings& drawSettings, drawFunc_p drawFunction)
 {
