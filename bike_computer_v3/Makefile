@@ -8,8 +8,21 @@ PICO_DRIVE_LETTER := I
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 
-all: parser
-	$(MAKE) -C $(BUILD) -j$(NPROCS) && echo "BUILD FINISHED"
+CMAKE_BUILDER := "Ninja"
+# CMAKE_BUILDER := "Unix Makefiles"
+
+all:
+	# $(MAKE) -C $(BUILD) -j$(NPROCS) && echo "BUILD FINISHED"
+	cmake --build ./build --parallel $(NPROCS)
+
+main:
+	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
+
+test:
+	cmake --build ./build --parallel $(NPROCS) --target $(PICO_TEST_FILE) && echo "BUILD FINISHED"
+
+gsm:
+	cmake --build ./build --parallel $(NPROCS) --target $(PICO_GSM_CONSOLE_FILE) && echo "BUILD FINISHED"
 
 sim:
 	$(MAKE) -C $(BUILD) -j$(NPROCS)
@@ -20,9 +33,9 @@ parser:
 
 #-DCMAKE_VERBOSE_MAKEFILE=ON
 cmake: parser
-	cmake -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Debug
+	cmake -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Debug
 
-cmaker:
+cmaker: parser
 	cmake -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Release
 
 release:
@@ -46,13 +59,13 @@ write_gsm_console:
 	cp $(BUILD)/$(PICO_GSM_CONSOLE_FILE).uf2 $(PICODIR)
 
 # compile & write
-cw: all write_main
+cw: main write_main
 	echo "cw main"
 
-cwt: all write_test
+cwt: test write_test
 	echo "cw test"
 
-cwgsm: all write_gsm_console
+cwgsm: gsm write_gsm_console
 	echo "cw gsm console"
 
 clean:
