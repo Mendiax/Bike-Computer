@@ -17,7 +17,7 @@
 
 
 #define LONG_PRESS_MS 1000
-#define PRESS_TIMEOUT 200
+#define PRESS_TIMEOUT 500
 
 typedef void (*btn_call)(void);
 

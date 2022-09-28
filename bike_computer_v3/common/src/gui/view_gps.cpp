@@ -8,7 +8,7 @@
 #include <tuple>
 
 // my includes
-#include "view_gps.hpp"
+#include "gui/view_gps.hpp"
 #include "views/view.hpp"
 
 // #------------------------------#

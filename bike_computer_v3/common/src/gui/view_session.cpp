@@ -7,7 +7,7 @@
 // c/c++ includes
 
 // my includes
-#include "view_session.hpp"
+#include "gui/view_session.hpp"
 #include "traces.h"
 
 // #------------------------------#

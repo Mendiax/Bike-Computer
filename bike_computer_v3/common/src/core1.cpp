@@ -13,7 +13,7 @@
 
 // display
 #include "display/print.h"
-#include "structure.hpp"
+#include "gui/structure.hpp"
 //veiws
 #include "views/view.hpp"
 // #include "views/display.h"
@@ -124,7 +124,7 @@ static void setup(void)
 
 
     // setup
-    auto gui = gui::Gui::get_gui(&sensors_data_display, &sessionDataDisplay);
+    auto gui = Gui::get_gui(&sensors_data_display, &sessionDataDisplay);
     gui->refresh();
     // while (1)
     // {
@@ -167,7 +167,7 @@ static int loop(void)
     actor_core1.handle_all();
     // frame update
     {
-        gui::Gui::get_gui()->handle_buttons();
+        Gui::get_gui()->handle_buttons();
 
 
         // copy data
@@ -324,7 +324,7 @@ static int loop(void)
 
         // render
         // Display_update(); TODO
-        auto gui = gui::Gui::get_gui();
+        auto gui = Gui::get_gui();
         gui->refresh();
 
         if(system_sate == SystemState::PAUSED)

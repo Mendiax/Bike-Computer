@@ -9,9 +9,9 @@
 // my includes
 #include "views/view.hpp"
 
-#include "structure.hpp"
+#include "gui/structure.hpp"
 #include "gui_common.hpp"
-#include "view_all.hpp"
+#include "gui/view_all.hpp"
 #include "display/print.h"
 #include "massert.h"
 
@@ -41,30 +41,12 @@ using namespace gui;
 // gui
 Gui* Gui::singleton = nullptr;
 
-static void on_click_view_action();
-static void on_click_view_action()
-{
-    auto gui = gui::Gui::get_gui();
-    // gui->get_current()->action();
-}
-
-
-static void on_click_next_view();
-static void on_click_next_view()
-{
-    auto gui = gui::Gui::get_gui();
-    gui->go_next();
-}
-
-
 
 Gui::Gui(Sensor_Data* data_p, Session_Data* session_p)
 {
-    BTN_NAVIGATE.set_callback(on_click_next_view);
     display::init();
     display::clear();
     display::display();
-    PRINTF("Gui create\n");
 
     this->set_data(data_p, session_p);
     this->create();
@@ -101,25 +83,46 @@ void Gui::create()
 
 void Gui::handle_buttons()
 {
-    if(BTN_NAVIGATE.pop_was_pressed())
-    {
-        this->go_next();
-    }
-    if(BTN_NAVIGATE.pop_was_pressed_long())
-    {
-        this->go_prev();
-        // this->current_view_list = this->current_view_list->get_back();
-    }
+    #define BTN_HANDLE(btn, short_clb, long_clb) \
+        do { \
+            if(btn.pop_was_pressed()) \
+            { \
+                short_clb; \
+            } \
+            if(btn.pop_was_pressed_long()) \
+            { \
+                long_clb; \
+            } \
+        } while(0)
 
-    // enter
-    if(BTN_ACTION.pop_was_pressed())
-    {
-        this->get_current()->action();
-    }
-    if(BTN_ACTION.pop_was_pressed_long())
-    {
-        this->get_current()->action_long();
-    }
+    BTN_HANDLE(BTN_NAVIGATE,
+               this->go_next(),
+               this->go_prev());
+
+    BTN_HANDLE(BTN_ACTION,
+               this->get_current()->action(),
+               this->get_current()->action_long());
+
+    // if(BTN_NAVIGATE.pop_was_pressed())
+    // {
+    //     this->go_next();
+    // }
+    // if(BTN_NAVIGATE.pop_was_pressed_long())
+    // {
+    //     this->go_prev();
+    //     // this->current_view_list = this->current_view_list->get_back();
+    // }
+
+    // // enter
+    // if(BTN_ACTION.pop_was_pressed())
+    // {
+    //     this->get_current()->action();
+    // }
+    // if(BTN_ACTION.pop_was_pressed_long())
+    // {
+    //     this->get_current()->action_long();
+    // }
+    #undef BTN_HANDLE
 }
 
 

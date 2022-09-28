@@ -8,7 +8,7 @@
 #include <tuple>
 
 // my includes
-#include "view_max_avg.hpp"
+#include "gui/view_max_avg.hpp"
 #include "views/view.hpp"
 
 // #------------------------------#

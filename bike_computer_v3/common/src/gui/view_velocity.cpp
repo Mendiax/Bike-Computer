@@ -7,10 +7,9 @@
 // c/c++ includes
 #include <tuple>
 
-
 // my includes
 #include "views/view.hpp"
-#include "view_velocity.hpp"
+#include "gui/view_velocity.hpp"
 
 // #------------------------------#
 // |           macros             |
