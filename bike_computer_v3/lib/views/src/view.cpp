@@ -171,7 +171,7 @@ std::tuple<Frame, Frame> View_Creator::splitFrame(const Frame& frame, uint16_t l
  * @param frame
  * @return constexpr auto
  */
-constexpr std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame)
+std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame)
 {
     const uint16_t half_width = frame.width / 2;
     const Frame f1 = {frame.x, frame.y, half_width, frame.height};
@@ -185,7 +185,7 @@ constexpr std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& fra
  * @param frame
  * @return constexpr auto
  */
-constexpr std::tuple<Frame, Frame> View_Creator::split_horizontal(const Frame& frame)
+std::tuple<Frame, Frame> View_Creator::split_horizontal(const Frame &frame)
 {
     const uint16_t half_height = frame.height / 2;
     const Frame f1 = {frame.x, frame.y, frame.width, half_height};

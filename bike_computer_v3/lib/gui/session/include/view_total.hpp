@@ -1,5 +1,5 @@
-#ifndef __session_VIEW_SESSION_HPP__
-#define __session_VIEW_SESSION_HPP__
+#ifndef __SESSION_VIEW_TOTAL_HPP__
+#define __SESSION_VIEW_TOTAL_HPP__
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
@@ -8,11 +8,7 @@
 // c/c++ includes
 
 // my includes
-#include "gui_common.hpp"
-#include "views/view.hpp"
-#include "common_types.h"
-#include "session.hpp"
-
+#include "view_session.hpp"
 
 // #-------------------------------#
 // |            macros             |
@@ -21,28 +17,20 @@
 // #-------------------------------#
 // | global types declarations     |
 // #-------------------------------#
-/**
- * @brief class that display data of current session
- *
- */
-class View_Session : public gui::View
+class View_Total : public View_Session
 {
 private:
-    bool view_only;
-protected:
-    const Sensor_Data& data;
-    const Session_Data& session;
+
 
 public:
-    View_Session(const Sensor_Data& data, const Session_Data& session, bool view_only);
-    ~View_Session();
+    using View_Session::View_Session;
 
-    // // start/pause
-    // void action(void);
-    // // end session
-    // void action_long(void);
+    /**
+     * @brief render function that renders current view
+     *
+     */
+    void render(void);
 };
-
 // #-------------------------------#
 // | global variables declarations |
 // #-------------------------------#

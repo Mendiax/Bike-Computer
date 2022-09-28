@@ -6,9 +6,9 @@
 // pico includes
 
 // c/c++ includes
-#include "view_session.hpp"
 
 // my includes
+#include "view_session.hpp"
 
 // #-------------------------------#
 // |            macros             |

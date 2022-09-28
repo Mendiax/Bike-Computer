@@ -8,9 +8,10 @@
 
 // my includes
 #include "views/view.hpp"
+
 #include "structure.hpp"
 #include "gui_common.hpp"
-#include "view_velocity.hpp"
+#include "view_all.hpp"
 #include "display/print.h"
 #include "massert.h"
 
@@ -67,6 +68,7 @@ Gui::Gui(Sensor_Data* data_p, Session_Data* session_p)
 
     this->set_data(data_p, session_p);
     this->create();
+    this->render();
 }
 
 Gui::~Gui()
@@ -84,15 +86,51 @@ void Gui::create()
 
     auto session_menu = new View_List();
     session_menu->add_view(view1);
+    session_menu->add_view(new View_Max_Avg(*data, *session, false));
+    session_menu->add_view(new View_Gps(*data, *session, false));
+    session_menu->add_view(new View_Date(*data, *session, false));
+    // session_menu->add_view(new View_Forecast(*data, *session, false));
+    session_menu->add_view(new View_Total(*data, *session, false));
+
+
 
     this->current_view_list = session_menu;
     massert(view1 == get_current(), "current view on create failed\n");
 }
 
 
+void Gui::handle_buttons()
+{
+    if(BTN_NAVIGATE.pop_was_pressed())
+    {
+        this->go_next();
+    }
+    if(BTN_NAVIGATE.pop_was_pressed_long())
+    {
+        this->go_prev();
+        // this->current_view_list = this->current_view_list->get_back();
+    }
+
+    // enter
+    if(BTN_ACTION.pop_was_pressed())
+    {
+        this->get_current()->action();
+    }
+    if(BTN_ACTION.pop_was_pressed_long())
+    {
+        this->get_current()->action_long();
+    }
+}
+
+
 void Gui::go_next()
 {
     current_view_list->get_next_view();
+    this->render();
+}
+void Gui::go_prev()
+{
+    current_view_list->get_prev_view();
     this->render();
 }
 void Gui::go_back()
@@ -125,6 +163,7 @@ void Gui::render()
 {
     display::clear();
     current_view_list->get_current_view()->render();
+    this->refresh();
 }
 
 // #------------------------------#

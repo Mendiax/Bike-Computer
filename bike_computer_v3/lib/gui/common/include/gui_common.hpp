@@ -42,12 +42,14 @@ namespace gui
          */
         virtual void render(void) = 0;
 
-        // /**
-        //  * @brief special function that executes when special button is pressed
-        //  * Mainly used to go to the next view
-        //  *
-        //  */
-        // void action(void);
+        /**
+         * @brief special function that executes when special button is pressed
+         * Mainly used to go to the next view
+         *
+         */
+        virtual void action(void);
+        virtual void action_long(void);
+
     };
 
     class View_List
@@ -62,6 +64,8 @@ namespace gui
 
         ~View_List();
         View* get_next_view();
+        View* get_prev_view();
+
         View* get_current_view();
 
         View_List* get_back();

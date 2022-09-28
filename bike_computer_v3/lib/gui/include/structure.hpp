@@ -11,6 +11,7 @@
 #include "gui_common.hpp"
 #include "common_types.h"
 #include "session.hpp"
+#include "massert.h"
 
 
 // #-------------------------------#
@@ -48,15 +49,25 @@ namespace gui
         {
             if(singleton == nullptr)
             {
+                massert(data_p != nullptr, "get_gui create with nullptr parameters\n");
+                massert(session_p != nullptr, "get_gui create with nullptr parameters\n");
+
                 singleton = new Gui(data_p, session_p);
             }
             return singleton;
         }
         /**
+         * @brief executs buttons handlers
+         *
+         */
+        void handle_buttons();
+        /**
          * @brief chenge view to the next in the list
          *
          */
         void go_next();
+        void go_prev();
+
         /**
          * @brief move one level up if exists
          *

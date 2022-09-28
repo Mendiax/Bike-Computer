@@ -63,10 +63,12 @@ void Button::on_call_release(void)
         uint32_t press_time = this->time_release - this->time_press;
         if(press_time >= LONG_PRESS_MS)
         {
+            this->was_pressed_long = true;
             this->long_call();
         }
         else if(press_time > 0)
         {
+            this->was_pressed = true;
             this->short_call();
         }
         this->pressed = false;
@@ -143,3 +145,15 @@ bool Button::is_released()
     return (this->pressed == false);
 }
 
+bool Button::pop_was_pressed()
+{
+    const bool pressed = this->was_pressed;
+    this->was_pressed = false;
+    return pressed;
+}
+bool Button::pop_was_pressed_long()
+{
+    const bool pressed = this->was_pressed_long;
+    this->was_pressed_long = false;
+    return pressed;
+}

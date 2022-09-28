@@ -34,6 +34,10 @@ private:
     btn_call long_call;
     btn_call on_press;
 
+    volatile bool was_pressed;
+    volatile bool was_pressed_long;
+
+
 
 
 public:
@@ -60,6 +64,20 @@ public:
      */
     bool is_pressed_long_execute();
     bool is_released();
+    /**
+     * @brief used for executing code outside of interrupt
+     *
+     * @return true
+     * @return false
+     */
+    bool pop_was_pressed();
+    /**
+     * @brief used for executing code outside of interrupt
+     *
+     * @return true
+     * @return false
+     */
+    bool pop_was_pressed_long();
     // const interrupt& get_interrupt_pressed();
     // const interrupt& get_interrupt_released();
 };

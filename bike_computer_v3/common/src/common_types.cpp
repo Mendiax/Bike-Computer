@@ -6,7 +6,7 @@
 #include <math.h>
 
 
-void add_millis(TimeS& time, uint64_t millis_to_add)
+static void add_millis(TimeS& time, uint64_t millis_to_add)
 {
     TimeS correct_time;
     correct_time.seconds = ((float)millis_to_add / 1000.0f) + time.seconds;

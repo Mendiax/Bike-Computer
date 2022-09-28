@@ -120,11 +120,11 @@ static void setup(void)
     // load_config_from_file("giant_trance.cfg");
 
     // wait for config
-    // while(config.name == "")
-    // {
-    //     actor_core0.handle_all();
-    //     sleep_ms(100);
-    // }
+    while(config.name == "")
+    {
+        actor_core0.handle_all();
+        sleep_ms(100);
+    }
     config.to_string();
 
 #endif
@@ -284,23 +284,27 @@ static int loop_frame_update()
     // battery
     cycle_get_battery_status();
 
-    //cycle_get_gps_data();
+    cycle_get_gps_data();
 
 
     // static char cipgsmloc[20] = {0};
     // CYCLE_UPDATE(sim868::gsm::get_cipgsmloc(cipgsmloc), GPS_FETCH_CYCLE_MS + 100, {},{});
     // static char clbs[27] = {0};
     // CYCLE_UPDATE(sim868::gsm::get_clbs(clbs), GPS_FETCH_CYCLE_MS + 300,{},{});
-    static TimeS current_time;
-    CYCLE_UPDATE_SLOW_RERUN(sim868::gsm::get_time(current_time), (current_time.year < 2022), TIME_FETCH_CYCLE_MS, 1000,
-     {}, {
-        //time_print(current_time);
-    });
-    current_time.update_time(get_absolute_time());
-    mutex_enter_blocking(&sensorDataMutex);
-    sensors_data.current_time = current_time;
+
+    // static TimeS current_time;
+    // CYCLE_UPDATE_SLOW_RERUN(sim868::gsm::get_time(current_time), (current_time.year < 2022), TIME_FETCH_CYCLE_MS, 1000,
+    //  {}, {
+    //     //time_print(current_time);
+    // });
+    // current_time.update_time(get_absolute_time());
+    // mutex_enter_blocking(&sensorDataMutex);
+    // if (current_time.year > current_time.year)
+    //     sensors_data.current_time = current_time;
+    // sensors_data.current_time = current_time;
+
     // time_print(sensors_data.current_time);
-    mutex_exit(&sensorDataMutex);
+    // mutex_exit(&sensorDataMutex);
 
 
     cycle_get_weather_data();
@@ -480,7 +484,7 @@ static void cycle_get_gps_data()
             // speed = 69.3;
             // msl = 123.34;
 
-            //time_print(current_time);
+            // time_print(current_time);
 
             // if(latitude == 0.0 || longitude == 0.0)
             // {
@@ -494,14 +498,18 @@ static void cycle_get_gps_data()
             sensors_data.gps_data.lat = latitude;
             sensors_data.gps_data.lon = longitude;
             sensors_data.gps_data.msl = msl;
+            sim868::gps::get_date(current_time);
+            // if(current_time.year > current_time.year)
+            sensors_data.current_time = current_time;
 
-            if(sim868::gps::get_gps_state() >= GpsState::DATA_AVAIBLE)
-                memcpy(&sensors_data.current_time.date, &current_time, sizeof(sensors_data.current_time.date));
+
+            // if(sim868::gps::get_gps_state() >= GpsState::DATA_AVAIBLE)
+            //     memcpy(&sensors_data.current_time.date, &current_time, sizeof(sensors_data.current_time.date));
 
             mutex_exit(&sensorDataMutex);
             TRACE_DEBUG(3, TRACE_CORE_0,
-                        "gps speed %.1f, pos [%.5f,%.5f] date year = %" PRIu16 " signal = [%" PRIu8 ",%" PRIu8 "]\n",
-                        speed, latitude, longitude, current_time.year,
+                        "gps speed %.1f, pos [%.5f,%.5f] date = %s signal = [%" PRIu8 ",%" PRIu8 "]\n",
+                        speed, latitude, longitude, time_to_str(current_time).c_str(),
                         sensors_data.gps_data.sat,
                         sensors_data.gps_data.sat2);
         });

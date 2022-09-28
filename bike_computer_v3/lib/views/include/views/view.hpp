@@ -87,14 +87,14 @@ public:
      * @param len
      * @return std::tuple<Frame, Frame>
      */
-    std::tuple<Frame, Frame> splitFrame(const Frame &frame, uint16_t length, bool align_right = false);
+    static std::tuple<Frame, Frame> splitFrame(const Frame &frame, uint16_t length, bool align_right = false);
     /**
      * @brief splits frame into 2 frames with half of width
      *
      * @param frame
      * @return constexpr std::tuple<Frame, Frame>
      */
-    constexpr std::tuple<Frame, Frame> split_vertical(const Frame &frame);
+    static std::tuple<Frame, Frame> split_vertical(const Frame &frame);
     // {
     //     const uint16_t half_width = frame.width / 2;
     //     const Frame f1 = {frame.x, frame.y, half_width, frame.height};
@@ -108,7 +108,8 @@ public:
      * @param frame
      * @return constexpr std::tuple<Frame, Frame>
      */
-    constexpr std::tuple<Frame, Frame> split_horizontal(const Frame &frame);
+    static std::tuple<Frame, Frame> split_horizontal(const Frame &frame);
+
     template <typename T>
     void addValueUnitsVertical(const char *format, size_t commonLength, const T *data,
                                const char *over, const char *under,

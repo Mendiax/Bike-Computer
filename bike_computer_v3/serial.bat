@@ -1,1 +1,1 @@
-putty.exe -serial com13
+putty.exe -serial com23

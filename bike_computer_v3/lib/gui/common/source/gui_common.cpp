@@ -53,6 +53,16 @@ view_list_p View::get_next_view_list()
     return next;
 }
 
+void View::action(void)
+{
+    // empty handler
+}
+void View::action_long(void)
+{
+    // empty handler
+}
+
+
 
 
 View_List::View_List()
@@ -75,8 +85,17 @@ View_List::~View_List()
 View* View_List::get_next_view()
 {
     it++;
+    it = it == views_list.end() ? it = views_list.begin() : it;
     return *it;
 }
+
+View* View_List::get_prev_view()
+{
+    it = it == views_list.begin() ? it = views_list.end() : it;
+    it--;
+    return *it;
+}
+
 View* View_List::get_current_view()
 {
     return *it;
