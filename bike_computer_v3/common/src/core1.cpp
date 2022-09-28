@@ -161,6 +161,98 @@ static void setup(void)
 
 }
 
+void handle_pause_start()
+{
+    TRACE_DEBUG(2, TRACE_CORE_1, "pause btn pressed %d\n", change_state);
+    change_state = false;
+    mutex_enter_blocking(&sensorDataMutex);
+    switch(sensors_data_display.current_state)
+    {
+        case SystemState::PAUSED:
+            {
+                Signal sig(SIG_CORE0_CONTINUE);
+                actor_core0.send_signal(sig);
+                TRACE_DEBUG(2, TRACE_CORE_1, "sending signal continue %d\n", (int) sig.get_sig_id());
+
+            }
+            break;
+        case SystemState::AUTOSTART:
+        case SystemState::RUNNING:
+            {
+                Signal sig(SIG_CORE0_PAUSE);
+                actor_core0.send_signal(sig);
+                TRACE_DEBUG(2, TRACE_CORE_1, "sending signal pause %d\n", (int) sig.get_sig_id());
+
+            }
+            break;
+        case SystemState::TURNED_ON:
+            {
+                Signal sig(SIG_CORE0_SESION_START);
+                actor_core0.send_signal(sig);
+                TRACE_DEBUG(2, TRACE_CORE_1, "sending signal start %d\n", (int) sig.get_sig_id());
+            }
+            break;
+        default:
+            TRACE_ABNORMAL(TRACE_CORE_1, "pause has no effect %d\n", (int) sensors_data_display.current_state);
+            break;
+    }
+    sensors_data.current_state = sensors_data_display.current_state;
+    mutex_exit(&sensorDataMutex);
+}
+
+void handle_end_session()
+{
+    display::clear();
+    Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
+    const sFONT *font = 0;
+    uint8_t scale;
+    auto label = "SAVING";
+    auto width_char = pause_label.width / strlen(label);
+    getFontSize(width_char, pause_label.height, &font, &scale);
+    Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
+    display::display();
+    // save track and wait for restart
+    // TODO improve add menu ???
+
+    Signal sig(SIG_CORE0_STOP);
+    actor_core0.send_signal(sig);
+
+    mutex_enter_blocking(&sensorDataMutex);
+    sessionDataDisplay.end(sensors_data.current_time);
+
+    Sd_File last_save("last_track.csv");
+    if (last_save.is_empty())
+    {
+        last_save.append(sessionDataDisplay.get_header());
+    }
+    last_save.append(sessionDataDisplay.get_line().c_str());
+    mutex_exit(&sensorDataMutex);
+
+    // while(stop)
+    {
+        // PRINTF("STOPPED\n");
+        display::clear();
+        Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
+        const sFONT *font = 0;
+        uint8_t scale;
+        auto label = "SAVED";
+        auto width_char = pause_label.width / strlen(label);
+        getFontSize(width_char, pause_label.height, &font, &scale);
+        Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
+        display::display();
+        sleep_ms(1000);
+    }
+}
+
+void Core1::handle_sig_start_pause_btn(const Signal &sig)
+{
+    handle_pause_start();
+}
+void Core1::handle_sig_end_btn(const Signal &sig)
+{
+    handle_end_session();
+}
+
 static int loop(void)
 {
     absolute_time_t frameStart = get_absolute_time();
@@ -169,156 +261,11 @@ static int loop(void)
     {
         Gui::get_gui()->handle_buttons();
 
-
         // copy data
         mutex_enter_blocking(&sensorDataMutex);
         sensors_data_display = sensors_data;
         if (session_p)
             sessionDataDisplay = *session_p;
-        // std::cout << "Core1: \n'"
-        //      //<< sensors_data_display.clbs << "'\n'"
-        //      << sensors_data_display.cipgsmloc << "'" << std::endl;
-
-        mutex_exit(&sensorDataMutex);
-
-        // if system state has changed execute proper code
-        static SystemState last_system_state;
-        if(sensors_data_display.current_state != last_system_state)
-        {
-            last_system_state = sensors_data_display.current_state;
-            switch(sensors_data_display.current_state)
-            {
-                case SystemState::TURNED_ON:
-                    // Display_set_main_display_type();
-                    break;
-                case SystemState::CHARGING:
-                    // Display_set_charge_display_type();
-                    break;
-                case SystemState::ENDED:
-                    // TODO ??
-                case SystemState::PAUSED:
-                case SystemState::RUNNING:
-                default:
-                    break;
-            }
-        }
-
-        // if button has been pressed change view
-        if(btnPressedCount > 0)
-        {
-            // TODO next display
-            // Display_incDisplayType();
-            btnPressedCount = 0;
-        }
-
-        // if pause btn was pressed change state
-        if(change_state)
-        {
-            TRACE_DEBUG(2, TRACE_CORE_1, "pause btn pressed %d\n", change_state);
-            change_state = false;
-            mutex_enter_blocking(&sensorDataMutex);
-            switch(sensors_data_display.current_state)
-            {
-                case SystemState::PAUSED:
-                    {
-                        // sensors_data_display.current_state = SystemState::AUTOSTART;
-                        // session_p->cont();
-                        Signal sig(SIG_CORE0_CONTINUE);
-                        actor_core0.send_signal(sig);
-                        TRACE_DEBUG(2, TRACE_CORE_1, "sending signal continue %d\n", (int) sig.get_sig_id());
-
-                    }
-                    break;
-                case SystemState::AUTOSTART:
-                case SystemState::RUNNING:
-                    {
-                        // sensors_data_display.current_state = SystemState::PAUSED;
-                        // session_p->pause();
-                        Signal sig(SIG_CORE0_PAUSE);
-                        actor_core0.send_signal(sig);
-                        TRACE_DEBUG(2, TRACE_CORE_1, "sending signal pause %d\n", (int) sig.get_sig_id());
-
-                    }
-                    break;
-                case SystemState::TURNED_ON:
-                    {
-                        // sensors_data_display.current_state = SystemState::AUTOSTART;
-                        // session_p->start(sensors_data_display.current_time);
-                        Signal sig(SIG_CORE0_SESION_START);
-                        actor_core0.send_signal(sig);
-                        TRACE_DEBUG(2, TRACE_CORE_1, "sending signal start %d\n", (int) sig.get_sig_id());
-                    }
-                    break;
-                default:
-                    TRACE_ABNORMAL(TRACE_CORE_1, "pause has no effect %d\n", (int) sensors_data_display.current_state);
-                    break;
-            }
-            sensors_data.current_state = sensors_data_display.current_state;
-            mutex_exit(&sensorDataMutex);
-        }
-
-        // if(last_btn2_rel > last_btn2_press && last_btn2_rel - last_btn2_press > 500)
-        // {
-        //     // Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
-        //     // const sFONT* font = 0;
-        //     // uint8_t scale;
-        //     // auto label = "PRESS";
-        //     // auto width_char = pause_label.width / strlen(label);
-        //     // getFontSize(width_char, pause_label.height, &font, &scale);
-        //     // Paint_Println(pause_label.x, pause_label.y, label, font, {0x0,0xf,0x0}, scale);
-        //     // display::display();
-        // // }
-
-        if (btn2.is_pressed_long_execute())
-        {
-            display::clear();
-            Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
-            const sFONT* font = 0;
-            uint8_t scale;
-            auto label = "SAVING";
-            auto width_char = pause_label.width / strlen(label);
-            getFontSize(width_char, pause_label.height, &font, &scale);
-            Paint_Println(pause_label.x, pause_label.y, label, font, {0x0,0xf,0x0}, scale);
-            display::display();
-            // save track and wait for restart
-            // TODO improve add menu ???
-
-            Signal sig(SIG_CORE0_STOP);
-            actor_core0.send_signal(sig);
-
-            mutex_enter_blocking(&sensorDataMutex);
-            sessionDataDisplay.end(sensors_data.current_time);
-
-            Sd_File last_save("last_track.csv");
-            if(last_save.is_empty())
-            {
-                last_save.append(sessionDataDisplay.get_header());
-            }
-            last_save.append(sessionDataDisplay.get_line().c_str());
-            mutex_exit(&sensorDataMutex);
-
-
-            // while(stop)
-            {
-                //PRINTF("STOPPED\n");
-                display::clear();
-                Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
-                const sFONT* font = 0;
-                uint8_t scale;
-                auto label = "SAVED";
-                auto width_char = pause_label.width / strlen(label);
-                getFontSize(width_char, pause_label.height, &font, &scale);
-                Paint_Println(pause_label.x, pause_label.y, label, font, {0x0,0xf,0x0}, scale);
-                display::display();
-                sleep_ms(1000);
-            }
-
-
-            // Signal sig_start(SIG_CORE0_SESION_START);
-            // actor_core0.send_signal(sig_start);
-        }
-
-        mutex_enter_blocking(&sensorDataMutex);
         auto system_sate = sensors_data_display.current_state;
         mutex_exit(&sensorDataMutex);
 

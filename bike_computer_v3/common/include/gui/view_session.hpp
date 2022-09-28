@@ -37,10 +37,10 @@ public:
     View_Session(const Sensor_Data& data, const Session_Data& session, bool view_only);
     ~View_Session();
 
-    // // start/pause
-    // void action(void);
-    // // end session
-    // void action_long(void);
+    // start/pause
+    void action(void);
+    // end session
+    void action_long(void);
 };
 
 // #-------------------------------#

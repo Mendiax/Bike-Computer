@@ -9,6 +9,7 @@
 // my includes
 #include "gui/view_session.hpp"
 #include "traces.h"
+#include "common_actors.hpp"
 
 // #------------------------------#
 // |           macros             |
@@ -29,12 +30,19 @@ View_Session::~View_Session()
 
 }
 
+// start/pause
+void View_Session::action(void)
+{
+    Signal sig(SIG_CORE1_START_PAUSE_BTN);
+    actor_core1.send_signal(sig);
+}
 
-
-// void View_Session::action(void)
-// {
-
-// }
+// end session
+void View_Session::action_long(void)
+{
+    Signal sig(SIG_CORE1_END_BTN);
+    actor_core1.send_signal(sig);
+}
 
 // #------------------------------#
 // | static variables definitions |

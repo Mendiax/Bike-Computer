@@ -32,6 +32,8 @@ enum Sig_Ids
 
     // core 1
     SIG_CORE1_TOTAL_UPDATE,
+    SIG_CORE1_START_PAUSE_BTN,
+    SIG_CORE1_END_BTN,
     SIG_NO_MAX
 };
 
@@ -90,12 +92,18 @@ class Core1 : public Actor
 private:
     // definde in core1.cpp
     static void handle_sig_total_update(const Signal &sig);
+    static void handle_sig_start_pause_btn(const Signal &sig);
+    static void handle_sig_end_btn(const Signal &sig);
+
     // static void handle_sig_get_file(const Signal &sig);
 
 
     void handler_setup()
     {
         this->handler_add(handle_sig_total_update, SIG_CORE1_TOTAL_UPDATE);
+        this->handler_add(handle_sig_start_pause_btn, SIG_CORE1_START_PAUSE_BTN);
+        this->handler_add(handle_sig_end_btn, SIG_CORE1_END_BTN);
+
         // this->handler_add(handle_sig_get_file, SIG_CORE1_GET_FILE);
 
     }

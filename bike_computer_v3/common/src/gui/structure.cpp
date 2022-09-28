@@ -89,7 +89,7 @@ void Gui::handle_buttons()
             { \
                 short_clb; \
             } \
-            if(btn.pop_was_pressed_long()) \
+            if(btn.is_pressed_long_execute() || btn.pop_was_pressed_long()) \
             { \
                 long_clb; \
             } \
@@ -159,7 +159,7 @@ void Gui::refresh()
 {
     display::clear();
     View_Creator::get_view()->draw();
-    display::display();
+    // display::display();
 }
 
 void Gui::render()
