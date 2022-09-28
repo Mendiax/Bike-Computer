@@ -7,6 +7,15 @@
 typedef struct Frame
 {
     uint16_t x, y, width, height;
+
+    inline uint16_t get_max_x()
+    {
+        return x + width;
+    }
+    inline uint16_t get_max_y()
+    {
+        return y + height;
+    }
 } Frame;
 
 static inline std::string frame_to_string(const Frame& frame)

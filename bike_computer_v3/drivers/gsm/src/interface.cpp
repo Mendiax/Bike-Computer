@@ -13,7 +13,7 @@
 #include "sim868/interface.hpp"
 #include "console/console.h"
 #include "traces.h"
-#include "massert.h"
+#include "massert.hpp"
 #include "common_utils.hpp"
 
 // static variables

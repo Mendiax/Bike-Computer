@@ -11,7 +11,7 @@
 #include "gui_common.hpp"
 #include "common_types.h"
 #include "session.hpp"
-#include "massert.h"
+#include "massert.hpp"
 
 
 // #-------------------------------#

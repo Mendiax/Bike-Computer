@@ -54,6 +54,16 @@ uint16_t labelSettingsGetHeight(const LabelSettings& settings)
     return settings.text.font->height * settings.text.scale;
 }
 
+uint16_t textSettingsGetHeight(const TextSettings& text)
+{
+    return text.font->height * text.scale;
+}
+
+void labelSettingsAlignHeight(TextSettings& text, const Frame& frame, bool align_top)
+{
+    text.offsetY = align_top ? frame.y : frame.y + frame.height - textSettingsGetHeight(text);
+}
+
 void labelSettingsAlign(LabelSettings& settings, const Frame& frame, Align align)
 {
     switch (align)

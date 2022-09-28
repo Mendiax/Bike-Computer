@@ -1,6 +1,6 @@
 #include "sim868/gps.hpp"
 #include "sim868/interface.hpp"
-#include "massert.h"
+#include "massert.hpp"
 #include "traces.h"
 #include "common_utils.hpp"
 

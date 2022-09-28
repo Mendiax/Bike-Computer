@@ -13,7 +13,7 @@
 #include "gui_common.hpp"
 #include "gui/view_all.hpp"
 #include "display/print.h"
-#include "massert.h"
+#include "massert.hpp"
 
 // #------------------------------#
 // |           macros             |
@@ -71,7 +71,7 @@ void Gui::create()
     session_menu->add_view(new View_Max_Avg(*data, *session, false));
     session_menu->add_view(new View_Gps(*data, *session, false));
     session_menu->add_view(new View_Date(*data, *session, false));
-    // session_menu->add_view(new View_Forecast(*data, *session, false));
+    session_menu->add_view(new View_Forecast(*data, *session, false));
     session_menu->add_view(new View_Total(*data, *session, false));
 
 

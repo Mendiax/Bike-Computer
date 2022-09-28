@@ -116,6 +116,11 @@ static inline void move_forecasts_to_forecastplots(ForecastS* raw_data, Forecast
     {
         current_hour = raw_data->data_len - N;
     }
+    auto hour = current_hour;
+    for(size_t i = 0; i < N; i++)
+    {
+        forecast->time_h.array[i] = hour++;
+    }
     memcpy(&forecast->temperature_2m.array[0], &raw_data->temperature_2m[current_hour], sizeof(*raw_data->temperature_2m) * FORECAST_SENSOR_DATA_LEN);
     memcpy(&forecast->pressure_msl.array[0], &raw_data->pressure_msl[current_hour], sizeof(*raw_data->pressure_msl) * FORECAST_SENSOR_DATA_LEN);
     memcpy(&forecast->precipitation.array[0], &raw_data->precipitation[current_hour], sizeof(*raw_data->precipitation) * FORECAST_SENSOR_DATA_LEN);

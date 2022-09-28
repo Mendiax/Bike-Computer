@@ -20,7 +20,7 @@
 
 #include "parser.hpp"
 
-#include "massert.h"
+#include "massert.hpp"
 #include "traces.h"
 #include "eprom.hpp"
 

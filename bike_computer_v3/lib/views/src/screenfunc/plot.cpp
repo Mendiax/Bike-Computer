@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include <display/print.h>
-#include "massert.h"
+#include "massert.hpp"
 
 // drawFunc_p get_draw_func_plot(float* arr)
 // {
@@ -69,22 +69,30 @@ void plot_float(const void *settings)
     uint16_t dx = (plot_settings->frame.width - 1) / (plot_settings->len-1);
     uint_fast16_t x0,y0,x1,y1;
     uint_fast16_t fr_min_y = plot_settings->frame.y;
-    uint_fast16_t fr_max_y = fr_min_y + plot_settings->frame.height;
+    uint_fast16_t fr_max_y = fr_min_y + plot_settings->frame.height - 1;
+    const uint16_t map_max = plot_settings->frame.height - 1;
+    const uint16_t map_min = 0;
+
 
     //std::cout << "frame: " << plot_settings->frame.y << " " << plot_settings->frame.height << " " << fr_min_y + plot_settings->frame.height << std::endl;
     //std::cout << "dx: " << dx << " " <<fr_min_y << " " << fr_max_y << " " << min_val << " " << max_val << std::endl;
 
     x0 = plot_settings->frame.x;
     massert( min_val != max_val && fr_min_y != fr_max_y, "division by 0 \n");
-    y0 = fr_max_y - map(array_p[0], min_val, max_val, (uint16_t)0, plot_settings->frame.height);
+    y0 = fr_max_y - map(array_p[0], min_val, max_val, map_min, map_max);
 
     for(uint_fast16_t i = 1; i< plot_settings->len; ++i)
     {
         //std::cout << array_p[i] << std::endl;
         //render plot
         x1 = x0 + dx;
-        y1 = fr_max_y - map(array_p[i], min_val, max_val, (uint16_t)0, plot_settings->frame.height);
+        y1 = fr_max_y - map(array_p[i], min_val, max_val, map_min, map_max);
         //std::cout << "i: " << i << " " << x0 << " " << y0 << " " << x1 << " " << y1 << std::endl;
+        massert_range(y0, plot_settings->frame.y, plot_settings->frame.y + plot_settings->frame.height - 1);
+        massert_range(y1, plot_settings->frame.y, plot_settings->frame.y + plot_settings->frame.height - 1);
+        massert_range(x0, plot_settings->frame.x, plot_settings->frame.x + plot_settings->frame.width - 1);
+        massert_range(x1, plot_settings->frame.x, plot_settings->frame.x + plot_settings->frame.width - 1);
+
 
         Paint_DrawLine(x0,y0,x1,y1, plot_settings->color);
         x0 = x1;

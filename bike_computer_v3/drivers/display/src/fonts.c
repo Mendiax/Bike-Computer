@@ -1,6 +1,6 @@
 #include "display/fonts.h"
 //#include "display/debug.h"
-#include "massert.h"
+#include "massert.hpp"
 #include "inttypes.h"
 
 // prefering delta

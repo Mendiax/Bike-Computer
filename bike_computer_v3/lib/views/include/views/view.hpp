@@ -9,7 +9,9 @@
 // c/c++ includes
 #include <stdint.h>
 #include <tuple>
-
+#include <array>
+#include <string.h>
+#include <sstream>
 
 // my includes
 #include "views/frame.h"
@@ -19,7 +21,7 @@
 
 
 #include "window.h"
-#include "massert.h"
+#include "massert.hpp"
 
 // #-------------------------------#
 // |            macros             |
@@ -34,6 +36,8 @@
 #else
     #define VIEW_DEBUG_ADD(...)
 #endif
+
+#define MAX_LABEL_ARR_LEN 32
 
 // #-------------------------------#
 // | global types declarations     |
@@ -79,6 +83,18 @@ public:
                       const Frame &frame, Align align = Align::LEFT);
     void add_Units(const char* over, const char* under, const Frame& frame, Align align);
 
+    /**
+     * @brief adds label in fomrat:
+     * |<x0> <x1> ... <xn>| evenly distributed
+     *
+     * @tparam T
+     * @tparam N
+     * @param frame
+     */
+    template<typename T>
+    uint16_t add_arr_label(const T* arr, size_t N, const Frame& frame);
+
+
     // TODO make those static
     /**
      * @brief split frame into fram with len-1/len width and 1/len width
@@ -94,7 +110,7 @@ public:
      * @param frame
      * @return constexpr std::tuple<Frame, Frame>
      */
-    static std::tuple<Frame, Frame> split_vertical(const Frame &frame);
+    static std::tuple<Frame, Frame> split_vertical(const Frame &frame, uint8_t ratio = 2, bool invert = false);
     // {
     //     const uint16_t half_width = frame.width / 2;
     //     const Frame f1 = {frame.x, frame.y, half_width, frame.height};
@@ -108,7 +124,7 @@ public:
      * @param frame
      * @return constexpr std::tuple<Frame, Frame>
      */
-    static std::tuple<Frame, Frame> split_horizontal(const Frame &frame);
+    static std::tuple<Frame, Frame> split_horizontal(const Frame &frame, uint8_t ratio = 2, bool invert = false);
 
     template <typename T>
     void addValueUnitsVertical(const char *format, size_t commonLength, const T *data,
@@ -150,6 +166,74 @@ public:
 // | template functions definitions|
 // #-------------------------------#
 
+/**
+ * @brief prints array with spaces between them
+ *
+ * @tparam T type of arr
+ * @param N len of arr
+ * @param arr array to display
+ * @param frame
+ * @return uint16_t width of generated label
+ */
+template<typename T>
+uint16_t View_Creator::add_arr_label(const T* arr, size_t N, const Frame& frame)
+{
+    std::vector<std::string> strings(N);
+    size_t max_len = 0;
+    for(size_t i = 0; i < N; i++)
+    {
+        strings[i] = std::to_string(arr[i]);
+        max_len = std::max((size_t)strings[i].length(), max_len);
+    }
+    const size_t combined_length = max_len * N;
+
+
+    Window new_window;
+    new_window.updateFunc_p = LabelDraw;
+    LabelSettings& label_settings = new_window.settings.label;
+
+    static char label_space[MAX_LABEL_ARR_LEN];
+
+    // frame with "infinite" height
+    const Frame frame_topless = {frame.x, frame.y, frame.width, UINT16_MAX};
+    int no_spaces = 0;
+    uint16_t width, height;
+    do{
+        // calc width with new amount of spaces
+        const size_t whitespace_req = (N - 1) * ++no_spaces;
+        const size_t space_req = combined_length + whitespace_req;
+
+        // generate settings
+        labelSettingsNew(label_settings, frame_topless, label_space, space_req);
+        width = labelSettingsGetWidth(label_settings);
+        height = labelSettingsGetHeight(label_settings);
+    }while(height > frame.height);
+
+
+    // generate string with data and spacess between
+    std::stringstream ss(std::string(MAX_LABEL_ARR_LEN - 1, '\0'));
+
+    // gen spces string
+    auto whitespace = new char[no_spaces + 1];
+    memset(whitespace, ' ', no_spaces);
+    whitespace[no_spaces] = '\0';
+
+    // add data
+    ss << strings[0];
+    for(size_t i = 1; i < N; i++)
+    {
+        ss << whitespace << strings[i];
+    }
+    // check length and copy
+    massert(strlen(ss.str().c_str()) < MAX_LABEL_ARR_LEN, "generated array is too long %zu", strlen(ss.str().c_str()));
+    strcpy(label_space, ss.str().c_str());
+
+    new_window.updateFunc_p = LabelDraw;
+    labelSettingsAlignHeight(label_settings.text, frame, false);
+    add_new_window(new_window);
+    return width;
+}
+
 template<typename T>
 void View_Creator::add_value(const char* format, size_t commonLength, const T* data, const Frame& frame, Align align)
 {
@@ -174,7 +258,8 @@ void View_Creator::add_Vertical(const char *overFormat, size_t overCommonLength,
     add_value(overFormat, overCommonLength, overData, unitTop,  align);
 
     const uint_fast16_t top_unit_height = labelSettingsGetHeight(get_previous_window()->settings.label);
-    const Frame unitBottom =  {frame.x, frame.y + (uint16_t)top_unit_height,
+    const uint16_t unitBottom_y = frame.y + (uint16_t)top_unit_height;
+    const Frame unitBottom =  {frame.x, unitBottom_y,
                          frame.width, (uint16_t)half_height};
     add_value(underFormat, underCommonLength, underData, unitBottom,  align);
 }

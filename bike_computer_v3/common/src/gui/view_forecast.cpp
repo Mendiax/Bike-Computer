@@ -6,6 +6,7 @@
 
 // c/c++ includes
 #include <tuple>
+// #include <iostream>
 
 // my includes
 #include "views/view.hpp"
@@ -25,15 +26,33 @@ void View_Forecast::render(void)
     creator->reset();
     auto frame = creator->setup_bar(&this->data.current_time.hours, &this->data.lipo);
 
-    //std::cout << "frame: " << frame_to_string(frame) << std::endl;
-    //std::cout << "height left: " << get_height_left(frame) << std::endl;
 
-    Frame top = frame;
-    // Frame top{0, TOP_BAR_HEIGHT, frame.width, frame.height - (DISPLAY_HEIGHT / 10)};
-    Frame top_labels{top.x,top.y,top.width, TOP_BAR_HEIGHT};
-    //std::cout << "top: " << frame_to_string(top) << std::endl;
-    Frame bottom{0,  View_Creator::get_frame_top_y(top), frame.width,  View_Creator::get_height_left(top)};
-    //std::cout << "bottom: " << frame_to_string(bottom) << std::endl;
+    auto [top, bottom] = View_Creator::split_horizontal(frame, 5, true);
+
+
+    // std::cout << "top: " << frame_to_string(top) << std::endl;
+    // std::cout << "bottom: " << frame_to_string(bottom) << std::endl;
+    const Frame f = bottom;
+    const short* ptr = &this->data.forecast.time_h.array[0];
+    const auto w = creator->add_arr_label(ptr,FORECAST_SENSOR_DATA_LEN, f);
+
+    // PRINTF("width: %" PRIu16 "\n", w);
+    top.x = top.get_max_x() - w;
+    top.width = w;
+    creator->get_previous_window()->settings.label.text.offsetX = top.x;
+
+    // TODO
+    // Frame legend  = {0, frame.height, top.x, View_Creator::get_height_left(frame)};
+    // const auto space_per_label = legend.height / 3;
+    // Frame legend_wind = legend;     legend_wind.height = space_per_label;
+    // Frame legend_wind_max = legend; legend_wind_max.height = space_per_label; legend_wind_max.y = legend.get_max_y();
+    // Frame legend_precipitation = legend; legend_precipitation.height = space_per_label; legend_precipitation.y = legend_wind_max.get_max_y();
+
+    // creator->add_label("wind", legend_wind);
+    // creator->add_label("wind_m", legend_wind_max);
+    // creator->add_label("percip", legend_precipitation);
+
+
 
     static float min = 0.0, max = 40.0;
     {

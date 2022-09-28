@@ -104,11 +104,12 @@ struct ArrayMinMaxS
     T max;
 };
 
-#define FORECAST_SENSOR_DATA_LEN 24
+#define FORECAST_SENSOR_DATA_LEN 6
 
 template<size_t N>
 struct ForecastArrS
 {
+    ArrayMinMaxS<short, N> time_h;
     ArrayMinMaxS<float, N> temperature_2m;
     ArrayMinMaxS<float, N> pressure_msl;
     ArrayMinMaxS<float, N> precipitation;

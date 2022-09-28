@@ -10,7 +10,7 @@
 #include <inttypes.h>
 
 // my includes
-#include "massert.h"
+#include "massert.hpp"
 #include "traces.h"
 
 #include "views/view.hpp"
@@ -171,12 +171,16 @@ std::tuple<Frame, Frame> View_Creator::splitFrame(const Frame& frame, uint16_t l
  * @param frame
  * @return constexpr auto
  */
-std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame)
+std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame, uint8_t ratio, bool invert)
 {
-    const uint16_t half_width = frame.width / 2;
-    const Frame f1 = {frame.x, frame.y, half_width, frame.height};
-    const uint16_t next_x = frame.x + half_width;
-    const Frame f2 = {next_x, frame.y, half_width, frame.height};
+    const uint16_t width_split = frame.width / (uint16_t)ratio;
+    const uint16_t f1_w = invert ? frame.width - width_split : width_split;
+    const uint16_t f2_w = frame.width - f1_w;
+
+    const uint16_t next_x = frame.x + f1_w;
+
+    const Frame f1 = {frame.x, frame.y, f1_w, frame.height};
+    const Frame f2 = {next_x, frame.y, f2_w, frame.height};
     return std::make_tuple(f1,f2);
 }
 /**
@@ -185,12 +189,16 @@ std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame)
  * @param frame
  * @return constexpr auto
  */
-std::tuple<Frame, Frame> View_Creator::split_horizontal(const Frame &frame)
+std::tuple<Frame, Frame> View_Creator::split_horizontal(const Frame &frame, uint8_t ratio, bool invert)
 {
-    const uint16_t half_height = frame.height / 2;
-    const Frame f1 = {frame.x, frame.y, frame.width, half_height};
-    const uint16_t next_y = frame.y + half_height;
-    const Frame f2 = {frame.x, next_y, frame.width, half_height};
+    const uint16_t height_split = frame.height / (uint16_t)ratio;
+    const uint16_t f1_h = invert ? frame.height - height_split : height_split;
+    const uint16_t f2_h = frame.height - f1_h;
+
+    const uint16_t next_y = frame.y + f1_h;
+
+    const Frame f1 = {frame.x, frame.y, frame.width, f1_h};
+    const Frame f2 = {frame.x, next_y, frame.width, f2_h};
 
     return std::make_tuple(f1,f2);
 }

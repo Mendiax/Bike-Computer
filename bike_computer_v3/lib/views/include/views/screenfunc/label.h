@@ -22,6 +22,10 @@ uint16_t labelSettingsGetWidth(const LabelSettings& settings);
 
 uint16_t labelSettingsGetHeight(const LabelSettings& settings);
 
+uint16_t textSettingsGetHeight(const TextSettings& settings);
+
+void labelSettingsAlignHeight(TextSettings& settings, const Frame& frame, bool align_top);
+
 void labelSettingsAlign(LabelSettings& settings, const Frame& frame, Align align);
 
 void labelSettingsCreateAndAdd(const Frame& frame, const char* string);
