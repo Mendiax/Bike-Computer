@@ -48,7 +48,7 @@ static std::unordered_map<std::string, void*> forecast_offsets;
     #include <string>
     #include <cstring>
     #include "parser.hpp"
-    
+
 
     struct TimeArr
     {
@@ -75,7 +75,7 @@ static std::unordered_map<std::string, void*> forecast_offsets;
 }
 
 %token  LEX_STRING LEX_DATE_ISO LEX_NUM
-        LEX_L_BRACKET LEX_R_BRACKET 
+        LEX_L_BRACKET LEX_R_BRACKET
         LEX_L_CBRACKET LEX_R_CBRACKET
         LEX_COMMA LEX_SEMICOLON
         LEX_COLON
@@ -124,11 +124,12 @@ assign:
             {
                 if(forecast_offsets.find(*$1) != forecast_offsets.end())
                 {
-                    float* float_p = (float*)forecast_offsets.at(*$1);  
+                    float* float_p = (float*)forecast_offsets.at(*$1);
                     *float_p = $3;
                 }
             }
             case DataState::HOURLY:
+            case DataState::DAILY: // TODO idk
             break;
         }
         delete $1;
@@ -157,11 +158,11 @@ assign:
         if(forecast_offsets.find(*var_name) != forecast_offsets.end())
         {
             //std::cout << "assigning " << var_name->c_str() << " array float " << new_array->last_id << std::endl;
-        
-            float** structure_array_p = (float**)forecast_offsets.at(*var_name);  
+
+            float** structure_array_p = (float**)forecast_offsets.at(*var_name);
             *structure_array_p = new_array->array_p;
         }
-        
+
         delete new_array;
         delete var_name;
     }
@@ -180,7 +181,7 @@ assign:
         {
             case DataState::DAILY:
                 {
-                    TimeIso8601S** structure_array_p = (TimeIso8601S**)forecast_offsets.at(*var_name);  
+                    TimeIso8601S** structure_array_p = (TimeIso8601S**)forecast_offsets.at(*var_name);
                     *structure_array_p = new_array->array_p;
                 }
                 break;
@@ -362,7 +363,7 @@ array_time:
         }
 
         //std::cout << "insert date " << $1 << std::endl;
-        
+
 
         // update array
         new_arr->array_p[new_arr->last_id] = *$1;
@@ -424,7 +425,7 @@ ForecastS* parse_json(const std::string& json, uint8_t days)
     /* for(size_t i = 0; i < new_forecast->data_len/DATA_PER_DAY; i++)
     {   if(new_forecast->sunset != 0)
             TimeIso8601_print( new_forecast->sunset[i]);
-    } 
+    }
     std::cout << std::endl;
     for(size_t i = 0; i < new_forecast->data_len; i++)
     {   if(new_forecast->temperature_2m != 0)
@@ -436,7 +437,7 @@ ForecastS* parse_json(const std::string& json, uint8_t days)
             std::cout << new_forecast->precipitation[i] << " ";
     }
     std::cout << std::endl; */
-    
+
     ForecastS* ret_forecast = new_forecast;
     new_forecast = NULL;
     return ret_forecast;

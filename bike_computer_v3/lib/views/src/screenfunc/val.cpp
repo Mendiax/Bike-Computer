@@ -205,7 +205,7 @@ void drawFormat_Time_DateS(const void *settings)
     const ValSettings *valSettings = (ValSettings *)settings;
 
     const Time_DateS& time = *((Time_DateS *)valSettings->data);
-    const size_t max_str_len = 9;
+    const size_t max_str_len = valSettings->text.str_len + 1;
     char buffer[max_str_len];
 
     if(snprintf(&buffer[0], max_str_len, "%02" PRIu8 ".""%02" PRIu8 ".""%02" PRIu16, time.day, time.month, time.year % 100 ) < 0){
@@ -219,7 +219,7 @@ void drawFormat_Time_HourS(const void *settings)
     const ValSettings *valSettings = (ValSettings *)settings;
 
     const Time_HourS& time = *((Time_HourS *)valSettings->data);
-    const size_t max_str_len = 9;
+    const size_t max_str_len = valSettings->text.str_len + 1;
     char buffer[max_str_len];
 
     if(snprintf(&buffer[0], max_str_len,  "%02" PRIu8 ":""%02" PRIu8 ":""%02.0f", time.hour, time.minutes, time.seconds) < 0){
@@ -234,7 +234,7 @@ void drawFormat_TimeS(const void *settings)
     const ValSettings *valSettings = (ValSettings *)settings;
 
     const TimeS& time = *((TimeS *)valSettings->data);
-    const size_t max_str_len = 9;
+    const size_t max_str_len = valSettings->text.str_len + 1;
     char buffer[max_str_len];
 
     if(snprintf(&buffer[0], max_str_len, "%02" PRIu8 ".""%02" PRIu8 ".""%02" PRIu16, time.day, time.month, time.year ) < 0){

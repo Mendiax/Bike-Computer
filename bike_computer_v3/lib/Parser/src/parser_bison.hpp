@@ -50,7 +50,7 @@ extern int yydebug;
     #include <string>
     #include <cstring>
     #include "parser.hpp"
-    
+
 
     struct TimeArr
     {

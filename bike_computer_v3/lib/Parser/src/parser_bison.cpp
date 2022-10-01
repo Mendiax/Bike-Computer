@@ -159,7 +159,7 @@ extern int yydebug;
     #include <string>
     #include <cstring>
     #include "parser.hpp"
-    
+
 
     struct TimeArr
     {
@@ -588,10 +588,10 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   100,   100,   103,   107,   111,   117,   136,   141,   148,
-     153,   168,   194,   200,   206,   212,   221,   228,   235,   242,
-     253,   256,   257,   264,   272,   283,   313,   325,   333,   345,
-     377
+       0,   100,   100,   103,   107,   111,   117,   137,   142,   149,
+     154,   169,   195,   201,   207,   213,   222,   229,   236,   243,
+     254,   257,   258,   265,   273,   284,   314,   326,   334,   346,
+     378
 };
 #endif
 
@@ -1455,68 +1455,69 @@ yyreduce:
             {
                 if(forecast_offsets.find(*(yyvsp[-2].str_p)) != forecast_offsets.end())
                 {
-                    float* float_p = (float*)forecast_offsets.at(*(yyvsp[-2].str_p));  
+                    float* float_p = (float*)forecast_offsets.at(*(yyvsp[-2].str_p));
                     *float_p = (yyvsp[0].number);
                 }
             }
             case DataState::HOURLY:
+            case DataState::DAILY: // TODO idk
             break;
         }
         delete (yyvsp[-2].str_p);
     }
-#line 1468 "lib/Parser/src/parser_bison.cpp"
+#line 1469 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 7:
-#line 137 "lib/Parser/parser.y"
+#line 138 "lib/Parser/parser.y"
     {
         // we dont need any of this
         delete (yyvsp[-2].str_p);
     }
-#line 1477 "lib/Parser/src/parser_bison.cpp"
+#line 1478 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 8:
-#line 142 "lib/Parser/parser.y"
+#line 143 "lib/Parser/parser.y"
     {
         // we dont need any of this
         // std::cout << *$1 << "assigning " << *$3 << std::endl;
         delete (yyvsp[-2].str_p);
         delete (yyvsp[0].str_p);
     }
-#line 1488 "lib/Parser/src/parser_bison.cpp"
+#line 1489 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 9:
-#line 149 "lib/Parser/parser.y"
+#line 150 "lib/Parser/parser.y"
     {
         // we dont need any of this
         delete (yyvsp[-2].str_p);
     }
-#line 1497 "lib/Parser/src/parser_bison.cpp"
+#line 1498 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 10:
-#line 154 "lib/Parser/parser.y"
+#line 155 "lib/Parser/parser.y"
     {
         FloatArr* new_array = (yyvsp[0].float_arr);
         std::string* var_name = (yyvsp[-2].str_p);
         if(forecast_offsets.find(*var_name) != forecast_offsets.end())
         {
             //std::cout << "assigning " << var_name->c_str() << " array float " << new_array->last_id << std::endl;
-        
-            float** structure_array_p = (float**)forecast_offsets.at(*var_name);  
+
+            float** structure_array_p = (float**)forecast_offsets.at(*var_name);
             *structure_array_p = new_array->array_p;
         }
-        
+
         delete new_array;
         delete var_name;
     }
-#line 1516 "lib/Parser/src/parser_bison.cpp"
+#line 1517 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 11:
-#line 169 "lib/Parser/parser.y"
+#line 170 "lib/Parser/parser.y"
     {
         TimeArr* new_array = (yyvsp[0].time_arr);
         std::string* var_name = (yyvsp[-2].str_p);
@@ -1531,7 +1532,7 @@ yyreduce:
         {
             case DataState::DAILY:
                 {
-                    TimeIso8601S** structure_array_p = (TimeIso8601S**)forecast_offsets.at(*var_name);  
+                    TimeIso8601S** structure_array_p = (TimeIso8601S**)forecast_offsets.at(*var_name);
                     *structure_array_p = new_array->array_p;
                 }
                 break;
@@ -1542,114 +1543,114 @@ yyreduce:
         delete var_name;
 
     }
-#line 1546 "lib/Parser/src/parser_bison.cpp"
+#line 1547 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 12:
-#line 195 "lib/Parser/parser.y"
+#line 196 "lib/Parser/parser.y"
     {
         // std::cout << "[INFO] restore state " << (int)current_state << std::endl;
         current_state = DataState::DEFAULT;
 
     }
-#line 1556 "lib/Parser/src/parser_bison.cpp"
+#line 1557 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 13:
-#line 201 "lib/Parser/parser.y"
+#line 202 "lib/Parser/parser.y"
     {
         // std::cout << "[INFO] restore state " << (int)current_state << std::endl;
         current_state = DataState::DEFAULT;
 
     }
-#line 1566 "lib/Parser/src/parser_bison.cpp"
+#line 1567 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 14:
-#line 207 "lib/Parser/parser.y"
+#line 208 "lib/Parser/parser.y"
     {
         // std::cout << "[INFO] restore state " << (int)current_state << std::endl;
         current_state = DataState::DEFAULT;
 
     }
-#line 1576 "lib/Parser/src/parser_bison.cpp"
+#line 1577 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 15:
-#line 213 "lib/Parser/parser.y"
+#line 214 "lib/Parser/parser.y"
     {
         // std::cout << "[INFO] restore state " << (int)current_state << std::endl;
         current_state = DataState::DEFAULT;
         delete (yyvsp[-4].str_p);
     }
-#line 1586 "lib/Parser/src/parser_bison.cpp"
+#line 1587 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 16:
-#line 222 "lib/Parser/parser.y"
+#line 223 "lib/Parser/parser.y"
     {
         current_state = DataState::HOURLY;
         // std::cout << "[INFO] Set current_state " << (int)current_state << std::endl;
     }
-#line 1595 "lib/Parser/src/parser_bison.cpp"
+#line 1596 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 17:
-#line 229 "lib/Parser/parser.y"
+#line 230 "lib/Parser/parser.y"
     {
         current_state = DataState::DAILY;
         // std::cout << "[INFO] Set current_state " << (int)current_state << std::endl;
     }
-#line 1604 "lib/Parser/src/parser_bison.cpp"
+#line 1605 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 18:
-#line 236 "lib/Parser/parser.y"
+#line 237 "lib/Parser/parser.y"
     {
         current_state = DataState::CURRENT;
         // std::cout << "[INFO] Set current_state " << (int)current_state << std::endl;
     }
-#line 1613 "lib/Parser/src/parser_bison.cpp"
+#line 1614 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 19:
-#line 243 "lib/Parser/parser.y"
+#line 244 "lib/Parser/parser.y"
     {
         //std::cout << "read string " << *$1 << std::endl;
         (yyval.str_p) = (yyvsp[0].str_p);
     }
-#line 1622 "lib/Parser/src/parser_bison.cpp"
+#line 1623 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 20:
-#line 253 "lib/Parser/parser.y"
+#line 254 "lib/Parser/parser.y"
                                              {}
-#line 1628 "lib/Parser/src/parser_bison.cpp"
+#line 1629 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 21:
-#line 256 "lib/Parser/parser.y"
+#line 257 "lib/Parser/parser.y"
                                      {}
-#line 1634 "lib/Parser/src/parser_bison.cpp"
+#line 1635 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 22:
-#line 257 "lib/Parser/parser.y"
+#line 258 "lib/Parser/parser.y"
                  {}
-#line 1640 "lib/Parser/src/parser_bison.cpp"
+#line 1641 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 23:
-#line 265 "lib/Parser/parser.y"
+#line 266 "lib/Parser/parser.y"
     {
         //std::cout << "read array float" << std::endl;
         (yyval.float_arr) = (yyvsp[-1].float_arr);
     }
-#line 1649 "lib/Parser/src/parser_bison.cpp"
+#line 1650 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 24:
-#line 273 "lib/Parser/parser.y"
+#line 274 "lib/Parser/parser.y"
     {
         FloatArr* new_arr = (yyvsp[-2].float_arr);
 
@@ -1659,11 +1660,11 @@ yyreduce:
 
         (yyval.float_arr) = new_arr;
     }
-#line 1663 "lib/Parser/src/parser_bison.cpp"
+#line 1664 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 25:
-#line 284 "lib/Parser/parser.y"
+#line 285 "lib/Parser/parser.y"
     {
         FloatArr* new_arr = new FloatArr();
         new_arr->array_p = 0;
@@ -1690,30 +1691,30 @@ yyreduce:
 
         (yyval.float_arr) = new_arr;
     }
-#line 1694 "lib/Parser/src/parser_bison.cpp"
+#line 1695 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 26:
-#line 314 "lib/Parser/parser.y"
+#line 315 "lib/Parser/parser.y"
     {
         auto num = (yyvsp[0].number);
         //std::cout << "read float " << num << std::endl;
         (yyval.number) = num;
     }
-#line 1704 "lib/Parser/src/parser_bison.cpp"
+#line 1705 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 27:
-#line 326 "lib/Parser/parser.y"
+#line 327 "lib/Parser/parser.y"
     {
         //std::cout << "read array time" << std::endl;
         (yyval.time_arr) = (yyvsp[-1].time_arr);
     }
-#line 1713 "lib/Parser/src/parser_bison.cpp"
+#line 1714 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 28:
-#line 334 "lib/Parser/parser.y"
+#line 335 "lib/Parser/parser.y"
     {
         TimeArr* new_arr = (yyvsp[-2].time_arr);
 
@@ -1724,11 +1725,11 @@ yyreduce:
 
         (yyval.time_arr) = new_arr;
     }
-#line 1728 "lib/Parser/src/parser_bison.cpp"
+#line 1729 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 29:
-#line 346 "lib/Parser/parser.y"
+#line 347 "lib/Parser/parser.y"
     {
         TimeArr* new_arr = new TimeArr();
         new_arr->array_p = 0;
@@ -1748,7 +1749,7 @@ yyreduce:
         }
 
         //std::cout << "insert date " << $1 << std::endl;
-        
+
 
         // update array
         new_arr->array_p[new_arr->last_id] = *(yyvsp[0].time_p);
@@ -1757,21 +1758,21 @@ yyreduce:
 
         (yyval.time_arr) = new_arr;
     }
-#line 1761 "lib/Parser/src/parser_bison.cpp"
+#line 1762 "lib/Parser/src/parser_bison.cpp"
     break;
 
   case 30:
-#line 378 "lib/Parser/parser.y"
+#line 379 "lib/Parser/parser.y"
     {
         auto time_p = TimeIso8601_from_string(*(yyvsp[0].str_p));
         //std::cout << "read date" << *$1 << " -> " << time_p->year << std::endl;
         (yyval.time_p) = time_p;
     }
-#line 1771 "lib/Parser/src/parser_bison.cpp"
+#line 1772 "lib/Parser/src/parser_bison.cpp"
     break;
 
 
-#line 1775 "lib/Parser/src/parser_bison.cpp"
+#line 1776 "lib/Parser/src/parser_bison.cpp"
 
       default: break;
     }
@@ -2003,7 +2004,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 386 "lib/Parser/parser.y"
+#line 387 "lib/Parser/parser.y"
 
 
 static void yyerror(const char* msg)
@@ -2045,7 +2046,7 @@ ForecastS* parse_json(const std::string& json, uint8_t days)
     /* for(size_t i = 0; i < new_forecast->data_len/DATA_PER_DAY; i++)
     {   if(new_forecast->sunset != 0)
             TimeIso8601_print( new_forecast->sunset[i]);
-    } 
+    }
     std::cout << std::endl;
     for(size_t i = 0; i < new_forecast->data_len; i++)
     {   if(new_forecast->temperature_2m != 0)
@@ -2057,7 +2058,7 @@ ForecastS* parse_json(const std::string& json, uint8_t days)
             std::cout << new_forecast->precipitation[i] << " ";
     }
     std::cout << std::endl; */
-    
+
     ForecastS* ret_forecast = new_forecast;
     new_forecast = NULL;
     return ret_forecast;

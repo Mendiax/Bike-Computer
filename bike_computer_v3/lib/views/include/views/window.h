@@ -12,10 +12,12 @@ struct Window
     Settings settings;
     drawFunc_p updateFunc_p;
 
+    inline void update()
+    {
+        this->updateFunc_p((void*)&this->settings);
+    }
 };
 
-void Window_new_inPlace(Window *this_p, const Settings& drawSettings, drawFunc_p drawFunction);
-
-void Window_update(Window *this_p);
+// void Window_update(Window *this_p);
 
 #endif

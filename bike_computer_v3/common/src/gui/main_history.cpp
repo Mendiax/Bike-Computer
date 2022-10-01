@@ -129,7 +129,7 @@ void Main_History::render()
     {
         creator->add_label(displayed_data.at(idx++), f, Align::CENTER, MAX_LOG_NAME_LEN); // max 10 chars TODO check this xd
     }
-
+    creator->add_frame(hist_frames.at(0));
     // auto window = creator->get_previous_window();
     // labelSettingsAlignHeight(window->settings.label.text, top, false);
 

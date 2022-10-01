@@ -14,11 +14,12 @@
 #include "traces.h"
 
 #include "views/view.hpp"
-#include "views/display.h"
 #include "views/screenfunc/plot.h"
 #include "views/screenfunc/lastval.h"
 #include "views/screenfunc/label.h"
 #include "views/screenfunc/val.h"
+#include "views/screenfunc/frame.h"
+
 
 // #------------------------------#
 // |           macros             |
@@ -50,7 +51,8 @@ void View_Creator::draw()
     for (uint_fast8_t i = 0; i < this->currnetNumberOfWindows; i++)
     {
         TRACE_DEBUG(5, TRACE_VIEWS, "Drawing window %" PRIuFAST8 "\n", i);
-        Window_update(&this->windows[i]);
+        this->windows[i].update();
+        // Window_update(&this->windows[i]);
         TRACE_DEBUG(6, TRACE_VIEWS, "window drawed %" PRIuFAST8 "\n", i);
     }
 }
@@ -73,21 +75,30 @@ Window* View_Creator::get_previous_window()
 
 
 
+void View_Creator::add_frame(const Frame& frame, const display::DisplayColor& color)
+{
+    Window new_window;
+    new_window.updateFunc_p = render_frame;
+    auto& settings = new_window.settings.frame;
+    settings.frame = frame;
+    settings.color = color;
 
+    add_new_window(new_window);
+}
 
-void View_Creator::add_label(const char* string, const Frame& frame, Align align, size_t commonLength )
+void View_Creator::add_label(const char* string, const Frame& frame, Align align, size_t commonLength, const display::DisplayColor& color)
 {
     Window new_window;
     new_window.updateFunc_p = LabelDraw;
     LabelSettings& valSettings = new_window.settings.label;
     if(commonLength > 0)
     {
-        labelSettingsNew(valSettings, frame, string, commonLength);
+        labelSettingsNew(valSettings, frame, string, commonLength, color);
         valSettings.text.str_len = strlen(string);
     }
     else
     {
-        labelSettingsNew(valSettings, frame, string);
+        labelSettingsNew(valSettings, frame, string, color);
     }
     labelSettingsAlign(valSettings, frame, align);
 
@@ -204,9 +215,9 @@ std::tuple<Frame, Frame> View_Creator::split_horizontal(const Frame &frame, uint
     return std::make_tuple(f1,f2);
 }
 
-std::vector<Frame> View_Creator::split_horizontal_arr(const Frame &frame, uint8_t cnt)
+std::vector<Frame> View_Creator::split_horizontal_arr(const Frame &frame, const uint8_t cnt)
 {
-    const uint16_t height = frame.height / 3;
+    const uint16_t height = frame.height / cnt;
     uint16_t y = frame.y;
     std::vector<Frame> frames(cnt, {frame.x, frame.y, frame.width, height});
     for(auto& f : frames)

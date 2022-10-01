@@ -14,9 +14,9 @@
  * @param string
  * @param commonLength if we want to have to labels with the same length we need to get max size of thos string
  */
-void labelSettingsNew(LabelSettings& settings, const Frame& frame, const char* string, size_t commonLength);
+void labelSettingsNew(LabelSettings& settings, const Frame& frame, const char* string, size_t commonLength, const display::DisplayColor& color = FONT_FOREGROUND);
 
-void labelSettingsNew(LabelSettings& settings, const Frame& frame, const char* string);
+void labelSettingsNew(LabelSettings& settings, const Frame& frame, const char* string, const display::DisplayColor& color = FONT_FOREGROUND);
 
 uint16_t labelSettingsGetWidth(const LabelSettings& settings);
 

@@ -2,7 +2,7 @@
 #define __SCREEN_FUNC_PLOT_DOUBLE_H__
 
 #include "../frame.h"
-#include "../../../../tools/include/RingBuffer.h"
+// #include "../../../../tools/include/RingBuffer.h"
 #include <display/fonts.h>
 #include <stdbool.h>
 

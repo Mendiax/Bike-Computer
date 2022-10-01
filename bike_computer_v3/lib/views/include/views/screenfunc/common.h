@@ -46,6 +46,7 @@ typedef struct TextSettings
 typedef struct LabelSettings
 {
     TextSettings text; // but str_len should be set only for scaling
+    display::DisplayColor color;
 } LabelSettings;
 
 typedef struct ValSettings
@@ -66,6 +67,11 @@ typedef struct PlotSettings
     display::DisplayColor color;
 } PlotSettings;
 
+struct FrameSettings
+{
+    Frame frame;
+    display::DisplayColor color;
+};
 
 struct Settings
 {
@@ -73,6 +79,7 @@ struct Settings
         LabelSettings label;
         ValSettings val;
         PlotSettings plot;
+        FrameSettings frame;
     };
 };
 
@@ -92,15 +99,5 @@ typedef struct LastValSettings
 // } PlotSettings;
 
 
-static inline void render_frame(const Frame& frame, bool render, display::DisplayColor color = FONT_FOREGROUND)
-{
-    if(render)
-    {
-        Paint_DrawLine(frame.x, frame.y, frame.get_max_x(),frame.y, color);
-        Paint_DrawLine(frame.get_max_x(), frame.y, frame.get_max_x(),frame.get_max_y(), color);
-        Paint_DrawLine(frame.x, frame.get_max_y(), frame.get_max_x(),frame.get_max_y(), color);
-        Paint_DrawLine(frame.x, frame.y, frame.x, frame.get_max_y(), color);
-    }
-}
 
 #endif

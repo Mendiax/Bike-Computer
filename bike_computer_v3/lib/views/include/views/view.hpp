@@ -27,7 +27,7 @@
 // |            macros             |
 // #-------------------------------#
 #define TOP_BAR_HEIGHT (DISPLAY_HEIGHT / 10)
-#define MAX_NUMBER_OF_WINDOWS 12
+#define MAX_NUMBER_OF_WINDOWS 13
 
 #define VIEW_DEBUG
 
@@ -73,7 +73,8 @@ public:
     void add_new_window(const Window& window);
     Window* get_previous_window();
 
-    void add_label(const char* string, const Frame& frame, Align align = Align::LEFT, size_t commonLength = 0);
+    void add_frame(const Frame& frame, const display::DisplayColor& color = FONT_FOREGROUND);
+    void add_label(const char* string, const Frame& frame, Align align = Align::LEFT, size_t commonLength = 0, const display::DisplayColor& color = FONT_FOREGROUND);
     template<typename T>
     void add_value(const char* format, size_t commonLength, const T* data, const Frame& frame, Align align = Align::LEFT);
     void add_Vertical(const char* over, const char* under, const Frame& frame, Align align = Align::LEFT);

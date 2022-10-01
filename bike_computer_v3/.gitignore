@@ -13,3 +13,5 @@ lib/Parser/test_data.json
 drivers/DOF/Mag/
 
 data/log
+
+release/pico_main.uf2
