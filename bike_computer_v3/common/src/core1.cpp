@@ -248,6 +248,31 @@ void Core1::handle_sig_end_btn(const Signal &sig)
     handle_end_session();
 }
 
+void Core1::handle_sig_load_session(const Signal &sig)
+{
+    auto payload = sig.get_payload<Sig_Core1_Load_Session*>();
+    auto id = payload->session_id;
+    delete payload;
+    std::string content;
+    {
+        Sd_File last_save("last_track.csv");
+        auto no_sessions = last_save.get_no_of_lines();
+        no_sessions = no_sessions <= 2 ? no_sessions = 0 : no_sessions - 2;
+        if(no_sessions < id)
+        {
+            return;
+        }
+        content = last_save.read_line(id, SESION_DATA_CSV_LEN_NO_GEARS);
+    }
+
+
+    Unique_Mutex mtx(&sensorDataMutex);
+    if (session_p)
+        delete session_p;
+    session_p = new Session_Data(content.c_str(), false); // TODO load gear if needed in the future
+}
+
+
 static int loop(void)
 {
     absolute_time_t frameStart = get_absolute_time();

@@ -34,7 +34,12 @@ enum Sig_Ids
     SIG_CORE1_TOTAL_UPDATE,
     SIG_CORE1_START_PAUSE_BTN,
     SIG_CORE1_END_BTN,
+    SIG_CORE1_LOAD_SESSION,
     SIG_NO_MAX
+};
+
+struct Sig_Core1_Load_Session{
+    uint16_t session_id;
 };
 
 struct Sig_Core1_Total_Update{
@@ -56,7 +61,6 @@ class Core0 : public Actor
 {
 private:
     // definde in core0.cpp
-
     static void handle_sig_session_start(const Signal &sig);
     static void handle_sig_pause(const Signal &sig);
     static void handle_sig_start(const Signal &sig);
@@ -65,8 +69,6 @@ private:
 
     static void handle_sig_set_config(const Signal &sig);
     static void handle_sig_set_total(const Signal &sig);
-
-
 
     void handler_setup()
     {
@@ -77,9 +79,8 @@ private:
         this->handler_add(handle_sig_session_start, SIG_CORE0_SESION_START);
         this->handler_add(handle_sig_set_config, SIG_CORE0_SET_CONFIG);
         this->handler_add(handle_sig_set_total, SIG_CORE0_SET_TOTAL);
-
-
     }
+
 public:
     Core0()
     {
@@ -94,7 +95,7 @@ private:
     static void handle_sig_total_update(const Signal &sig);
     static void handle_sig_start_pause_btn(const Signal &sig);
     static void handle_sig_end_btn(const Signal &sig);
-
+    static void handle_sig_load_session(const Signal &sig);
     // static void handle_sig_get_file(const Signal &sig);
 
 
@@ -103,10 +104,10 @@ private:
         this->handler_add(handle_sig_total_update, SIG_CORE1_TOTAL_UPDATE);
         this->handler_add(handle_sig_start_pause_btn, SIG_CORE1_START_PAUSE_BTN);
         this->handler_add(handle_sig_end_btn, SIG_CORE1_END_BTN);
-
+        this->handler_add(handle_sig_load_session, SIG_CORE1_LOAD_SESSION);
         // this->handler_add(handle_sig_get_file, SIG_CORE1_GET_FILE);
-
     }
+
 public:
     Core1()
     {
