@@ -7,6 +7,7 @@ PICO_GSM_CONSOLE_FILE := pico_gsm_console
 PICO_DRIVE_LETTER := I
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
+PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_MAIN_FILE).uf2)
 
 CMAKE_BUILDER := "Ninja"
 # CMAKE_BUILDER := "Unix Makefiles"
@@ -36,24 +37,38 @@ cmake: parser
 	cmake -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Debug
 
 cmaker: parser
-	cmake -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Release
+	cmake -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Release
 
 release:
 	cp $(BUILD)/$(PICO_MAIN_FILE).uf2 ./release
+
+
+cw_all:
+	./boot/boot.sh -o b && $(MAKE) main && $(MAKE) write_main && sleep 2 && ./serial.bat
+
+.PHONY: boot
+boot:
+	./boot/boot.sh -o r
+
+.PHONY: restart
+restart:
+	./boot/boot.sh -o r
 
 w: write_main
 wt: write_test
 write_main:
 	#mkdir -p $(PICODIR)
-	mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
-	cp $(BUILD)/$(PICO_MAIN_FILE).uf2 $(PICODIR)
+	# mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
+	# cp $(BUILD)/$(PICO_MAIN_FILE).uf2 $(PICODIR)
 
-write_test:
+	./boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)'
+
+write_test: boot
 	#mkdir -p $(PICODIR)
 	mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
 	cp $(BUILD)/$(PICO_TEST_FILE).uf2 $(PICODIR)
 
-write_gsm_console:
+write_gsm_console: boot
 	#mkdir -p $(PICODIR)
 	mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
 	cp $(BUILD)/$(PICO_GSM_CONSOLE_FILE).uf2 $(PICODIR)
@@ -83,5 +98,5 @@ reset: clean cmake all
 getFatFSlib:
 	git clone https://github.com/carlk3/no-OS-FatFS-SD-SPI-RPi-Pico.git
 
-test:
-	$(MAKE) test -C $(BUILD)
+# test:
+# 	$(MAKE) test -C $(BUILD)
