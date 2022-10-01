@@ -47,6 +47,38 @@ std::string time_to_str(const Time_HourS& time)
             time.seconds);
     return std::string(buffer);
 }
+TimeS time_from_str(const char* str)
+{
+    TimeS time;
+    // "yyyy.MM.dd,hh:mm:ss"
+    auto date_hour = split_string(str, ',');
+    if(date_hour.size() != 2)
+    {
+        // error
+        return time;
+    }
+    auto date = split_string(date_hour[0], '.');
+    if(date.size() != 3)
+    {
+        // error
+        return time;
+    }
+    time.year = atoi(date[0].c_str());
+    time.month = atoi(date[1].c_str());
+    time.day = atoi(date[2].c_str());
+
+    auto hour = split_string(date_hour[1], ':');
+    if(hour.size() != 3)
+    {
+        // error
+        return time;
+    }
+    time.hour = atoi(hour[0].c_str());
+    time.minutes = atoi(hour[1].c_str());
+    time.seconds = atoi(hour[2].c_str());
+
+    return time;
+}
 
 
 std::string time_to_str(const TimeS& time)

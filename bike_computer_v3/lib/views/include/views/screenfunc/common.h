@@ -1,6 +1,7 @@
 #ifndef SCREENFUNC_COMMON_H
 #define SCREENFUNC_COMMON_H
 
+#include "views/frame.h"
 #include "display/fonts.h"
 #include "display/print.h"
 #include "traces.h"
@@ -34,8 +35,8 @@ typedef struct TextSettings
     uint16_t str_len;
     uint16_t offsetX, offsetY;
     uint8_t scale;
+    bool render_frame;
 } TextSettings;
-
 
 
 
@@ -90,5 +91,16 @@ typedef struct LastValSettings
 //     long offset;
 // } PlotSettings;
 
+
+static inline void render_frame(const Frame& frame, bool render, display::DisplayColor color = FONT_FOREGROUND)
+{
+    if(render)
+    {
+        Paint_DrawLine(frame.x, frame.y, frame.get_max_x(),frame.y, color);
+        Paint_DrawLine(frame.get_max_x(), frame.y, frame.get_max_x(),frame.get_max_y(), color);
+        Paint_DrawLine(frame.x, frame.get_max_y(), frame.get_max_x(),frame.get_max_y(), color);
+        Paint_DrawLine(frame.x, frame.y, frame.x, frame.get_max_y(), color);
+    }
+}
 
 #endif

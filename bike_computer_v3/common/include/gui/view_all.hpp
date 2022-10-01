@@ -8,4 +8,9 @@
 #include "view_total.hpp"
 #include "view_velocity.hpp"
 
+#include "main/main_new_session.hpp"
+#include "main/main_load_config.hpp"
+#include "main/main_history.hpp"
+
+
 #endif

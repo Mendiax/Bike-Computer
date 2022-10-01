@@ -19,6 +19,7 @@ struct Bike_Config_S
     std::vector<uint8_t> gear_front; // chaing rings sizes for front
     std::vector<uint8_t> gear_rear; // chaing rings sizes for rear
     double wheel_size; // circumstance of wheel
+    double min_gear_diff; // min difference of ratio betweens gears
 
     std::string name;
 
@@ -95,6 +96,7 @@ struct Gear_Usage
      * @return std::string
      */
     std::string to_string();
+    void from_string(const std::string& str);
 };
 
 /**

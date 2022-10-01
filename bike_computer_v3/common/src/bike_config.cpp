@@ -1,7 +1,8 @@
 #include "bike_config.hpp"
 #include "common_utils.hpp"
-
+#include "massert.hpp"
 #include "traces.h"
+
 #include <string.h>
 #include <cstdlib>
 
@@ -110,6 +111,19 @@ void Bike_Config_S::from_string(const char* str)
             wheel_size = std::atof(line_arr.at(1).c_str());
         }
     }
+
+    // setup gear diff
+    float gear_diff = 100.0; // TODO add define
+    Gear_Iterator iter(*this);
+    float last_gear_ratio = 0.0f;
+    while (iter.has_next())
+    {
+        float gear_ratio = iter.get_next();
+        gear_diff = std::min(std::abs(last_gear_ratio - gear_ratio), gear_diff);
+        last_gear_ratio = gear_ratio;
+    }
+    TRACE_DEBUG(2, TRACE_BIKE_CONFIG, "min diff gear ratio: %f\n", gear_diff);
+    this->min_gear_diff = gear_diff * 0.99f; // add some space for errors
 }
 
 /**
@@ -138,8 +152,8 @@ Gear_S Bike_Config_S::get_current_gear(float ratio)
          0.7111111111111111, 0.6274509803921569]
         */
 
-
-        if(check_floats_prec(gear_ratio, ratio, 0.08))
+       // TODO add algoriths that work better at reading gear (precision) ??? now we tak minimum
+        if(check_floats_prec(gear_ratio, ratio, this->min_gear_diff))
         {
             gear.front += 1;
             gear.rear += 1;
@@ -182,5 +196,31 @@ std::string Gear_Usage::to_string()
         }
     }
     return header;
+}
+
+void Gear_Usage::from_string(const std::string& str)
+{
+    // auto fp = str.find_first_of('[');
+    // auto lp = str.find_first_of(']');
+
+    // auto len = fp - lp + 1;
+    // auto header_str = str.substr(lp, len);
+
+    // TODO optimize memory usage
+
+    auto start_pos = str.find_first_of(']') + 1;
+
+    auto data_arr = split_string(str.substr(start_pos),',');
+
+    for(int i = 0; i < MAX_NO_OF_GEARS; i++)
+    {
+        for (int j = 0; j < CADENCE_DATA_LEN; j++)
+        {
+            const size_t idx = i * CADENCE_DATA_LEN + j;
+            massert(idx < data_arr.size(), "gear usage from str failed: %zu\n", idx);
+            this->usage[i][j] = std::atof(data_arr[idx].c_str());
+        }
+    }
+
 }
 

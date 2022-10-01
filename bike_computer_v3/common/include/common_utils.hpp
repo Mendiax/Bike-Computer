@@ -47,6 +47,8 @@ public:
  */
 size_t check_free_mem();
 
+TimeS time_from_str(const char* str);
+
 std::string time_to_str(const TimeS& time);
 std::string time_to_str(const Time_HourS& time);
 

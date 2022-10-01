@@ -13,22 +13,12 @@
 #include "core0.h"
 #include "speedometer/speedometer.hpp"
 
-
-
-
-//static bool isBtnPressed(uint gpio);
 // static float getTemp();
 
 
-
-// static void loop();
-
-
-
 //Sensor_Data sensors_data = {0};
-/*
-    setup function
-*/
+
+
 int main()
 {
     //traces setup
@@ -41,7 +31,7 @@ int main()
     //     tracesSetup();
     // wait for serial console
     // coment out for normal use
-    while (!stdio_usb_connected()){sleep_ms(100);}
+    // while (!stdio_usb_connected()){sleep_ms(100);}
     TRACE_DEBUG(0, TRACE_MAIN, "Main start\n");
 
 
@@ -70,29 +60,6 @@ int main()
         TRACE_ABNORMAL(TRACE_MAIN, "core 0 failed \n%s", "");
     }
 }
-
-// DO NOT REMOVE
-/*-----static definitions------*/
-// static bool isBtnPressed(uint gpio)
-// {
-//     static absolute_time_t lastPress;
-//     absolute_time_t currentTime = get_absolute_time();
-//     int64_t delta_time_ms = us_to_ms(absolute_time_diff_us(lastPress, currentTime));
-//     if (delta_time_ms < 100)
-//     {
-//         return false;
-//     }
-//     static bool released;
-//     released = true; // TODO add this functionality
-//     lastPress = get_absolute_time();
-//     bool ret = released ? !gpio_get(BTN) /*negate bc it is pullup*/ : false;
-
-//     if(ret)
-//         TRACE_DEBUG(0, BUTTONS, "isBtnPressed return=%dms\n", ret);
-//     return ret;
-// }
-
-
 
 // DO NOT REMOVE !!!
 // static float getTemp()

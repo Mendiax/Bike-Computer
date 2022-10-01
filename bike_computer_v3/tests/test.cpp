@@ -358,6 +358,97 @@ int sd_drive_test(void)
     return 0;
 }
 
+int list_dir_test()
+{
+    #define TEST_FOLDER "__test__"
+    #define TEST_FILE_1 "f1.txt"
+
+    dir::del(TEST_FOLDER);
+    f_mkdir(TEST_FOLDER);
+    Sd_File file(TEST_FOLDER "/" TEST_FILE_1);
+
+    // check if file exist and can read/write
+    auto f1_content = "123456";
+    file.append(f1_content);
+    auto f1_content_read = file.read_all();
+    BC_CHECK(f1_content_read.compare(f1_content) == 0);
+
+
+    // check if get files return created file
+    auto files_in_folder = dir::get_files(TEST_FOLDER);
+    BC_CHECK(files_in_folder.size() == 1);
+    BC_CHECK(files_in_folder.at(0).compare(TEST_FILE_1) == 0);
+
+    Sd_File file2(TEST_FOLDER "/f2.cfg");
+
+
+    // cleanup
+    dir::del(TEST_FOLDER);
+    #undef test_folder
+
+    // for test file gen
+    // {
+    //     f_mkdir("history");
+    //     Sd_File file0("history/h0.log");
+    //     Sd_File file1("history/h1.log");
+    //     Sd_File file2("history/h2.log");
+    //     Sd_File file3("history/h3.log");
+    //     Sd_File file4("history/h4.log");
+    // }
+
+
+
+
+    return 0;
+}
+
+int line_access_test(void)
+{
+    Sd_File test_file("__test__.txt");
+    test_file.clear();
+    test_file.append("1.line\n");
+    test_file.append("2.line\n");
+    test_file.append("3.line01234567890123456789012345678901234567890123456789012345678901234567890123456789\n");
+    test_file.append("4.line01234567890123456789012345678901234567890123456789012345678901234567890123456789\n");
+    test_file.append("5.line\n");
+    test_file.append("6.line");
+
+    auto ll = test_file.read_last_line(10);
+    std::cout << "ll:" << ll << std::endl;
+    BC_CHECK(ll.compare("6.line") == 0);
+
+    std::cout << "#####################################################" << std::endl;
+
+
+    size_t expected_on_lines = 6;
+    auto no_lines = test_file.get_no_of_lines();
+    BC_CHECK_EQ(expected_on_lines, no_lines);
+
+    auto l0 = test_file.read_line(0, 128);
+    std::cout <<"\n> l0:" << l0 << std::endl;
+    BC_CHECK(l0.compare("1.line") == 0);
+
+    auto l4 = test_file.read_line(4, 128);
+    std::cout << "\n> l4:" << l4 << std::endl;
+    BC_CHECK(l4.compare("5.line") == 0);
+
+    auto l5 = test_file.read_line(5, 128);
+    std::cout << "\n> l5:" << l5 << std::endl;
+    BC_CHECK(l5.compare("6.line") == 0);
+
+    auto l3 = test_file.read_line(3, 16);
+    std::cout << "\n> l3:" << l3 << std::endl;
+    BC_CHECK(l3.compare("4.line0123456789") == 0);
+    // BC_CHECK(test_file.read_line(4, 128).compare("5.line") == 0);
+    // BC_CHECK(test_file.read_line(5, 128).compare("6.line") == 0);
+
+
+
+    test_file.remove();
+
+    return 0;
+}
+
 int eprom_test(void)
 {
     const uint8_t variable = 123;
@@ -384,11 +475,16 @@ void run_tests(void)
     BC_TEST(parser_test);
     BC_TEST(url_test);
     BC_TEST(altitude_test);
-    // BC_TEST(sd_drive_test);
+    BC_TEST(test_actors);
+    BC_TEST(sd_drive_test);
 
-    // BC_TEST(test_actors);
+    BC_TEST(list_dir_test);
+    BC_TEST(line_access_test);
+
     // BC_TEST(eprom_test);
 
 
     BC_TEST_END();
+    while (1){sleep_ms(1000);};
+
 }

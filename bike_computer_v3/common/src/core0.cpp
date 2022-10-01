@@ -39,7 +39,7 @@
 #define BAT_LEV_CYCLE_MS (29*1000)
 #define WEATHER_CYCLE_MS (1*1000)
 #define HEART_BEAT_CYCLE_MS (1*1000)
-#define GPS_FETCH_CYCLE_MS (5*1000)
+#define GPS_FETCH_CYCLE_MS (1*1000)
 #define TIME_FETCH_CYCLE_MS (10*1000)
 // http requests per 10min
 #define GSM_FETCH_CYCLE_MS (10*60*1000)
@@ -281,10 +281,10 @@ static int loop_frame_update()
     //size_t avaible_memory = check_free_mem();
     //printf("Avaible memory = %zu\n", avaible_memory);
 
+    cycle_get_gps_data();
     // battery
     cycle_get_battery_status();
 
-    cycle_get_gps_data();
 
 
     // static char cipgsmloc[20] = {0};

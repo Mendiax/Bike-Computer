@@ -8,11 +8,11 @@ typedef struct Frame
 {
     uint16_t x, y, width, height;
 
-    inline uint16_t get_max_x()
+    inline uint16_t get_max_x() const
     {
         return x + width;
     }
-    inline uint16_t get_max_y()
+    inline uint16_t get_max_y() const
     {
         return y + height;
     }

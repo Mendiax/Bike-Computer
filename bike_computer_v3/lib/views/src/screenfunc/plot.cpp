@@ -1,11 +1,13 @@
-#include <views/screenfunc/plot.h>
-#include "views/frame.h"
-#include <display/fonts.h>
 #include <stdbool.h>
-#include "views/screenfunc/common.h"
 #include <iostream>
 
+#include <views/screenfunc/plot.h>
+#include "views/screenfunc/common.h"
+#include "views/frame.h"
+
+#include <display/fonts.h>
 #include <display/print.h>
+
 #include "massert.hpp"
 
 // drawFunc_p get_draw_func_plot(float* arr)

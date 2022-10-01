@@ -7,10 +7,11 @@
 // c/c++ includes
 
 // my includes
-#include "gui/view_session.hpp"
-#include "traces.h"
-#include "common_actors.hpp"
+#include "gui/main/main_new_session.hpp"
 #include "gui/structure.hpp"
+#include "views/view.hpp"
+#include "traces.h"
+
 
 // #------------------------------#
 // |           macros             |
@@ -19,38 +20,6 @@
 // #------------------------------#
 // | global variables definitions |
 // #------------------------------#
-
-View_Session::View_Session(const Sensor_Data& data, const Session_Data& session, bool view_only)
-    : view_only{view_only}, data{data}, session{session}
-{
-    TRACE_DEBUG(4, TRACE_VIEWS, "View_Session constructor\n");
-}
-
-View_Session::~View_Session()
-{
-
-}
-
-// start/pause
-void View_Session::action(void)
-{
-    if(!view_only)
-    {
-        Signal sig(SIG_CORE1_START_PAUSE_BTN);
-        actor_core1.send_signal(sig);
-    }
-}
-
-// end session
-void View_Session::action_long(void)
-{
-    if(!view_only)
-    {
-        Signal sig(SIG_CORE1_END_BTN);
-        actor_core1.send_signal(sig);
-    }
-    Gui::get_gui()->go_back();
-}
 
 // #------------------------------#
 // | static variables definitions |
@@ -63,6 +32,29 @@ void View_Session::action_long(void)
 // #------------------------------#
 // | global function definitions  |
 // #------------------------------#
+
+void Main_New_Session::render()
+{
+    auto creator = View_Creator::get_view();
+    creator->reset();
+    auto gui = Gui::get_gui();
+    auto frame = creator->setup_bar(&gui->data->current_time.hours, &gui->data->lipo);
+    auto [top, bot] = View_Creator::split_horizontal(frame);
+
+    creator->add_label("New", top, Align::CENTER, 7);
+    auto window = creator->get_previous_window();
+    labelSettingsAlignHeight(window->settings.label.text, top, false);
+
+    creator->add_label("session", bot, Align::CENTER, 7);
+
+}
+
+void Main_New_Session::action()
+{
+    // PRINTF("main manu new session btn pressed next list:%p\n", this->get_next_view_list());
+    auto gui = Gui::get_gui();
+    gui->enter();
+}
 
 // #------------------------------#
 // | static functions definitions |

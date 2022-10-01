@@ -126,6 +126,9 @@ public:
      */
     static std::tuple<Frame, Frame> split_horizontal(const Frame &frame, uint8_t ratio = 2, bool invert = false);
 
+    static std::vector<Frame> split_horizontal_arr(const Frame &frame, uint8_t cnt);
+
+
     template <typename T>
     void addValueUnitsVertical(const char *format, size_t commonLength, const T *data,
                                const char *over, const char *under,

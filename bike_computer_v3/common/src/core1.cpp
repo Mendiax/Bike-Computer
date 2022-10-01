@@ -94,30 +94,8 @@ void Core1::handle_sig_total_update(const Signal &sig)
 //static functions definitions
 
 
-//button
-static void next_display()
-{
-    btnPressedCount++;
-}
-
-static void btn2_short_press()
-{
-    printf("change state\n");
-    change_state = true;
-}
-
-static void btn2_long_press()
-{
-    stop = true;
-}
-
 static void setup(void)
 {
-    buttons_clear_all();
-    // btn1.set_callback(next_display);
-    // btn2.set_callback(btn2_short_press);
-    // btn2.set_callback_long(btn2_long_press);
-
     interruptSetupCore1();
 
     sensors_data_display = sensors_data;
@@ -125,15 +103,8 @@ static void setup(void)
 
     // setup
     auto gui = Gui::get_gui(&sensors_data_display, &sessionDataDisplay);
+    gui->render();
     gui->refresh();
-    // while (1)
-    // {
-    //     PRINTF("gui render done\n");
-    //     sleep_ms(1000);
-    // }
-
-    // Display_init(&sensors_data_display, &sessionDataDisplay);
-
     // TODO move it to menu
     {
         const std::string config_file_name = "giant_trance.cfg";
@@ -224,6 +195,28 @@ void handle_end_session()
     if (last_save.is_empty())
     {
         last_save.append(sessionDataDisplay.get_header());
+        sessionDataDisplay.set_id(1);
+    }
+    else
+    {
+        auto line_no = last_save.get_no_of_lines();
+        // PRINT("line_no:" << line_no);
+        // for(int i = 0; i < line_no; i++)
+        // {
+        //     PRINT("read line " << i << ": " << last_save.read_line(i, 100));
+        // }
+
+
+        // extract id from last
+        auto line = last_save.read_line(line_no - 2, 10); // raed only first field with id + ';'
+        PRINT("last line" << line);
+        auto end_pos = line.find_first_of(';');
+        massert(end_pos != std::string::npos, "';' not found %s\n", line.c_str());
+        auto id_str = line.substr(0, end_pos).c_str();
+        uint16_t id = std::atoi(id_str) + 1;
+        // massert(id != 0, "id == 0 id_str:%s\n", id_str);
+        PRINT("id:" << id);
+        sessionDataDisplay.set_id(id);
     }
     last_save.append(sessionDataDisplay.get_line().c_str());
     mutex_exit(&sensorDataMutex);
@@ -242,6 +235,8 @@ void handle_end_session()
         display::display();
         sleep_ms(1000);
     }
+    // retunrn to main menu
+    // Gui::get_gui()->go_back();
 }
 
 void Core1::handle_sig_start_pause_btn(const Signal &sig)

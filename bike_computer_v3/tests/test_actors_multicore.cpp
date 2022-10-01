@@ -31,7 +31,7 @@ private:
         Sig_Id_Ind* ind_p = sig.get_payload<Sig_Id_Ind*>();
         last_id = ind_p->id;
         delete ind_p;
-        printf("ind received\n");
+        // printf("ind received\n");
     }
     void handler_setup()
     {
@@ -53,7 +53,7 @@ private:
     //static int counter;
     static void handle_id_req(const Signal &sig)
     {
-        printf("req received\n");
+        // printf("req received\n");
         Actor* actor_p = (Actor*)sig.get_actor();
         auto req_p = sig.get_payload<Sig_Id_Req*>();
         delete req_p;

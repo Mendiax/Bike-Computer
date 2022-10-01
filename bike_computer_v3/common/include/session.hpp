@@ -4,6 +4,8 @@
 #include "common_types.h"
 #include "csv_interface.hpp"
 
+#define SESION_DATA_CSV_LEN_NO_GEARS 100
+
 /**
  * @brief Contains data about current session
  *
@@ -11,6 +13,7 @@
 class Session_Data : public Csv_Interface
 {
 public:
+    uint16_t id;
     TimeS time_start;
     TimeS time_end;
     SpeedData speed;
@@ -35,7 +38,14 @@ private:
     }
 public:
     Session_Data();
+    /**
+     * @brief Construct a new Session_Data from csv line
+     *
+     * @param csv_line
+     */
+    Session_Data(const char* csv_line, bool load_gear=true);
 
+    inline void set_id(uint16_t id){this->id = id;}
 
     void start(TimeS time);
     void pause();

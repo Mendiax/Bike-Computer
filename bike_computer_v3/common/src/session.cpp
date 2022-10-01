@@ -2,6 +2,7 @@
 #include "common_utils.hpp"
 #include "speedometer/speedometer.hpp"
 #include "traces.h"
+#include "massert.hpp"
 
 #include <sstream>
 #include <math.h>
@@ -45,6 +46,9 @@
 
 //     return csv_line.str();
 // }
+
+
+
 
 Session_Data::Session_Data()
 {
@@ -157,16 +161,36 @@ void Session_Data::update(float speed_kph, float distance_m)
 
 const char *Session_Data::get_header()
 {
-    return "time_start;time_end;"
+    return "id;time_start;time_end;"
             "velocityMax;avg;avg_global;distance;drive_time;" // speed
             "gears" // gear usage
             "\n";
 }
 
+Session_Data::Session_Data(const char* csv_line, bool load_gear)
+{
+    const auto data = split_string(csv_line, ';');
+    massert(data.size() >= (7 + load_gear), "wrong read session from line:'%s', data size:%zu", csv_line, data.size());
+    this->id = std::atoi(data.at(0).c_str());
+    this->time_start = time_from_str(data.at(1).c_str());
+    this->time_end = time_from_str(data.at(2).c_str());
+    this->speed.velocityMax = std::atof(data.at(3).c_str());
+    this->speed.avg = std::atof(data.at(4).c_str());
+    this->speed.avg_global = std::atof(data.at(5).c_str());
+    uint64_t dist = std::atoll(data.at(6).c_str());
+    this->speed.distance = dist / 1000;
+    this->speed.distanceDec = (dist - speed.distance) / 10;
+    this->speed.drive_time = std::atoll(data.at(7).c_str());
+    if(load_gear)
+        this->gear_usage.from_string(data.at(8).c_str());
+}
+
 std::string Session_Data::get_line()
 {
+    // 12;2004.01.01,00:00:19.50;2004.01.01,00:01:1.59;25.1481;25.3401;22.8785;260;37000  // min len 78 + 8 + ? -> 100 (safe?) dist(m) + time(s?)
     std::stringstream csv_line;
-    csv_line << time_to_str(time_start) << ";" << time_to_str(time_end) << ";"
+    csv_line << id << ";"
+             << time_to_str(time_start) << ";" << time_to_str(time_end) << ";"
              << speed.velocityMax << ";" << speed.avg << ";" << speed.avg_global << ";"
              << (speed.distance * 1000 + speed.distanceDec * 10) << ";" << speed.drive_time << ";"
              << gear_usage.to_string() << "\n";

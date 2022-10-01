@@ -145,6 +145,8 @@ static inline void tracesSetup()
     //                   CADENCE TRACES
     // ==================================================
     TRACES_ON(1, TRACE_BIKE_CONFIG); // to str
+    TRACES_ON(2, TRACE_BIKE_CONFIG); // min diff gear ratio
+
 
     // ==================================================
     //                   SD TRACES
@@ -158,6 +160,7 @@ static inline void tracesSetup()
     // ==================================================
     //                   GUI TRACES
     // ==================================================
+    TRACES_ON(1, TRACE_GUI); // history log data update
 
 }
 
@@ -192,6 +195,9 @@ namespace utility {
         printf(format, ##__VA_ARGS__); \
         mutex_exit(&tracesMutex); \
     } while (0)
+
+#define PRINT(...) \
+    std::cout << __VA_ARGS__ << std::endl
 
 
 

@@ -47,10 +47,12 @@ Gui::Gui(Sensor_Data* data_p, Session_Data* session_p)
     display::init();
     display::clear();
     display::display();
+    PRINTF("Gui::Gui()\n");
+
 
     this->set_data(data_p, session_p);
     this->create();
-    this->render();
+    // this->render();
 }
 
 Gui::~Gui()
@@ -64,20 +66,43 @@ void Gui::set_data(Sensor_Data* data_p, Session_Data* session_p)
 }
 void Gui::create()
 {
-    auto view1 = new View_Velocity(*data, *session, false);
+    PRINTF("Gui::create()\n");
 
-    auto session_menu = new View_List();
-    session_menu->add_view(view1);
+    auto main_menu = new View_List();
+    // -----------------------------
+    //      session
+    // -----------------------------
+    auto session_menu = new View_List(main_menu);
+    session_menu->add_view(new View_Velocity(*data, *session, false));
     session_menu->add_view(new View_Max_Avg(*data, *session, false));
     session_menu->add_view(new View_Gps(*data, *session, false));
     session_menu->add_view(new View_Date(*data, *session, false));
     session_menu->add_view(new View_Forecast(*data, *session, false));
     session_menu->add_view(new View_Total(*data, *session, false));
 
+    // -----------------------------
+    //      history
+    // -----------------------------
+    auto history_session_menu = new View_List(main_menu);
+    history_session_menu->add_view(new View_Velocity(*data, *session, true));
+    history_session_menu->add_view(new View_Max_Avg(*data, *session, true));
+    // history_session_menu->add_view(new View_Gps(*data, *session, true));
+    // history_session_menu->add_view(new View_Date(*data, *session, true));
+    // history_session_menu->add_view(new View_Forecast(*data, *session, true));
+    // history_session_menu->add_view(new View_Total(*data, *session, true));
 
 
-    this->current_view_list = session_menu;
-    massert(view1 == get_current(), "current view on create failed\n");
+    // -----------------------------
+    //      main menu
+    // -----------------------------
+    main_menu->add_view(new Main_New_Session((gui::view_list_p)session_menu));
+    main_menu->add_view(new Main_History((gui::view_list_p)history_session_menu));
+
+
+
+    this->current_view_list = main_menu;
+
+    // massert(view1 == get_current(), "current view on create failed\n");
 }
 
 

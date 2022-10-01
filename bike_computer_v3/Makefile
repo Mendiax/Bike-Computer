@@ -8,6 +8,7 @@ PICO_DRIVE_LETTER := I
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_MAIN_FILE).uf2)
+PICO_TEST_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_TEST_FILE).uf2)
 
 CMAKE_BUILDER := "Ninja"
 # CMAKE_BUILDER := "Unix Makefiles"
@@ -46,6 +47,9 @@ release:
 cw_all:
 	./boot/boot.sh -o b && $(MAKE) main && $(MAKE) write_main && sleep 2 && ./serial.bat
 
+cwt_all:
+	./boot/boot.sh -o b && $(MAKE) test && $(MAKE) write_test && sleep 2 && ./serial.bat
+
 .PHONY: boot
 boot:
 	./boot/boot.sh -o r
@@ -65,8 +69,9 @@ write_main:
 
 write_test: boot
 	#mkdir -p $(PICODIR)
-	mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
-	cp $(BUILD)/$(PICO_TEST_FILE).uf2 $(PICODIR)
+	# mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
+	# cp $(BUILD)/$(PICO_TEST_FILE).uf2 $(PICODIR)
+	./boot/upload.sh -p '$(PICO_TEST_FILE_PATH)'
 
 write_gsm_console: boot
 	#mkdir -p $(PICODIR)

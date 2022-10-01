@@ -32,8 +32,6 @@ private:
 
     gui::View_List* current_view_list;
 
-    Sensor_Data* data;
-    Session_Data* session;
 
     /**
      * @brief sets all views and structure of gui should be called only once
@@ -46,6 +44,8 @@ private:
     Gui(Sensor_Data* data_p, Session_Data* session_p);
     ~Gui();
 public:
+    Sensor_Data* data;
+    Session_Data* session;
     static inline Gui* get_gui(Sensor_Data* data_p = nullptr, Session_Data* session_p = nullptr)
     {
         if(singleton == nullptr)

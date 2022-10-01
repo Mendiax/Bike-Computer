@@ -40,18 +40,18 @@ void View_Gps::render(void)
     creator->addValueUnitsVertical("%2.0f", 2, &this->data.gps_data.speed, "km","h", gps_speed,
                            Align::CENTER, true);
     //add_value("%3.0f",3,&this->data.gps_data.msl, gps_height, Align::CENTER);
-    creator->add_value("%3.0fm",3,&this->data.altitude, gps_height, Align::CENTER);
+    creator->add_value("%3.0fm",4,&this->data.altitude, gps_height, Align::CENTER);
 
     //Frame bottomLeft ={0, get_frame_top_y(topLeft), topLeft.width, DISPLAY_HEIGHT - bottomLeft.y};
     //Frame bottomRight ={topRight.x,get_frame_top_y(topRight), topRight.width, bottomRight.height};
-    creator->add_value("%6.3f",6,&this->data.gps_data.lat, gps_lat, Align::CENTER);
-    creator->add_value("%6.3f",6,&this->data.gps_data.lon, gps_long, Align::CENTER);
+    creator->add_value("%6.3fN",7,&this->data.gps_data.lat, gps_lat, Align::CENTER);
+    creator->add_value("%6.3fE",7,&this->data.gps_data.lon, gps_long, Align::CENTER);
 
 
-    creator->add_value("%2" PRIu8,2,&this->data.gps_data.sat, sat, Align::CENTER);
-    creator->add_value("%2" PRIu8,2,&this->data.gps_data.sat2, sat2, Align::CENTER);
+    creator->add_value("s1:%2" PRIu8,5,&this->data.gps_data.sat, sat, Align::LEFT);
+    creator->add_value("s2:%2" PRIu8,5,&this->data.gps_data.sat2, sat2, Align::LEFT);
 
-    creator->add_value("% 3.0fC",3,&this->data.weather.temperature, temp, Align::CENTER);
+    creator->add_value("% 3.0fC",4,&this->data.weather.temperature, temp, Align::CENTER);
     //add_value("%4f",4,&this->data.gps_data.sat2, sat2, Align::CENTER);
 }
 // #------------------------------#

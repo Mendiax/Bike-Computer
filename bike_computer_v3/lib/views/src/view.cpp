@@ -83,13 +83,14 @@ void View_Creator::add_label(const char* string, const Frame& frame, Align align
     if(commonLength > 0)
     {
         labelSettingsNew(valSettings, frame, string, commonLength);
+        valSettings.text.str_len = strlen(string);
     }
     else
     {
         labelSettingsNew(valSettings, frame, string);
     }
-
     labelSettingsAlign(valSettings, frame, align);
+
     add_new_window(new_window);
 
 }
@@ -202,6 +203,20 @@ std::tuple<Frame, Frame> View_Creator::split_horizontal(const Frame &frame, uint
 
     return std::make_tuple(f1,f2);
 }
+
+std::vector<Frame> View_Creator::split_horizontal_arr(const Frame &frame, uint8_t cnt)
+{
+    const uint16_t height = frame.height / 3;
+    uint16_t y = frame.y;
+    std::vector<Frame> frames(cnt, {frame.x, frame.y, frame.width, height});
+    for(auto& f : frames)
+    {
+        f.y = y;
+        y += height;
+    }
+    return frames;
+}
+
 
 void View_Creator::top_bar(const Time_HourS *hours, const Battery *lipo)
 {
