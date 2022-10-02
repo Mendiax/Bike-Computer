@@ -94,7 +94,7 @@ void sim868::gps::turn_on()
     }
     else if(id == 0)
     {
-        id = send_request("AT+CGNSPWR=1",100);
+        id = send_request("AT+CGNSPWR=1",1000);
     }
 }
 
@@ -113,7 +113,7 @@ void sim868::gps::turn_off()
     }
     else if(id == 0)
     {
-        id = send_request("AT+CGNSPWR=0",100);
+        id = send_request("AT+CGNSPWR=0",1000);
     }
 }
 

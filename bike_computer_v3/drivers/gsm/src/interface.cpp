@@ -16,11 +16,12 @@
 #include "massert.hpp"
 #include "common_utils.hpp"
 
-// static variables
-bool gps_on;
-bool sim_on;
-bool waiting_for_request_respond;
+// global
 volatile bool http_req_irq;
+
+// static variables
+static bool sim_booted = false;
+static bool sim_on = false;
 
 static std::string rx_buffer;
 static volatile bool finished = false;
@@ -31,6 +32,12 @@ extern void on_uart_rx_http(void);
 Response current_response;
 
 void on_uart_rx(void);
+
+bool sim868::is_booted(void)
+{
+    return sim_booted;
+}
+
 
 bool sim868::is_on(void)
 {
@@ -102,7 +109,26 @@ void sim868::boot(void)
     waitForBoot();
 }
 
-bool sim868::check_for_boot(void)
+bool sim868::check_for_boot()
+{
+    static uint64_t id;
+    if(check_response(id)) // it will return false if id == 0
+    {
+        auto respond = get_respond(id);
+        sim_booted = sim868::is_respond_ok(respond);
+        PRINT("sim boot respond" << respond);
+        id = 0;
+        return true;
+    }
+    else if(id == 0)
+    {
+        id = send_request("AT", 2000);
+    }
+    return false;
+}
+
+
+bool sim868::check_for_boot_long(void)
 {
     return sim868::sendRequestLong("AT", 2000).find("OK") != std::string::npos;
 }
@@ -163,7 +189,7 @@ void sim868::waitForBoot()
         return;
     }
     int fail_counter = 0;
-    while(!check_for_boot())
+    while(!check_for_boot_long())
     {
         consolep("SIM868 is starting\n");
         sleep_ms(1000);
@@ -330,6 +356,10 @@ std::string sim868::get_respond(uint64_t id)
 {
     if(sim868::check_response(id))
     {
+        if(is_respond_error(current_response.response))
+        {
+            TRACE_ABNORMAL(TRACE_SIM868, "received error '%s'\n", current_response.response.c_str());
+        }
         //std::cout << id << " -> " << current_response.response << std::endl;
         current_response.status = ResponseStatus::RECEIVED;
         return current_response.response;

@@ -79,6 +79,7 @@ struct Response
 
 namespace sim868
 {
+    bool is_booted(void);
     bool is_on(void);
     void init(void);
     void turnOn(void);
@@ -87,6 +88,7 @@ namespace sim868
     void waitForBoot(void);
 
     bool check_for_boot(void);
+    bool check_for_boot_long(void);
 
     /**
      * @brief initialize, turn on and wait for boot finish

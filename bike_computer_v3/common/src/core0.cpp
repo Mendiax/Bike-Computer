@@ -169,12 +169,13 @@ static void setup(void)
     gpio_init(25); //power led
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 1);
-    sim868::boot();
+
+    // setup sim868
+   sim868::init();
+   sim868::turnOn();
+
     mutex_enter_blocking(&sensorDataMutex);
     session_p = new Session_Data();
-    //memcpy(sensors_data.cipgsmloc, "0,0.000000,0.000000", sizeof("0,0.000000,0.000000"));
-    // sensors_data.current_state = SystemState::SESSION_AUTOSTART;
-    // sensors_data.current_state = SystemState::TURNED_ON;
 
     mutex_exit(&sensorDataMutex);
 
@@ -300,7 +301,33 @@ static int loop_frame_update()
     }
     cycle_print_heart_beat();
 
-    cycle_get_gps_data();
+    if(sim868::is_booted())
+    { // sim usage
+        cycle_get_gps_data();
+
+        // battery
+        cycle_get_battery_status();
+        cycle_get_weather_data();
+    }
+    else
+    {
+        PRINT("Booting sim868");
+
+        //boot sim
+        if(sim868::check_for_boot() && !sim868::is_booted())
+        {
+            // not booted
+            PRINT("waiting for boot");
+        }
+        else
+        {
+            PRINT("Booting done");
+        }
+    }
+
+
+
+
     {
         Unique_Mutex mutex(&sensorDataMutex);
         if(session_p != nullptr)
@@ -312,52 +339,18 @@ static int loop_frame_update()
                 const auto start_absolute_time = session_p->get_start_absolute_time();
                 const auto diff_ms = us_to_ms(absolute_time_diff_us(start_absolute_time, current_absolute_time));
 
-                PRINT("\n\nupdate time start date");
                 // calc how many hours to remove
                 time_start = sensors_data.current_time;
-                PRINT("current:" << time_to_str(time_start));
 
-                // PRINT("time_start:" << time_to_str(time_start));
                 time_start.substract_ms(diff_ms);
                 session_p->set_start_time(time_start);
-                // PRINT("time_start:" << time_to_str(time_start));
-                PRINT("time_start:" << time_to_str(session_p->get_start_time()));
-
-                PRINT("\n\n");
-
             }
         }
     }
 
-    // battery
-    cycle_get_battery_status();
 
 
 
-    // static char cipgsmloc[20] = {0};
-    // CYCLE_UPDATE(sim868::gsm::get_cipgsmloc(cipgsmloc), GPS_FETCH_CYCLE_MS + 100, {},{});
-    // static char clbs[27] = {0};
-    // CYCLE_UPDATE(sim868::gsm::get_clbs(clbs), GPS_FETCH_CYCLE_MS + 300,{},{});
-
-    // static TimeS current_time;
-    // CYCLE_UPDATE_SLOW_RERUN(sim868::gsm::get_time(current_time), (current_time.year < 2022), TIME_FETCH_CYCLE_MS, 1000,
-    //  {}, {
-    //     //time_print(current_time);
-    // });
-    // current_time.update_time(get_absolute_time());
-    // mutex_enter_blocking(&sensorDataMutex);
-    // if (current_time.year > current_time.year)
-    //     sensors_data.current_time = current_time;
-    // sensors_data.current_time = current_time;
-
-    // time_print(sensors_data.current_time);
-    // mutex_exit(&sensorDataMutex);
-
-
-    cycle_get_weather_data();
-
-    // TODO time
-    //sim868::gps::get_date(current_time);
     // read data first
     const float velocity = speed::get_velocity_kph();
     const float cadence = cadence::get_cadence();

@@ -29,20 +29,13 @@ int main()
     stdio_init_all();
     // if(stdio_usb_connected())
     //     tracesSetup();
+
     // wait for serial console
     // coment out for normal use
     // while (!stdio_usb_connected()){sleep_ms(100);}
     TRACE_DEBUG(0, TRACE_MAIN, "Main start\n");
 
-
-    // battery setup
-    // adc_init();
-    //adc_gpio_init(26); //temp
-    //batterySetup();
-
     TRACE_DEBUG(0, TRACE_MAIN, "Init common data\n");
-    //speedDataInit(sensors_data.speed);
-    //sensors_data.rearShockBuffer = ring_buffer_create(sizeof(uint8_t), SCREEN_WIDTH);
     sensors_data.current_state = SystemState::TURNED_ON;
 
     mutex_init(&sensorDataMutex);

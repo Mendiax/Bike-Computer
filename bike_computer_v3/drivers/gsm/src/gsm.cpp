@@ -556,7 +556,7 @@ bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::s
     //     // {
     //     //     sim868::turnOn();
     //     //     return false;
-    //     // }else if(!sim868::check_for_boot())
+    //     // }else if(!sim868::check_for_boot_long())
     //     // {
     //     //     return false;
     //     // }
