@@ -41,14 +41,9 @@ void View_Forecast::render(void)
     top.width = w;
     creator->get_previous_window()->settings.label.text.offsetX = top.x;
 
-    // TODO
+
     Frame legend = {0, frame.y, top.x, frame.height};
     auto legend_frames = View_Creator::split_horizontal_arr(legend, 5);
-
-    // const auto space_per_label = legend.height / 3;
-    // Frame legend_wind = legend;     legend_wind.height = space_per_label;
-    // Frame legend_wind_max = legend; legend_wind_max.height = space_per_label; legend_wind_max.y = legend.get_max_y();
-    // Frame legend_precipitation = legend; legend_precipitation.height = space_per_label; legend_precipitation.y = legend_wind_max.get_max_y();
 
     const display::DisplayColor color_wind{0,0xf,0};
     const display::DisplayColor color_wind_max{0xf,0x0,0x1};

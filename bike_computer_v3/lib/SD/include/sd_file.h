@@ -32,7 +32,7 @@ public:
     Result overwrite(const char* string, size_t pos = 0);
 
     size_t get_no_of_lines();
-    std::string read_last_line(size_t max_len); // TODO
+    std::string read_last_line(size_t max_len);
     std::string read_line(size_t line_no, size_t max_len);
     std::vector<std::string> read_all_lines(size_t max_len);
 

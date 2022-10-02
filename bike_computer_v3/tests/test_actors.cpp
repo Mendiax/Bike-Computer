@@ -69,7 +69,6 @@ static int simple_actor()
     printer_actor.send_signal(test_id);
 
 
-    // TODO add receive all?
     while (!printer_actor.is_queue_empty())
     {
         printer_actor.handle_next_signal();

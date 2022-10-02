@@ -132,7 +132,7 @@ void bmp280_read_raw(int32_t* const temp, int32_t* const pressure) {
     *pressure = (buf[0] << 12) | (buf[1] << 4) | (buf[2] >> 4);
     *temp = (buf[3] << 12) | (buf[4] << 4) | (buf[5] >> 4);
 
-    PRINTF("RAW pres %" PRId32 " temp %" PRId32 "\n", *pressure, *temp);
+    // PRINTF("RAW pres %" PRId32 " temp %" PRId32 "\n", *pressure, *temp);
 }
 
 void bmp280_reset() {

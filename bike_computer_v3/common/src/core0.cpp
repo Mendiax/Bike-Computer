@@ -3,6 +3,7 @@
 // #-------------------------------#
 // pico includes
 #include "pico/stdlib.h"
+#include "pico/util/datetime.h"
 
 // c/c++ includes
 #include <tuple>
@@ -29,6 +30,8 @@
 // BMP
 #include "IMU.h"
 #include "I2C.h"
+
+#include "hardware/rtc.h"
 
 // #-------------------------------#
 // |            macros             |
@@ -96,6 +99,18 @@ static void setup(void)
 {
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
+
+    rtc_init();
+    datetime_t t = {
+        .year  = 2000,
+        .month = 01,
+        .day   = 01,
+        .dotw  = 0, // 0 is Sunday, so 5 is Friday
+        .hour  = 0,
+        .min   = 0,
+        .sec   = 00
+    };
+    rtc_set_datetime(&t);
 
 #if PREDEFINED_BIKE_SETUP == 1
     // uint8_t gears_front[] = {32};
@@ -277,11 +292,45 @@ static int loop_frame_update()
     // update_total_stats();
 
     actor_core0.handle_all();
+    {
+        Unique_Mutex mutex(&sensorDataMutex);
+        datetime_t t;
+        rtc_get_datetime(&t);
+        sensors_data.current_time.from_date_time(t);
+    }
     //cycle_print_heart_beat();
     //size_t avaible_memory = check_free_mem();
     //printf("Avaible memory = %zu\n", avaible_memory);
 
     cycle_get_gps_data();
+    {
+        Unique_Mutex mutex(&sensorDataMutex);
+        if(session_p != nullptr)
+        {
+            auto time_start = session_p->get_start_time();
+            if(!time_start.is_valid() && sensors_data.current_time.is_valid())
+            {
+                const auto current_absolute_time = get_absolute_time();
+                const auto start_absolute_time = session_p->get_start_absolute_time();
+                const auto diff_ms = us_to_ms(absolute_time_diff_us(start_absolute_time, current_absolute_time));
+
+                PRINT("\n\nupdate time start date");
+                // calc how many hours to remove
+                time_start = sensors_data.current_time;
+                PRINT("current:" << time_to_str(time_start));
+
+                // PRINT("time_start:" << time_to_str(time_start));
+                time_start.substract_ms(diff_ms);
+                session_p->set_start_time(time_start);
+                // PRINT("time_start:" << time_to_str(time_start));
+                PRINT("time_start:" << time_to_str(session_p->get_start_time()));
+
+                PRINT("\n\n");
+
+            }
+        }
+    }
+
     // battery
     cycle_get_battery_status();
 
@@ -476,6 +525,7 @@ static void cycle_get_gps_data()
     static float longitude;
     static float msl;
     static TimeS current_time;
+    datetime_t t;
     CYCLE_UPDATE_SIMPLE(sim868::gps::fetch_data(), GPS_FETCH_CYCLE_MS,
         {
             sim868::gps::get_speed(speed);
@@ -500,11 +550,13 @@ static void cycle_get_gps_data()
             sensors_data.gps_data.msl = msl;
             sim868::gps::get_date(current_time);
             // if(current_time.year > current_time.year)
-            sensors_data.current_time = current_time;
-
-
-            // if(sim868::gps::get_gps_state() >= GpsState::DATA_AVAIBLE)
-            //     memcpy(&sensors_data.current_time.date, &current_time, sizeof(sensors_data.current_time.date));
+            if(!sensors_data.current_time.is_valid() && current_time.is_valid())
+            {
+                t = current_time.to_date_time();
+                rtc_set_datetime(&t);
+                sensors_data.current_time = current_time;
+                PRINT("set time");
+            }
 
             mutex_exit(&sensorDataMutex);
             TRACE_DEBUG(3, TRACE_CORE_0,
@@ -525,11 +577,11 @@ static void cycle_get_forecast_data()
     // TODO
     float latitude = 0;
     float longitude = 0;
-    //mutex_enter_blocking(&sensorDataMutex);
-    TimeS current_time{0,0,0,0,0,0.0f}; // fix xd
-    Time_DateS current_time_date{current_time.year, current_time.month, current_time.day};
-    //mutex_exit(&sensorDataMutex);
-    // if(current_time_date.year != 0)
+    mutex_enter_blocking(&sensorDataMutex);
+    TimeS current_time = sensors_data.current_time;
+    // Time_DateS current_time_date{sensors_data.current_time.year, sensors_data.current_time.month, sensors_data.current_time.day};
+    mutex_exit(&sensorDataMutex);
+    if(current_time.year != 0)
     {
 
         CYCLE_UPDATE(sim868::gsm::get_http_req(success,http_req_addr.c_str(),forecast_json),
@@ -545,12 +597,12 @@ static void cycle_get_forecast_data()
                     latitude = 51.4;
                     longitude = 16.59;
                 }
-                if (current_time_date.year != 0)
+                if (current_time.year != 0)
                 {
                     http_req_addr = sim868::gsm::construct_http_request_url(latitude,
                                                                             longitude,
-                                                                            current_time_date,
-                                                                            current_time_date);
+                                                                            current_time.date, // TODO if less than <DEFINE> to next day add daya + 1
+                                                                            current_time.date);
                 }
                 else
                 {
@@ -563,7 +615,7 @@ static void cycle_get_forecast_data()
                     {
                         std::cout << "forecast: '" << forecast_json << "'" << std::endl;
                         auto daycnt = 1;
-                        if(current_time_date.year == 0)
+                        if(current_time.year == 0)
                             daycnt = 7;
                         auto forecast_raw = parse_json(forecast_json, daycnt);
                         if(forecast_raw != nullptr)

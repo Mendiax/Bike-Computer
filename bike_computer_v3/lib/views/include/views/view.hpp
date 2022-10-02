@@ -95,8 +95,6 @@ public:
     template<typename T>
     uint16_t add_arr_label(const T* arr, size_t N, const Frame& frame);
 
-
-    // TODO make those static
     /**
      * @brief split frame into fram with len-1/len width and 1/len width
      *
@@ -105,6 +103,7 @@ public:
      * @return std::tuple<Frame, Frame>
      */
     static std::tuple<Frame, Frame> splitFrame(const Frame &frame, uint16_t length, bool align_right = false);
+
     /**
      * @brief splits frame into 2 frames with half of width
      *
@@ -112,13 +111,7 @@ public:
      * @return constexpr std::tuple<Frame, Frame>
      */
     static std::tuple<Frame, Frame> split_vertical(const Frame &frame, uint8_t ratio = 2, bool invert = false);
-    // {
-    //     const uint16_t half_width = frame.width / 2;
-    //     const Frame f1 = {frame.x, frame.y, half_width, frame.height};
-    //     const uint16_t next_x = frame.x + half_width;
-    //     const Frame f2 = {next_x, frame.y, half_width, frame.height};
-    //     return std::make_tuple(f1,f2);
-    // }
+
     /**
      * @brief splits frame into 2 frames with half of height
      *

@@ -127,7 +127,7 @@ void Main_History::render()
     size_t idx = 0;
     for(auto& f : hist_frames)
     {
-        creator->add_label(displayed_data.at(idx++), f, Align::CENTER, MAX_LOG_NAME_LEN); // max 10 chars TODO check this xd
+        creator->add_label(displayed_data.at(idx++), f, Align::CENTER, MAX_LOG_NAME_LEN);
     }
     creator->add_frame(hist_frames.at(0));
     // auto window = creator->get_previous_window();

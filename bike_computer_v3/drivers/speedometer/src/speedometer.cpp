@@ -71,7 +71,7 @@ float speed_getDistance()
 /*returns last read speed [m/s]*/
 float speed_getSpeed()
 {
-    // TODO if speed is not updated between 2 reads and speed is lower than last speed return
+    // if speed is not updated between 2 reads and speed is lower than last speed return
     // speed that it would read if next update occured at time of read
     // (smoother transition into lower speeds)
     // i.e. 20 -> 10 should looks like 20 19 28 ... 10 not 20 10
@@ -139,7 +139,7 @@ static void speed_update()
         speed_wheelCounter += (increment_wheelCounter == 1);
         speed_wheelCounter_total++;
         speed_velocity = speed_velocity_from_delta(delta_time);
-        // TODO if speed > MIN add time to counter
+        // if speed > MIN add time to counter
         if(speed_velocity >= speed_kph_to_mps(MIN_SPEED))
         {
             speed_total_time += delta_time;

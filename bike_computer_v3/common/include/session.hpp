@@ -47,6 +47,12 @@ public:
 
     inline void set_id(uint16_t id){this->id = id;}
 
+    inline TimeS get_start_time() {return this->time_start;}
+    inline void set_start_time(TimeS time) {if(status != Status::ENDED && time_start.year < 2022) this->time_start = time;}
+
+    inline absolute_time_t get_start_absolute_time() {return this->absolute_time_start;}
+
+
     void start(TimeS time);
     void pause();
     void cont();

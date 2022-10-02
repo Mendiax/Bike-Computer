@@ -5,6 +5,7 @@
 #include "bike_config.hpp"
 
 #include "pico/sync.h"
+#include "pico/util/datetime.h"
 
 #include <string>
 #include <array>
@@ -68,7 +69,12 @@ struct TimeS
         };
     };
     absolute_time_t time_stamp;
-    void update_time(absolute_time_t current);
+    void update_time(absolute_time_t current); // not used
+    void substract_ms(uint32_t ms);
+    void from_date_time(const datetime_t& date);
+    datetime_t to_date_time() const;
+
+    bool is_valid() const;
 };
 
 

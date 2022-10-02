@@ -182,8 +182,6 @@ void handle_end_session()
     getFontSize(width_char, pause_label.height, &font, &scale);
     Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
     display::display();
-    // save track and wait for restart
-    // TODO improve add menu ???
 
     Signal sig(SIG_CORE0_STOP);
     actor_core0.send_signal(sig);
@@ -290,7 +288,6 @@ static int loop(void)
         mutex_exit(&sensorDataMutex);
 
         // render
-        // Display_update(); TODO
         auto gui = Gui::get_gui();
         gui->refresh();
 

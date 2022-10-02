@@ -252,18 +252,4 @@ void drawFormat_TimeS(const void *settings)
     13.08.22
     15:32:12
     */
-
-    // TODO
-    // PRINTF("%4" PRIu16 "\t"
-    //         "%2" PRIu8 "\t"
-    //         "%2" PRIu8 "\t"
-    //         "%2" PRIu8 "\t"
-    //         "%2" PRIu8 "\t"
-    //         "%6.3f \n",
-    //         time.year,
-    //         time.month,
-    //         time.day,
-    //         time.hour,
-    //         time.minutes,
-    //         time.seconds);
 }
