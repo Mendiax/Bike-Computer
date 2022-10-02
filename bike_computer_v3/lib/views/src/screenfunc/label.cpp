@@ -103,6 +103,10 @@ static void fitToFrame(TextSettings& settings, const Frame& frame, size_t length
     uint8_t scale = 0;
 
     getFontSizePreferBiggerFonts(widthPerChar, frame.height, &settings.font, &settings.scale);
+
+    const auto space_left = frame.height - textSettingsGetHeight(settings);
+    const auto offset_y = space_left/2;
+
     settings.offsetX = frame.x;
-    settings.offsetY = frame.y;
+    settings.offsetY = frame.y + offset_y;
 }
