@@ -41,7 +41,7 @@
 // cycles times
 #define BAT_LEV_CYCLE_MS (29*1000)
 #define WEATHER_CYCLE_MS (1*1000)
-#define HEART_BEAT_CYCLE_MS (1*1000)
+#define HEART_BEAT_CYCLE_MS (10*1000)
 #define GPS_FETCH_CYCLE_MS (1*1000)
 #define TIME_FETCH_CYCLE_MS (10*1000)
 // http requests per 10min
@@ -298,9 +298,7 @@ static int loop_frame_update()
         rtc_get_datetime(&t);
         sensors_data.current_time.from_date_time(t);
     }
-    //cycle_print_heart_beat();
-    //size_t avaible_memory = check_free_mem();
-    //printf("Avaible memory = %zu\n", avaible_memory);
+    cycle_print_heart_beat();
 
     cycle_get_gps_data();
     {
@@ -495,9 +493,11 @@ static void update_total_stats()
 
 static void cycle_print_heart_beat()
 {
+    size_t avaible_memory;
     CYCLE_UPDATE_SIMPLE(true, HEART_BEAT_CYCLE_MS,
         {
-           PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
+            float memory = (float)check_free_mem()/1000.0;
+            PRINTF("[HEART_BEAT] time since boot: %.3fs Avaible memory = %.3fkb/256kb\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0, memory);
         });
 }
 

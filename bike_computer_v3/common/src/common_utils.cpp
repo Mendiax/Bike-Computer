@@ -22,14 +22,20 @@ std::vector<std::string> split_string(const std::string& string, char sep)
 
 size_t check_free_mem()
 {
-    size_t avaible_memory = SIZE_MAX;
-    void* mem;
-    while((avaible_memory != 0) && (mem = malloc(avaible_memory)) == NULL)
+    size_t avaible_memory = 0;
+    size_t chunk_size = 262144; // 2^18
+    void* mem_p[12] = {0}; // holds allocated memory
+    int i;
+    for(i = 0; i < 10; i++)
     {
-        avaible_memory >>= 1;
+        mem_p[i] = malloc(chunk_size);
+        if(mem_p[i] != NULL){avaible_memory += chunk_size;}
+        chunk_size >>= 1;
     }
-    if(mem != NULL)
-        free(mem);
+    for(i = 0; i < 12; i++)
+    {
+        if(mem_p[i] != NULL){free(mem_p[i]);}
+    }
     return avaible_memory;
 }
 
