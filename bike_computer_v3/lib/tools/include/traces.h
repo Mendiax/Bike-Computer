@@ -164,29 +164,15 @@ static inline void tracesSetup()
 
 }
 
-namespace utility {
+#define ESC "\x1b"
 
-    template <typename T, size_t S>
-    inline constexpr size_t get_file_name_offset(const T (& str)[S], size_t i = S - 1)
-    {
-        return (str[i] == '/' || str[i] == '\\') ? i + 1 : (i > 0 ? get_file_name_offset(str, i - 1) : 0);
-    }
+#define ESC_RESET ESC "[0m"
 
-    template <typename T>
-    inline constexpr size_t get_file_name_offset(T (& str)[1])
-    {
-        return 0;
-    }
+#define ESC_RED ESC "[1;31m"
+#define ESC_GREEN ESC "[1;32m"
+#define ESC_WHITE ESC "[1;37m"
 
-    template <typename T, T v>
-    struct const_expr_value
-    {
-        static constexpr const T value = v;
-    };
 
-}
-
-#define UTILITY_CONST_EXPR_VALUE(exp) utility::const_expr_value<decltype(exp), exp>::value
 
 
 #define PRINTF(format, ...) \
@@ -206,16 +192,14 @@ namespace utility {
     if (tracesOn[name] & (1 << id))\
     {\
         float __time_since_boot = (float)to_ms_since_boot(get_absolute_time()) / 1000.0; \
-        PRINTF("[" #name ".%u]<%s:%d>%.3f " __info, \
+        PRINTF("[" ESC_GREEN #name ".%u" ESC_RESET "][" ESC_WHITE "%.3fs" ESC_RESET "] " ESC_WHITE __info ESC_RESET, \
             id, \
-            &__FILE__[UTILITY_CONST_EXPR_VALUE(utility::get_file_name_offset(__FILE__))], \
-            __LINE__, \
             __time_since_boot, \
             ##__VA_ARGS__); \
     }\
     }while(0)
 
 #define TRACE_ABNORMAL(name, __info, ...) \
-    TRACE_DEBUG(0, name, "\x1b[1;31mABNORMAL " __info "\x1b[0m", ##__VA_ARGS__)
+    TRACE_DEBUG(0, name, ESC_RED "ABNORMAL " __info ESC_RESET, ##__VA_ARGS__)
 
 #endif
