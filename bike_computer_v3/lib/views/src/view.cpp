@@ -195,6 +195,18 @@ std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame, uint8_
     const Frame f2 = {next_x, frame.y, f2_w, frame.height};
     return std::make_tuple(f1,f2);
 }
+
+// std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame, float ratio)
+// {
+//     const uint16_t f1_w = frame.width * ratio;
+//     const uint16_t f2_w = frame.width - f1_w;
+
+//     const uint16_t next_x = frame.x + f1_w;
+
+//     const Frame f1 = {frame.x, frame.y, f1_w, frame.height};
+//     const Frame f2 = {next_x, frame.y, f2_w, frame.height};
+//     return std::make_tuple(f1,f2);
+// }
 /**
  * @brief splits frame into 2 frames with half of height
  *

@@ -53,7 +53,7 @@ cwt_all:
 
 .PHONY: boot
 boot:
-	./boot/boot.sh -o r
+	./boot/boot.sh -o b
 
 .PHONY: restart
 restart:
@@ -66,7 +66,7 @@ write_main:
 	# mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
 	# cp $(BUILD)/$(PICO_MAIN_FILE).uf2 $(PICODIR)
 
-	./boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)'
+	./boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
 
 write_test: boot
 	#mkdir -p $(PICODIR)

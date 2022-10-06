@@ -111,6 +111,7 @@ public:
      * @return constexpr std::tuple<Frame, Frame>
      */
     static std::tuple<Frame, Frame> split_vertical(const Frame &frame, uint8_t ratio = 2, bool invert = false);
+    // std::tuple<Frame, Frame> split_vertical(const Frame& frame, float ratio);
 
     /**
      * @brief splits frame into 2 frames with half of height

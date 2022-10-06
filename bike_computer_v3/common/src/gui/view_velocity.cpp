@@ -36,26 +36,46 @@ void View_Velocity::render(void)
     creator->reset();
     auto frame = creator->setup_bar(&this->data.current_time.hours, &this->data.lipo);
 
-    // const auto frame = get_frame_bar();
+    frame.height = DISPLAY_HEIGHT;
 
-    // const auto [frame_speed, frame_distance] = split_horizontal();
+    auto [frame_speed, frame_distance] = View_Creator::split_horizontal(frame);
 
-    Frame speed = {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
 
-    // addValueUnitsVertical("%2.0f", 2, &this->data.speed.velocity, "km","h", speed,
-    //                        Align::CENTER, true);
-    creator->addValueValuesVertical("%2.0f", (size_t)2, &this->data.velocity, // here
-                                    "%3.0f", (size_t)3, &this->data.cadence,
-                                    "%3" PRIu8, (size_t)3, &this->data.gear.rear,
-                                    //"kph", 3, (void*)0,
-                                    speed,
-                                    Align::RIGHT, false);
+    // Frame speed = {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT/2};
 
-    Frame distanceFrame = {0, View_Creator::get_frame_top_y(speed), DISPLAY_WIDTH, DISPLAY_HEIGHT/2}; // here
-    creator->addValueValuesVertical("%3" PRIu16, 3, &this->session.speed.distance, // here
+    auto [frame_velocity, frame_stats] = View_Creator::split_vertical(frame_speed, 2);
+    frame_velocity.width += 10;
+
+    auto [frame_cadence, frame_gear] = View_Creator::split_horizontal(frame_stats);
+    auto [frame_gear_suggestion, frame_gear_current] = View_Creator::split_vertical(frame_gear);
+    frame_gear_current.width += 5;
+    frame_gear_current.x -= 5;
+
+
+    creator->add_value("%2.0f", (size_t)2, &this->data.velocity, frame_velocity, Align::LEFT);
+
+    creator->add_value("%3.0f", (size_t)3, &this->data.cadence, frame_cadence, Align::RIGHT);
+
+    creator->add_value("%3" PRIu8, (size_t)3, &this->data.gear.rear, frame_gear, Align::RIGHT);
+    creator->add_label(this->data.gear_suggestions.gear_suggestion, frame_gear_suggestion, Align::RIGHT, (size_t)2);
+
+    auto prev = creator->get_previous_window();
+    prev->settings.label.text.color = &this->data.gear_suggestions.gear_suggestion_color;
+
+
+
+
+    // creator->addValueValuesVertical("%2.0f", (size_t)2, &this->data.velocity,
+    //                                 "%3.0f", (size_t)3, &this->data.cadence,
+    //                                 "%3" PRIu8, (size_t)3, &this->data.gear.rear,
+    //                                 speed,
+    //                                 Align::RIGHT, false);
+
+    // Frame distanceFrame = {0, View_Creator::get_frame_top_y(speed), DISPLAY_WIDTH, DISPLAY_HEIGHT/2}; // here
+    creator->addValueValuesVertical("%3" PRIu16, 3, &this->session.speed.distance,
                            "%02" PRIu8, 2, &this->session.speed.distanceDec,
                            "km", 2, (void *)0,
-                           distanceFrame,
+                           frame_distance,
                            Align::CENTER, true);
 
     TRACE_DEBUG(4, TRACE_VIEWS, "view_velocity render \n");

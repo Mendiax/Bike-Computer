@@ -22,6 +22,10 @@ Gear_Iterator::Gear_Iterator(const Bike_Config_S& config)
     :config{config},current_front{0}, current_rear{0}
 {}
 
+// Gear_Iterator::Gear_Iterator(const Bike_Config_S& config, Gear_S gear)
+//     :config{config},current_front{gear.front - 1}, current_rear{gear - 1}
+// {}
+
 bool Gear_Iterator::has_next()
 {
     return current_front < config.gear_front.size();
@@ -39,7 +43,9 @@ float Gear_Iterator::get_next()
 }
 Gear_S Gear_Iterator::get_gear()
 {
-    return {current_front, current_rear};
+    const uint8_t fr = current_front + 1;
+    const uint8_t rr = current_rear + 1;
+    return {fr, rr};
 }
 
 #define GEARS_FRONT_STR "GF"
@@ -47,6 +53,47 @@ Gear_S Gear_Iterator::get_gear()
 #define WHEEL_SIZE_STR "WS"
 
 
+Gear_S Bike_Config_S::get_next_gear(Gear_S gear) const
+{
+    gear.rear++;
+    if(gear.rear <= gear_rear.size())
+    {
+        return gear;
+    }
+    // we reached limit of rear gear
+    gear.rear = 0;
+    gear.front++;
+    if(gear.front <= gear_front.size())
+    {
+        return gear;
+    }
+    // reached max gear
+    return {0,0};
+}
+Gear_S Bike_Config_S::get_prev_gear(Gear_S gear) const
+{
+    if(gear.rear > 1)
+    {
+        gear.rear--;
+        return gear;
+    }
+    if(gear.front > 1)
+    {
+        gear.rear = gear_rear.size();
+        gear.front--;
+        return gear;
+    }
+    // reached min gear
+    return {0,0};
+}
+float Bike_Config_S::get_gear_ratio(Gear_S gear) const
+{
+    if(is_gear_null(gear))
+    {
+        return 0.0f;
+    }
+    return (float)gear_front.at(gear.front - 1) / (float)gear_rear.at(gear.rear - 1);
+}
 
 const char* Bike_Config_S::to_string()
 {
@@ -155,8 +202,6 @@ Gear_S Bike_Config_S::get_current_gear(float ratio)
        // TODO add algoriths that work better at reading gear (precision) ??? now we tak minimum
         if(check_floats_prec(gear_ratio, ratio, this->min_gear_diff))
         {
-            gear.front += 1;
-            gear.rear += 1;
             return gear;
         }
         // TRACE_DEBUG(5, TRACE_CORE_0,

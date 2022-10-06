@@ -146,7 +146,7 @@ static void setup(void)
 
     // for testing purpose
 #if SIM_WHEEL_CADENCE == 1
-    float emulated_speed = 25.0;
+    float emulated_speed = 36.0;
     speed_emulate(emulated_speed);
     PRINTF("emulated_speed=%f\n", emulated_speed);
     float wheel_rpm = speed::kph_to_rpm(emulated_speed);
@@ -350,10 +350,19 @@ static int loop_frame_update()
 
 
 
+    // calc delta
+    const absolute_time_t time_update_current = get_absolute_time();
+    static absolute_time_t time_update_prev;
+    const auto delta_ms = us_to_ms(absolute_time_diff_us(time_update_prev, time_update_current));
+    time_update_prev = time_update_current;
 
     // read data first
+    static float last_velocity;
     const float velocity = speed::get_velocity_kph();
     const float cadence = cadence::get_cadence();
+
+    const float accel = (velocity - last_velocity)/((double)delta_ms / 1000.0);
+    last_velocity = velocity;
 
     // get gear
     const float wheel_rpm = speed::kph_to_rpm(velocity);
@@ -379,22 +388,51 @@ static int loop_frame_update()
             last_altitude = current_alt;
         }
     }
+    // calc gear suggestion
+    Gear_Suggestion_Calculator suggestion(config);
+    auto gear_suggestion = suggestion.get_suggested_gear(cadence, accel, gear);
 
     TRACE_DEBUG(5, TRACE_CORE_0,
         "dist=%f wheel_rpm=%f, cadence=%f, read_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
         distance, wheel_rpm, cadence, read_ratio, gear.front, gear.rear);
 
-    mutex_enter_blocking(&sensorDataMutex);
-    // calc delta
-    const absolute_time_t time_update_current = get_absolute_time();
-    static absolute_time_t time_update_prev;
-    const auto delta_ms = us_to_ms(absolute_time_diff_us(time_update_prev, time_update_current));
-    time_update_prev = time_update_current;
+
 
     // update sensor
+    mutex_enter_blocking(&sensorDataMutex);
     sensors_data.velocity = velocity;
     sensors_data.cadence = cadence;
+    sensors_data.accel = accel;
     sensors_data.gear = gear;
+
+    sensors_data.gear_suggestions.cadence_min = gear_suggestion.cadence_min;
+    sensors_data.gear_suggestions.cadence_max = gear_suggestion.cadence_max;
+
+    switch (gear_suggestion.suggestion)
+    {
+    case Gear_Suggestion::UP_SHIFT:
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "/\\", GEAR_SUGGESTION_LEN);
+        sensors_data.gear_suggestions.gear_suggestion_color = {0x0,0xf,0x0};
+        break;
+    case Gear_Suggestion::DOWN_SHIFT:
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "\\/", GEAR_SUGGESTION_LEN);
+        sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0x0,0x1};
+        break;
+    case Gear_Suggestion::NO_SHIFT:
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "--", GEAR_SUGGESTION_LEN);
+        sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
+        break;
+    default:
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "  ", GEAR_SUGGESTION_LEN);
+        sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
+        break;
+    }
+    // sensors_data.cadence_min = cadence_min;
+    // sensors_data.cadence_max = cadence_max;
+
+    // strncpy(sensors_data.gear_suggestion, gear_suggestion, GEAR_SUGGESTION_LEN);
+    // sensors_data.gear_suggestion[GEAR_SUGGESTION_LEN] = '\0';
+    // sensors_data.gear_suggestion_color = gear_suggestion_color;
 
     // update if running
     session_p->update(velocity, distance);

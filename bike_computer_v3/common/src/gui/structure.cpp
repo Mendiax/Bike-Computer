@@ -74,6 +74,7 @@ void Gui::create()
     // -----------------------------
     auto session_menu = new View_List(main_menu);
     session_menu->add_view(new View_Velocity(*data, *session, false));
+    session_menu->add_view(new View_Gear(*data, *session, false));
     session_menu->add_view(new View_Max_Avg(*data, *session, false));
     session_menu->add_view(new View_Gps(*data, *session, false));
     session_menu->add_view(new View_Date(*data, *session, false));

@@ -18,6 +18,7 @@ static void fitToFrame(TextSettings& settings, const Frame& frame, size_t length
 
 void labelSettingsNew(LabelSettings& settings, const Frame& frame, const char* string, size_t commonLength, const display::DisplayColor& color)
 {
+    settings.text.color = nullptr;
     settings.color = color;
     settings.text.string = string;
     settings.text.str_len = commonLength;
@@ -34,12 +35,13 @@ void LabelDraw(const void *settings)
 {
     LabelSettings *labelSettings = (LabelSettings *)settings;
 
+    const display::DisplayColor& color = labelSettings->text.color == nullptr ?  labelSettings->color : *labelSettings->text.color;
     //TRACE_DEBUG(0, TRACE_DISPLAY_PRINT, "Drawing label %s at [%d, %d]\n", labelSettings->text.string, x, y);
     Paint_Println(labelSettings->text.offsetX,
                   labelSettings->text.offsetY,
                   labelSettings->text.string,
                   labelSettings->text.font,
-                  labelSettings->color,
+                  color,
                   labelSettings->text.scale);
     //TRACE_DEBUG(0, TRACE_DISPLAY_PRINT, "finished label %s at [%d, %d]\n", labelSettings->text.string, x, y);
 

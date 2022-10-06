@@ -18,6 +18,24 @@ typedef struct Frame
     }
 } Frame;
 
+static inline Frame offset_x(const Frame& frame, int16_t offset)
+{
+    Frame offset_frame = frame;
+    int16_t new_x = (int16_t)frame.x + offset;
+    if(new_x < 0){new_x = 0;}
+    offset_frame.x = new_x;
+    return offset_frame;
+}
+
+static inline Frame offset_y(const Frame& frame, int16_t offset)
+{
+    Frame offset_frame = frame;
+    int16_t new_y = (int16_t)frame.y + offset;
+    if(new_y < 0){new_y = 0;}
+    offset_frame.y = new_y;
+    return offset_frame;
+}
+
 static inline std::string frame_to_string(const Frame& frame)
 {
 

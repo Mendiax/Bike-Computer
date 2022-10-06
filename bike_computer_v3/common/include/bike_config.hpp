@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string>
 #include <sstream>
+#include <unordered_map>
 
 #include "traces.h"
 
@@ -12,6 +13,20 @@ struct Gear_S
 {
     uint8_t front;
     uint8_t rear;
+
+    bool operator==(const Gear_S &other) const
+    {
+        return (front == other.front && rear == other.rear);
+    }
+    struct HashFunction
+    {
+        size_t operator()(const Gear_S& pos) const
+        {
+            uint16_t combined = (uint16_t)pos.front << 8 | (uint16_t)pos.rear;
+
+            return std::hash<uint16_t>()(combined);
+        }
+    };
 };
 
 struct Bike_Config_S
@@ -20,6 +35,16 @@ struct Bike_Config_S
     std::vector<uint8_t> gear_rear; // chaing rings sizes for rear
     double wheel_size; // circumstance of wheel
     double min_gear_diff; // min difference of ratio betweens gears
+    // std::unordered_map<Gear_S, float, Gear_S::HashFunction> gear_ratios;
+
+    constexpr static inline bool is_gear_null(const Gear_S& gear)
+    {
+        return (gear.rear == 0 || gear.front == 0);
+    }
+
+    Gear_S get_next_gear(Gear_S gear) const;
+    Gear_S get_prev_gear(Gear_S gear) const;
+    float get_gear_ratio(Gear_S gear) const;
 
     std::string name;
 

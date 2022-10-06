@@ -125,8 +125,6 @@ FILE_OPEN:
 
 std::string Sd_File::read_all()
 {
-    // TODO return error
-    // TODO tests
     FIL file_p;
     FRESULT res;
     res = f_open(&file_p, file_name,  FA_READ);
@@ -143,7 +141,12 @@ std::string Sd_File::read_all()
         return "";
     }
     auto buffer = new char[file_size + 1];
-    // TODO check if buffer != null
+    if(buffer == nullptr)
+    {
+        f_close(&file_p);
+        last_result = F_ERROR;
+        return "";
+    }
     auto ret = f_read(&file_p, buffer, file_size, &bytes_read);
     f_close(&file_p);
     if (file_size != bytes_read)

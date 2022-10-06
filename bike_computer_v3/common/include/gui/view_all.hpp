@@ -7,6 +7,8 @@
 #include "view_max_avg.hpp"
 #include "view_total.hpp"
 #include "view_velocity.hpp"
+#include "view_gear.hpp"
+
 
 #include "main/main_new_session.hpp"
 #include "main/main_load_config.hpp"

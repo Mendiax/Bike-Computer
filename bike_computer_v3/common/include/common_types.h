@@ -3,6 +3,8 @@
 
 #include "ringbuffer.h"
 #include "bike_config.hpp"
+#include "display/driver.hpp"
+#include "gear_suggestion.hpp"
 
 #include "pico/sync.h"
 #include "pico/util/datetime.h"
@@ -144,6 +146,13 @@ struct Weather_BMP280_S
 //     memset(&data, 0 ,sizeof(data));
 // }
 
+struct Gear_Suggestions
+{
+    char gear_suggestion[GEAR_SUGGESTION_LEN + 1];
+    display::DisplayColor gear_suggestion_color;
+    float cadence_min;
+    float cadence_max;
+};
 
 /**
  * @brief Contains data from sensors
@@ -157,6 +166,7 @@ typedef struct Sensor_Data // TODO optimize size
     float altitude; // height in m
     float cadence;  // rpm
     float velocity; // speed in kph
+    float accel; // in km/h/s
     float slope; // slope in %
     float total_time_ridden; // in h
     float total_distance_ridden; // in km
@@ -164,6 +174,9 @@ typedef struct Sensor_Data // TODO optimize size
     Battery lipo; // battery info
     Gear_S gear;  // gear {front, rear}
     SystemState current_state;
+
+    // gear suggestions
+    Gear_Suggestions gear_suggestions;
 
     // char cipgsmloc[20];
     // char clbs[27];

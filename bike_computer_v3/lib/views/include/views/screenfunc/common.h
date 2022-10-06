@@ -36,6 +36,7 @@ typedef struct TextSettings
     uint16_t offsetX, offsetY;
     uint8_t scale;
     bool render_frame;
+    const display::DisplayColor* color;
 } TextSettings;
 
 
