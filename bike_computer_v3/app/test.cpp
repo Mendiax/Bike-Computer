@@ -133,19 +133,21 @@ void test_DOF()
     I2C_Init();
     // scan();
     // bmp_test();
-    consolep("I2C init\n");
+    PRINTF("I2C init\n");
     IMU_Init();
-    consolep("IMU init\n");
+    PRINTF("IMU init\n");
     float data[3];
 
+    // while (1){}
     while (1)
     {
         // int16_t magn[3], accel[3], gyro[3];
         //IMU_GetYawPitchRoll(data);
         //sleep_ms(1000);
-        Vector3 accel, mag, gyro;
+        Vector3<int16_t> accel, mag;
+        Vector3<float> gyro;
         mpu9250::read_accel(accel);
-        mpu9250::read_mag(mag);
+        // mpu9250::read_mag(mag);
         mpu9250::read_gyro(gyro);
 
         // accel.normalize();
@@ -155,13 +157,13 @@ void test_DOF()
         auto [temp, press] = bmp280::get_temp_press();
 
         //consolef(" accel " FORMAT_INT16_ARR "\t", INS_ARR(accel.arr));
-        consolef(" magn "  FORMAT_INT16_ARR "\t", INS_ARR(mag.arr));
-        //consolef(" gyro "  FORMAT_INT16_ARR "\t", INS_ARR(gyro.arr));
+        // consolef(" magn "  FORMAT_INT16_ARR "\t", INS_ARR(mag.arr));
+        PRINTF(" gyro "  FORMAT_FLOAT_ARR "\t", INS_ARR(gyro.arr));
         //consolef(" temp %" PRId32 "\tpress %" PRId32, temp, press);
 
         //consolef("%" PRIi16 "\t%" PRIi16 "\t%" PRIi16, INS_ARR(gyro.arr));  // angle accel ???
-        consolep("\n");
-        sleep_ms(500000);
+        PRINTF("\n");
+        sleep_ms(100);
 
 
         //consolef("YawPitchRoll " FORMAT_FLOAT_ARR " gyro " FORMAT_INT16_ARR "\n", INS_ARR(data), INS_ARR(gyro));
@@ -404,8 +406,8 @@ int main(void)
     //         sleep_ms(1000);
     //     }
     // }
-    run_tests();
-    //test_DOF();
+    // run_tests();
+    // test_DOF();
 
 
     //test_SD();
@@ -413,19 +415,19 @@ int main(void)
     /*
     display test
     */
-    printf("[TEST] starting test_driver()\n");
-    test_driver();
-    printf("[TEST] ending test_driver()\n");
-    sleep_ms(1000);
-    printf("[TEST] starting test_print()\n");
-    test_print();
-    printf("[TEST] ending test_print()\n");
-    sleep_ms(1000);
-    printf("[TEST] starting test_draw_line()\n");
-    test_draw_line();
-    printf("[TEST] ending test_draw_line()\n");
+    // printf("[TEST] starting test_driver()\n");
+    // test_driver();
+    // printf("[TEST] ending test_driver()\n");
+    // sleep_ms(1000);
+    // printf("[TEST] starting test_print()\n");
+    // test_print();
+    // printf("[TEST] ending test_print()\n");
+    // sleep_ms(1000);
+    // printf("[TEST] starting test_draw_line()\n");
+    // test_draw_line();
+    // printf("[TEST] ending test_draw_line()\n");
 
-    sleep_ms(1000);
+    // sleep_ms(1000);
 
 
     /*
@@ -434,11 +436,14 @@ int main(void)
     //test_console();
     //consoleLogInit();
 
-    //init_i2c();
-    //bmp_test();
-    //test_DOF();
+    // init_i2c();
+    I2C_Init();
+    // scan();
 
-    test_sim868_interface();
+    // bmp_test();
+    test_DOF();
+
+    // test_sim868_interface();
 
 
     while (1)

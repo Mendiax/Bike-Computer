@@ -1,11 +1,11 @@
 /**
   ******************************************************************************
   * @file    MPU9250.h
-  * @author  
+  * @author
   * @version V1.0
   * @date    27-January-2015
   * @brief   Header file for MPU9250.c module.
-  
+
   ******************************************************************************
   * @attention
   *
@@ -51,13 +51,13 @@
 #define	TEMP_OUT_L		0x42
 
 #define	GYRO_XOUT_H		0x43
-// #define	GYRO_XOUT_L		0x44	
+// #define	GYRO_XOUT_L		0x44
 // #define	GYRO_YOUT_H		0x45
 // #define	GYRO_YOUT_L		0x46
 // #define	GYRO_ZOUT_H		0x47
 // #define	GYRO_ZOUT_L		0x48
 
-		
+
 #define MAG_XOUT_L		0x03
 // #define MAG_XOUT_H		0x04
 // #define MAG_YOUT_L		0x05
@@ -73,40 +73,75 @@
 #define DEFAULT_ADDRESS     0x68
 
 #define	GYRO_ADDRESS   DEFAULT_ADDRESS //Gyro and Accel device address
-#define ACCEL_ADDRESS  DEFAULT_ADDRESS //0xD0 
+#define ACCEL_ADDRESS  DEFAULT_ADDRESS //0xD0
 #define MAG_ADDRESS    0xC //0x18   //compass device address
 
 #define WHO_AM_I_VAL				0x71 //identity of MPU9250 is 0x71. identity of MPU9255 is 0x73.
 
 
+template<typename T = int16_t>
 struct Vector3
 {
   union{
     struct
     {
-      int16_t x;
-      int16_t y;
-      int16_t z;
+      T x;
+      T y;
+      T z;
     };
-    int16_t arr[3];
+    T arr[3];
   };
 
   void normalize()
   {
     const int scale = 100;
     auto vector_length = std::sqrt(x*x + y*y + z*z);
-    x = (100 * x) / vector_length;
-    y = (100 * y) / vector_length;
-    z = (100 * z) / vector_length;
+    x = (100.0f * (float)x) / vector_length;
+    y = (100.0f * (float)y) / vector_length;
+    z = (100.0f * (float)z) / vector_length;
+  }
+  Vector3<T> operator- (const Vector3<T>& other)
+  {
+    T x = this->x - other.x;
+    T y = this->y - other.y;
+    T z = this->z - other.z;
+    return Vector3<T>{x,y,z};
+  }
+  Vector3<T> operator+ (const Vector3<T>& other)
+  {
+    T x = this->x + other.x;
+    T y = this->y + other.y;
+    T z = this->z + other.z;
+    return Vector3<T>{x,y,z};
+  }
+  template<typename Q>
+  Vector3<T> operator* (const Q constant)
+  {
+    T x = this->x * constant;
+    T y = this->y * constant;
+    T z = this->z * constant;
+    return Vector3<T>{x,y,z};
+  }
+  template<typename Q>
+  Vector3<T> operator/ (const Q constant)
+  {
+    T x = this->x / constant;
+    T y = this->y / constant;
+    T z = this->z / constant;
+    return Vector3<T>{x,y,z};
+  }
+  template<typename Q>
+  explicit operator Vector3<Q>() {
+    return Vector3<Q>{(Q)x, (Q)y, (Q)z};
   }
 };
 
 namespace mpu9250
 {
   void init(void);
-  void read_accel(Vector3& accel_data);
-  void read_gyro(Vector3& gyro_data);
-  void read_mag(Vector3& mag_data);
+  void read_accel(Vector3<int16_t>& accel_data);
+  void read_gyro(Vector3<float>& gyro_data);
+  void read_mag(Vector3<int16_t>& mag_data);
   bool check(void);
 }
 
