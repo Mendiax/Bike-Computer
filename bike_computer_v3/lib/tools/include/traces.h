@@ -6,6 +6,24 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include <inttypes.h>
+#include <bitset>
+#include <iostream>
+
+#define PRINT_BITS(x) do{std::bitset<sizeof(x)*8> __bits = x; std::cout << #x "=" <<__bits << std::endl;}while(0)
+#define PRINT_BITS_N(x, n) do{std::bitset<n> __bits = x; std::cout << #x "=" <<__bits << std::endl;}while(0)
+#define PRINT_BITS_ARRAY(arr, n) do{\
+    std::cout << #arr; \
+    for(size_t i = 0; i < n; i++){\
+    if(i % 8 == 0){\
+        std::cout << std::endl << "\t";\
+        } \
+        std::bitset<sizeof(*arr) * 8> __bits = arr[i]; \
+        std::cout << __bits << " "; \
+        }\
+     std::cout << std::endl;\
+     }while (0)
+
+
 
 // formats
 #define INS_ARR(arr) arr[0], arr[1], arr[2]
@@ -125,7 +143,11 @@ static inline void tracesSetup()
     //                   MPU9250 TRACES
     // ==================================================
     TRACES_ON(1, TRACE_MPU9250); // mpu init
-    //TRACES_ON(2, TRACE_MPU9250);  // reag gyro
+    TRACES_ON(2, TRACE_MPU9250);  // reag gyro
+    // TRACES_ON(3, TRACE_MPU9250);  // reag mag
+    // TRACES_ON(4, TRACE_MPU9250);  // reag accel
+
+
 
     // ==================================================
     //                   SIM 868 TRACES

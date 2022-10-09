@@ -49,7 +49,8 @@ cw_all:
 	./boot/boot.sh -o b && $(MAKE) main && $(MAKE) write_main && sleep 2 && ./serial.bat
 
 cwt_all:
-	./boot/boot.sh -o b && $(MAKE) test && $(MAKE) write_test && sleep 2 && ./serial.bat
+	./boot/boot.sh -o b && $(MAKE) test
+	# && $(MAKE) write_test && sleep 3 && ./serial.bat
 
 .PHONY: boot
 boot:
@@ -72,7 +73,8 @@ write_test: boot
 	#mkdir -p $(PICODIR)
 	# mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
 	# cp $(BUILD)/$(PICO_TEST_FILE).uf2 $(PICODIR)
-	./boot/upload.sh -p '$(PICO_TEST_FILE_PATH)'
+
+	./boot/upload.sh -p '$(PICO_TEST_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
 
 write_gsm_console: boot
 	#mkdir -p $(PICODIR)
