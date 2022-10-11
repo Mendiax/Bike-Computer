@@ -86,6 +86,24 @@ TimeS time_from_str(const char* str)
     return time;
 }
 
+std::string time_to_str_file_name_conv(const TimeS& time)
+{
+    enum {BUFFER_SIZE=24};
+    char buffer[BUFFER_SIZE] = {0};
+
+    snprintf(buffer, BUFFER_SIZE,
+            "%04" PRIu16 "_"
+            "%02" PRIu8 "_"
+            "%02" PRIu8 "_"
+            "%02" PRIu8 "_"
+            "%02" PRIu8,
+            time.year,
+            time.month,
+            time.day,
+            time.hour,
+            time.minutes);
+    return std::string(buffer);
+}
 
 std::string time_to_str(const TimeS& time)
 {

@@ -10,6 +10,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <iostream>
+#include <sstream>
 
 // my includes
 #include "core_utils.hpp"
@@ -42,7 +43,7 @@
 #define BAT_LEV_CYCLE_MS (29*1000)
 #define WEATHER_CYCLE_MS (1*1000)
 #define HEART_BEAT_CYCLE_MS (10*1000)
-#define GPS_FETCH_CYCLE_MS (1*1000)
+#define GPS_FETCH_CYCLE_MS (2*1000)
 #define TIME_FETCH_CYCLE_MS (10*1000)
 // http requests per 10min
 #define GSM_FETCH_CYCLE_MS (10*60*1000)
@@ -145,8 +146,8 @@ static void setup(void)
 #endif
 
     // for testing purpose
-#if SIM_WHEEL_CADENCE == 1
-    float emulated_speed = 36.0;
+#if SIM_WHEEL_CADENCE == 0
+    float emulated_speed = 20.0;
     speed_emulate(emulated_speed);
     PRINTF("emulated_speed=%f\n", emulated_speed);
     float wheel_rpm = speed::kph_to_rpm(emulated_speed);
@@ -397,6 +398,38 @@ static int loop_frame_update()
         distance, wheel_rpm, cadence, read_ratio, gear.front, gear.rear);
 
 
+    {
+        static uint8_t last_gear = 0;
+        if(gear.rear != last_gear)
+        {
+            last_gear = gear.rear;
+            Session_Data session;
+            {
+                Unique_Mutex mutex(&sensorDataMutex);
+                session = *session_p;
+            }
+            if(session.is_running() && session.get_start_time().is_valid())
+            {
+                auto payload = new Sig_Core1_Log();
+                {
+                    std::stringstream ss;
+                    ss << "gear_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
+                    payload->file_name = ss.str();
+                }
+                payload->header = "accel;wheel_rpm;cadence;read_ratio;gear\n";
+                {
+                    std::stringstream ss;
+                    ss << accel << ";" << wheel_rpm << ";" << cadence << ";" << read_ratio << ";" << (int)gear.rear << "\n";
+                    payload->line = ss.str();
+                }
+
+                Signal sig(SIG_CORE1_LOG, payload);
+                actor_core1.send_signal(sig);
+            }
+        }
+    }
+
+
 
     // update sensor
     mutex_enter_blocking(&sensorDataMutex);
@@ -549,6 +582,19 @@ static void cycle_get_battery_status()
                  });
 }
 
+static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const Session_Data& session)
+{
+    std::stringstream ss;
+    ss << "gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
+    auto payload = new Sig_Core1_Log_Gps();
+    payload->time = time;
+    payload->data = gps;
+    payload->file_name = ss.str();
+
+    Signal sig(SIG_CORE1_LOG_GPS, payload);
+    actor_core1.send_signal(sig);
+}
+
 static void cycle_get_gps_data()
 {
     static float speed;
@@ -587,6 +633,11 @@ static void cycle_get_gps_data()
                 rtc_set_datetime(&t);
                 sensors_data.current_time = current_time;
                 PRINT("set time");
+            }
+            if(latitude != 0 && longitude != 0 && session_p->is_running() && session_p->get_start_time().is_valid())
+            {
+                // send log to core1
+                send_log_signal(current_time.hours, sensors_data.gps_data, *session_p);
             }
 
             mutex_exit(&sensorDataMutex);

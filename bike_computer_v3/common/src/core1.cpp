@@ -20,6 +20,7 @@
 
 #include <string>
 #include <iostream>
+#include <stdio.h>
 
 #include "pico/time.h"
 
@@ -61,6 +62,35 @@ void core1LaunchThread(void)
     while (loop())
     {
     }
+}
+
+void Core1::handle_sig_log(const Signal &sig)
+{
+    auto payload = sig.get_payload<Sig_Core1_Log*>();
+    Sd_File config_file(payload->file_name);
+    if(config_file.is_empty())
+    {
+        config_file.append(payload->header.c_str());
+    }
+    config_file.append(payload->line.c_str());
+
+    delete payload;
+}
+
+
+void Core1::handle_sig_log_gps(const Signal &sig)
+{
+    auto payload = sig.get_payload<Sig_Core1_Log_Gps*>();
+    Sd_File config_file(payload->file_name);
+    if(config_file.is_empty())
+    {
+        config_file.append("time;latitude;longitude\n");
+    }
+    char buffer[64] = {0};
+    sprintf(buffer, "%s;%f;%f\n", time_to_str(payload->time).c_str(), payload->data.lat, payload->data.lon);
+    config_file.append(buffer);
+
+    delete payload;
 }
 
 void Core1::handle_sig_total_update(const Signal &sig)

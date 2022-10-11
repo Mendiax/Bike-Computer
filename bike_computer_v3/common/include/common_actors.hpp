@@ -9,6 +9,7 @@
 #include <string>
 
 // my includes
+#include "common_types.h"
 #include "actors.hpp"
 
 // #-------------------------------#
@@ -35,7 +36,21 @@ enum Sig_Ids
     SIG_CORE1_START_PAUSE_BTN,
     SIG_CORE1_END_BTN,
     SIG_CORE1_LOAD_SESSION,
+    SIG_CORE1_LOG_GPS,
+    SIG_CORE1_LOG,
     SIG_NO_MAX
+};
+
+struct Sig_Core1_Log{
+    std::string header;
+    std::string line;
+    std::string file_name;
+};
+
+struct Sig_Core1_Log_Gps{
+    GpsDataS data;
+    Time_HourS time;
+    std::string file_name;
 };
 
 struct Sig_Core1_Load_Session{
@@ -96,6 +111,10 @@ private:
     static void handle_sig_start_pause_btn(const Signal &sig);
     static void handle_sig_end_btn(const Signal &sig);
     static void handle_sig_load_session(const Signal &sig);
+    static void handle_sig_log_gps(const Signal &sig);
+    static void handle_sig_log(const Signal &sig);
+
+
     // static void handle_sig_get_file(const Signal &sig);
 
 
@@ -105,6 +124,11 @@ private:
         this->handler_add(handle_sig_start_pause_btn, SIG_CORE1_START_PAUSE_BTN);
         this->handler_add(handle_sig_end_btn, SIG_CORE1_END_BTN);
         this->handler_add(handle_sig_load_session, SIG_CORE1_LOAD_SESSION);
+        this->handler_add(handle_sig_log_gps, SIG_CORE1_LOG_GPS);
+        this->handler_add(handle_sig_log, SIG_CORE1_LOG);
+
+
+
         // this->handler_add(handle_sig_get_file, SIG_CORE1_GET_FILE);
     }
 

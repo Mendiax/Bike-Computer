@@ -25,7 +25,7 @@ FILE_OPEN:
         // failed
         //try to mount drive if it is not mounted
         mount_drive();
-        TRACE_ABNORMAL(TRACE_SD, "Could not open the file\n");
+        TRACE_ABNORMAL(TRACE_SD, "Could not open the file %s\n", file_name.c_str());
 
         sleep_ms(10000);
         goto FILE_OPEN;
@@ -35,8 +35,8 @@ FILE_OPEN:
 
 Sd_File::~Sd_File()
 {
-    PRINTF("Unmount\n");
-    unmount_drive();
+    // PRINTF("Unmount\n");
+    // unmount_drive();
 }
 
 void Sd_File::remove()
