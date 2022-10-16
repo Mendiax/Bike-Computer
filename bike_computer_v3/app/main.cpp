@@ -32,7 +32,7 @@ int main()
 
     // wait for serial console
     // coment out for normal use
-    // while (!stdio_usb_connected()){sleep_ms(100);}
+    //  while (!stdio_usb_connected()){sleep_ms(100);}
     TRACE_DEBUG(0, TRACE_MAIN, "Main start\n");
 
     TRACE_DEBUG(0, TRACE_MAIN, "Init common data\n");

@@ -168,6 +168,8 @@ static inline void tracesSetup()
     // ==================================================
     TRACES_ON(1, TRACE_BIKE_CONFIG); // to str
     TRACES_ON(2, TRACE_BIKE_CONFIG); // min diff gear ratio
+    // TRACES_ON(3, TRACE_BIKE_CONFIG); // add gear usage
+
 
 
     // ==================================================

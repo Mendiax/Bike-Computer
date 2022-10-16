@@ -178,9 +178,6 @@ typedef struct Sensor_Data // TODO optimize size
     // gear suggestions
     Gear_Suggestions gear_suggestions;
 
-    // char cipgsmloc[20];
-    // char clbs[27];
-
 } Sensor_Data;
 
 #endif

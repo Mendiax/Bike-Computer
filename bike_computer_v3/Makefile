@@ -33,12 +33,15 @@ parser:
 	bison -o lib/Parser/src/parser_bison.cpp -d lib/Parser/parser.y
 	flex -Cr -o lib/Parser/src/lexer.cpp lib/Parser/lexer.l
 
+
+CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+
 #-DCMAKE_VERBOSE_MAKEFILE=ON
 cmake: parser
-	cmake -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Debug
+	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Debug
 
 cmaker: parser
-	cmake -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_BUILD_TYPE=Release
+	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Release
 
 .PHONY: release
 release:

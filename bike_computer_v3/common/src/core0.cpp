@@ -2,10 +2,11 @@
 // |           includes            |
 // #-------------------------------#
 // pico includes
-#include "pico/stdlib.h"
+#include <pico/stdlib.h>
 #include "pico/util/datetime.h"
 
 // c/c++ includes
+#include <stdio.h>
 #include <tuple>
 #include <inttypes.h>
 #include <string.h>
@@ -43,14 +44,14 @@
 #define BAT_LEV_CYCLE_MS (29*1000)
 #define WEATHER_CYCLE_MS (1*1000)
 #define HEART_BEAT_CYCLE_MS (10*1000)
-#define GPS_FETCH_CYCLE_MS (2*1000)
+#define GPS_FETCH_CYCLE_MS (1*1000)
 #define TIME_FETCH_CYCLE_MS (10*1000)
 // http requests per 10min
 #define GSM_FETCH_CYCLE_MS (10*60*1000)
 
 
 //switches
-#define SIM_WHEEL_CADENCE 1
+#define SIM_WHEEL_CADENCE 0
 #define PREDEFINED_BIKE_SETUP 1
 
 
@@ -142,22 +143,22 @@ static void setup(void)
         sleep_ms(100);
     }
     config.to_string();
-
 #endif
 
     // for testing purpose
-#if SIM_WHEEL_CADENCE == 0
-    float emulated_speed = 20.0;
-    speed_emulate(emulated_speed);
-    PRINTF("emulated_speed=%f\n", emulated_speed);
-    float wheel_rpm = speed::kph_to_rpm(emulated_speed);
-    PRINTF("wheel_rpm=%f\n",wheel_rpm);
-    float ratio = config.get_gear_ratio({1,10});
-    PRINTF("ratio=%f\n",ratio);
-    float cadence = wheel_rpm / ratio;
-    PRINTF("cadence=%f\n",cadence);
-    cadence::emulate(cadence);
-#endif
+    if(1) // TODO true when usb connected
+    {
+        float emulated_speed = 20.0;
+        speed_emulate(emulated_speed);
+        PRINTF("emulated_speed=%f\n", emulated_speed);
+        float wheel_rpm = speed::kph_to_rpm(emulated_speed);
+        PRINTF("wheel_rpm=%f\n",wheel_rpm);
+        float ratio = config.get_gear_ratio({1,10});
+        PRINTF("ratio=%f\n",ratio);
+        float cadence = wheel_rpm / ratio;
+        PRINTF("cadence=%f\n",cadence);
+        cadence::emulate(cadence);
+    }
 
     // sensors_data.forecast.windgusts_10m.array[0] = 1.8;
     // sensors_data.forecast.windgusts_10m.array[1] = 5.9;
@@ -497,7 +498,6 @@ static int loop_frame_update()
         case SystemState::RUNNING:
         if(velocity == 0.0)
         {
-            // TODO autostop
             actor_core0.send_signal(SIG_CORE0_START);
             on_stop();
         }
@@ -582,16 +582,19 @@ static void cycle_get_battery_status()
                  });
 }
 
-static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const Session_Data& session)
+static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const Session_Data& session, const Sensor_Data& sensor_data)
 {
+    auto payload = new Sig_Core1_Log();
     std::stringstream ss;
     ss << "gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
-    auto payload = new Sig_Core1_Log_Gps();
-    payload->time = time;
-    payload->data = gps;
     payload->file_name = ss.str();
+    payload->header = "time;latitude;longitude;velocity_gps;velocity_gpio;altitude_gps;altitude_press\n";
 
-    Signal sig(SIG_CORE1_LOG_GPS, payload);
+    char buffer[64] = {0};
+    sprintf(buffer, "%s;%f;%f;%f;%f;%f;%f\n", time_to_str(time).c_str(), gps.lat, gps.lon, gps.speed, sensor_data.velocity, gps.msl, sensor_data.altitude);
+    payload->line = buffer;
+
+    Signal sig(SIG_CORE1_LOG, payload);
     actor_core1.send_signal(sig);
 }
 
@@ -637,7 +640,7 @@ static void cycle_get_gps_data()
             if(latitude != 0 && longitude != 0 && session_p->is_running() && session_p->get_start_time().is_valid())
             {
                 // send log to core1
-                send_log_signal(current_time.hours, sensors_data.gps_data, *session_p);
+                send_log_signal(current_time.hours, sensors_data.gps_data, *session_p, sensors_data);
             }
 
             mutex_exit(&sensorDataMutex);
@@ -656,30 +659,19 @@ static void cycle_get_forecast_data()
     static std::string http_req_addr;
     static bool success;
 
-    // TODO
-    float latitude = 0;
-    float longitude = 0;
     mutex_enter_blocking(&sensorDataMutex);
     TimeS current_time = sensors_data.current_time;
-    // Time_DateS current_time_date{sensors_data.current_time.year, sensors_data.current_time.month, sensors_data.current_time.day};
+    float latitude = sensors_data.gps_data.lat;
+    float longitude = sensors_data.gps_data.lon;
     mutex_exit(&sensorDataMutex);
-    if(current_time.year != 0)
+    if(current_time.is_valid() && (latitude > 0.0 || longitude > 0.0) )
     {
 
         CYCLE_UPDATE(sim868::gsm::get_http_req(success,http_req_addr.c_str(),forecast_json),
             !success,
             GSM_FETCH_CYCLE_MS,
             {
-                // if(!success && us_to_ms(absolute_time_diff_us(__last_update, __current_time)) < 1000)
-                // {
-                //     break;
-                // }
-                if (latitude < 10.0 || longitude < 10.0)
-                {
-                    latitude = 51.4;
-                    longitude = 16.59;
-                }
-                if (current_time.year != 0)
+                if (current_time.is_valid() )
                 {
                     http_req_addr = sim868::gsm::construct_http_request_url(latitude,
                                                                             longitude,
@@ -695,7 +687,7 @@ static void cycle_get_forecast_data()
                 {
                     if(success)
                     {
-                        std::cout << "forecast: '" << forecast_json << "'" << std::endl;
+                        PRINT("forecast: '" << forecast_json << "'");
                         auto daycnt = 1;
                         if(current_time.year == 0)
                             daycnt = 7;
@@ -708,12 +700,12 @@ static void cycle_get_forecast_data()
                         }
                         else
                         {
-                            TRACE_ABNORMAL(TRACE_CORE_0, "parser returned null ptr %d\n", 0);
+                            TRACE_ABNORMAL(TRACE_CORE_0, "parser returned null ptr\n");
                         }
                     }
                     else
                     {
-                        std::cout << "forecast failed" << std::endl;
+                        TRACE_ABNORMAL(TRACE_CORE_0, "forecast failed\n");
                         //__executed = false; // ??
                     }
                 }

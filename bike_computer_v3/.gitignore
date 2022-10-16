@@ -7,7 +7,7 @@ specification/
 lib/Parser/src/parser_bison.hpp
 lib/Parser/src/parser_bison.cpp
 lib/Parser/src/lexer.cpp
-
+.idea
 
 lib/Parser/test_data.json
 drivers/DOF/Mag/
@@ -15,3 +15,7 @@ drivers/DOF/Mag/
 data/log
 data/map.html
 release/pico_main.uf2
+/cmake-build-release/
+/cmake-build-debug/
+
+.cache

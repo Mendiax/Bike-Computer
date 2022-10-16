@@ -151,7 +151,7 @@ static inline void add_gear_usage(Gear_Usage &gear_usage, uint8_t gear, float ca
         cadence_int += 1;
     }
     gear_usage.usage[gear - 1][cadence_int] += time;
-    PRINTF("added gear usage for gear %d with cadence id %d made it to %f\n", (int)gear, (int)cadence_int, gear_usage.usage[gear - 1][cadence_int]);
+    TRACE_DEBUG(3, TRACE_BIKE_CONFIG,"added gear usage for gear %d with cadence id %d made it to %f\n", (int)gear, (int)cadence_int, gear_usage.usage[gear - 1][cadence_int]);
 }
 
 #endif

@@ -321,6 +321,19 @@ static int loop(void)
         auto gui = Gui::get_gui();
         gui->refresh();
 
+        if(system_sate == SystemState::AUTOSTART)
+        {
+            TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label %d\n", change_state);
+            Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
+            const sFONT* font = 0;
+            uint8_t scale;
+            auto label = "waiting for start";
+            auto width_char = pause_label.width / strlen(label);
+            getFontSize(width_char, pause_label.height, &font, &scale);
+            Paint_Println(pause_label.x, pause_label.y, label, font, {0x0,0xf,0x1}, scale);
+        }
+
+
         if(system_sate == SystemState::PAUSED)
         {
             TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label %d\n", change_state);
