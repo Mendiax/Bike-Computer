@@ -15,7 +15,7 @@ drivers/DOF/Mag/
 data/log
 data/map.html
 release/pico_main.uf2
-/cmake-build-release/
-/cmake-build-debug/
+cmake-build-release
+cmake-build-debug
 
 .cache
