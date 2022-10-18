@@ -49,8 +49,7 @@ cw_all:
 	./boot/boot.sh -o b && $(MAKE) main && $(MAKE) write_main && sleep 2 && ./serial.bat
 
 cwt_all:
-	./boot/boot.sh -o b && $(MAKE) test
-	# && $(MAKE) write_test && sleep 3 && ./serial.bat
+	./boot/boot.sh -o b && $(MAKE) test && $(MAKE) write_test && sleep 3 && ./serial.bat
 
 .PHONY: boot
 boot:

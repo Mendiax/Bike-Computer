@@ -82,7 +82,7 @@ static Vector3<int16_t> get_gyro_raw();
 
 static Vector3<int16_t> get_gyro_raw()
 {
-  Vector3 gyro_raw;
+  Vector3<int16_t> gyro_raw;
   I2C_ReadBuff(ACCEL_ADDRESS, GYRO_XOUT_H, 6, ::buf);
   gyro_raw.x = (buf[0]<<8)|buf[1];
   gyro_raw.y = (buf[2]<<8)|buf[3];
@@ -285,21 +285,22 @@ void mpu9250::read_gyro(Vector3<float>& gyro_data)
 
   //uptade time
   auto current = get_absolute_time();
-  const float delta_s = (float)us_to_ms(absolute_time_diff_us(gyro_update, current));
+  const double delta_s = (double)us_to_ms(absolute_time_diff_us(gyro_update, current));
   gyro_update = current;
 
 
   Vector3 gyro_raw = get_gyro_raw();
-  if(first_read)
-  {
-    first_read = false;
-    return;
-  }
-  Vector3<float> gyro_rate =((Vector3<float>)gyro_raw - gyro_zero);
+  // if(first_read)
+  // {
+  //   first_read = false;
+  //   return;
+  // }
+  const float sensitivity = 1.0323;
+  Vector3<float> gyro_rate =((Vector3<float>)gyro_raw - gyro_zero) / sensitivity;
   TRACE_DEBUG(2, TRACE_MPU9250, "gyro rate " FORMAT_FLOAT_ARR " \n", INS_ARR(gyro_rate.arr));
 
 
-  gyro_angle = gyro_angle + (Vector3<float>)gyro_raw;
+  gyro_angle = gyro_angle + (gyro_rate * (delta_s / 1000.0));
   gyro_data = gyro_angle;
 
 

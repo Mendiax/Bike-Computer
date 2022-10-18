@@ -143,7 +143,7 @@ static inline void tracesSetup()
     //                   MPU9250 TRACES
     // ==================================================
     TRACES_ON(1, TRACE_MPU9250); // mpu init
-    TRACES_ON(2, TRACE_MPU9250);  // reag gyro
+    // TRACES_ON(2, TRACE_MPU9250);  // reag gyro
     // TRACES_ON(3, TRACE_MPU9250);  // reag mag
     // TRACES_ON(4, TRACE_MPU9250);  // reag accel
 
