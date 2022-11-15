@@ -30,8 +30,8 @@ sim:
 	$(MAKE) -C $(BUILD) -j$(NPROCS)
 
 parser:
-	bison -o lib/Parser/src/parser_bison.cpp -d lib/Parser/parser.y
-	flex -Cr -o lib/Parser/src/lexer.cpp lib/Parser/lexer.l
+	bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
+	flex -Cr -o source/lib/Parser/src/lexer.cpp source/lib/Parser/lexer.l
 
 
 CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1
