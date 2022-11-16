@@ -51,6 +51,9 @@
 // http requests per 10min
 #define GSM_FETCH_CYCLE_MS (10*60*1000)
 
+#define LOG_DATA_CYCLE_MS (1 * 1000)
+
+
 
 //switches
 #define SIM_WHEEL_CADENCE 1
@@ -79,6 +82,7 @@ static bool load_config_from_file(const char* config_str, const char* file_name)
 
 static void update_total_stats();
 
+static void cycle_log_data();
 static void cycle_print_heart_beat();
 static void cycle_get_battery_status();
 static void cycle_get_gps_data();
@@ -334,6 +338,7 @@ static int loop_frame_update()
         // battery
         cycle_get_battery_status();
         cycle_get_weather_data();
+        cycle_log_data();
     }
     else
     {
@@ -624,6 +629,23 @@ static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const 
     actor_core1.send_signal(sig);
 }
 
+static void cycle_log_data()
+{
+    CYCLE_UPDATE_SIMPLE(true, LOG_DATA_CYCLE_MS,
+        {
+            mutex_enter_blocking(&sensorDataMutex);
+            if(sensors_data.gps_data.lat != 0 &&
+            sensors_data.gps_data.lon != 0 &&
+            session_p->is_running() &&
+            session_p->get_start_time().is_valid())
+            {
+                // send log to core1
+                send_log_signal(sensors_data.current_time.hours, sensors_data.gps_data, *session_p, sensors_data);
+            }
+            mutex_exit(&sensorDataMutex);
+        });
+}
+
 static void cycle_get_gps_data()
 {
     static float speed;
@@ -662,11 +684,6 @@ static void cycle_get_gps_data()
                 rtc_set_datetime(&t);
                 sensors_data.current_time = current_time;
                 PRINT("set time");
-            }
-            if(latitude != 0 && longitude != 0 && session_p->is_running() && session_p->get_start_time().is_valid())
-            {
-                // send log to core1
-                send_log_signal(current_time.hours, sensors_data.gps_data, *session_p, sensors_data);
             }
 
             mutex_exit(&sensorDataMutex);
