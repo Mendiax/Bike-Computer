@@ -113,9 +113,11 @@ const char* Bike_Config_S::to_string()
     return ss.str().c_str();
 }
 
-void Bike_Config_S::from_string(const char* str)
+bool Bike_Config_S::from_string(const char* str)
 {
-    this->wheel_size = 2.0; // default
+    this->wheel_size = 0.0;
+    this->gear_front.clear();
+    this->gear_rear.clear();
 
     std::istringstream iss(str);
     std::string line;
@@ -158,6 +160,13 @@ void Bike_Config_S::from_string(const char* str)
             wheel_size = std::atof(line_arr.at(1).c_str());
         }
     }
+    if(gear_front.size() < 1 ||
+       gear_rear.size() < 1 ||
+       wheel_size == 0.0)
+    {
+        this->to_string(); // print debug
+        return false; // fail
+    }
 
     // setup gear diff
     float gear_diff = 100.0; // TODO add define
@@ -171,6 +180,8 @@ void Bike_Config_S::from_string(const char* str)
     }
     TRACE_DEBUG(2, TRACE_BIKE_CONFIG, "min diff gear ratio: %f\n", gear_diff);
     this->min_gear_diff = gear_diff * 0.99f; // add some space for errors
+
+    return true; // success
 }
 
 /**

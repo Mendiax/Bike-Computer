@@ -6,11 +6,13 @@
 // pico includes
 
 // c/c++ includes
+#include <cstdint>
 #include <string>
 
 // my includes
 #include "common_types.h"
 #include "actors.hpp"
+#include "display/driver.hpp"
 
 // #-------------------------------#
 // |            macros             |
@@ -38,7 +40,14 @@ enum Sig_Ids
     SIG_CORE1_LOAD_SESSION,
     SIG_CORE1_LOG_GPS,
     SIG_CORE1_LOG,
+    SIG_CORE1_SHOW_MSG,
     SIG_NO_MAX
+};
+
+struct Sig_Core1_Show_Msg{
+    std::string msg;
+    display::DisplayColor color;
+    uint time_ms;
 };
 
 struct Sig_Core1_Log{
@@ -113,6 +122,8 @@ private:
     static void handle_sig_load_session(const Signal &sig);
     static void handle_sig_log_gps(const Signal &sig);
     static void handle_sig_log(const Signal &sig);
+    static void handle_sig_show_msg(const Signal &sig);
+
 
 
     // static void handle_sig_get_file(const Signal &sig);
@@ -126,6 +137,8 @@ private:
         this->handler_add(handle_sig_load_session, SIG_CORE1_LOAD_SESSION);
         this->handler_add(handle_sig_log_gps, SIG_CORE1_LOG_GPS);
         this->handler_add(handle_sig_log, SIG_CORE1_LOG);
+        this->handler_add(handle_sig_show_msg, SIG_CORE1_SHOW_MSG);
+
 
 
 

@@ -66,7 +66,7 @@ struct Bike_Config_S
      */
     const char* to_string();
 
-    void from_string(const char* str);
+    bool from_string(const char* str);
 
     inline uint8_t to_idx(const Gear_S &gear)
     {

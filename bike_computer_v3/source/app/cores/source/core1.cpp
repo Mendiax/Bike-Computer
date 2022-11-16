@@ -64,6 +64,32 @@ void core1LaunchThread(void)
     }
 }
 
+void Core1::handle_sig_show_msg(const Signal &sig)
+{
+    auto payload = sig.get_payload<Sig_Core1_Show_Msg*>();
+
+    display::clear();
+    Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
+    const sFONT *font = 0;
+    uint8_t scale;
+    auto label = payload->msg.c_str();
+    auto width_char = pause_label.width / strlen(label);
+    getFontSize(width_char, pause_label.height, &font, &scale);
+    Paint_Println(pause_label.x, pause_label.y, label, font, payload->color, scale);
+    display::display();
+    sleep_ms(payload->time_ms);
+    if(payload->time_ms == 0)
+    {
+        while (1) {
+            TRACE_ABNORMAL(TRACE_CORE_1, "error occured '%s'\n", label);
+            sleep_ms(100000);
+        }
+    }
+
+
+    delete payload;
+}
+
 void Core1::handle_sig_log(const Signal &sig)
 {
     auto payload = sig.get_payload<Sig_Core1_Log*>();
@@ -135,9 +161,9 @@ static void setup(void)
     auto gui = Gui::get_gui(&sensors_data_display, &sessionDataDisplay);
     gui->render();
     gui->refresh();
-    // TODO move it to menu
+
     {
-        const std::string config_file_name = "giant_trance.cfg";
+        const std::string config_file_name = "bike_gears.cfg";
         Sd_File config_file(config_file_name);
         auto content = config_file.read_all();
 

@@ -3,6 +3,7 @@
 // #-------------------------------#
 // pico includes
 #include <pico/stdlib.h>
+#include "display/driver.hpp"
 #include "pico/util/datetime.h"
 
 // c/c++ includes
@@ -16,6 +17,7 @@
 // my includes
 #include "core_utils.hpp"
 #include "core0.h"
+#include "signals.hpp"
 #include "traces.h"
 #include "common_types.h"
 #include "common_data.hpp"
@@ -52,7 +54,7 @@
 
 //switches
 #define SIM_WHEEL_CADENCE 1
-#define PREDEFINED_BIKE_SETUP 1
+#define PREDEFINED_BIKE_SETUP 0
 
 
 // #------------------------------#
@@ -64,6 +66,7 @@
 // | static variables definitions |
 // #------------------------------#
 static Bike_Config_S config;
+static bool config_received = false;
 
 // #------------------------------#
 // | static functions declarations|
@@ -72,7 +75,7 @@ static void setup(void);
 static int loop(void);
 static int loop_frame_update();
 
-static void load_config_from_file(const char* config_str, const char* file_name);
+static bool load_config_from_file(const char* config_str, const char* file_name);
 
 static void update_total_stats();
 
@@ -136,14 +139,14 @@ static void setup(void)
     //     "GR:51,45,39,33,28,24,21,18,15,13,11\n"
     //     "WS:2.186484\n"
     // );
-
     // load_config_from_file("giant_trance.cfg");
+#else
 
     // wait for config
-    while(config.name == "")
+    while(!config_received)
     {
         actor_core0.handle_all();
-        sleep_ms(100);
+        sleep_ms(10);
     }
     config.to_string();
 #endif
@@ -223,7 +226,24 @@ static int loop(void)
 void Core0::handle_sig_set_config(const Signal &sig)
 {
     const auto payload = sig.get_payload<Sig_Core0_Set_Config*>();
-    load_config_from_file(payload->file_content.c_str(), payload->file_name.c_str());
+    config_received = load_config_from_file(payload->file_content.c_str(), payload->file_name.c_str());
+    if(!config_received)
+    {
+        // send msg to user
+
+        auto payload = new Sig_Core1_Show_Msg();
+        *payload = {
+            std::string("Cannot load bike config"),
+            {0xf,0xf,0xf},
+            0
+        };
+        Signal sig(SIG_CORE1_SHOW_MSG, payload);
+        actor_core1.send_signal(sig);
+    }
+    else
+    {
+        config.to_string();
+    }
     delete payload;
 }
 
@@ -521,17 +541,19 @@ static int loop_frame_update()
     return 0;
 }
 
-static void load_config_from_file(const char* config_str, const char* file_name)
+static bool load_config_from_file(const char* config_str, const char* file_name)
 {
     //Sd_File config_file(file_name);
     //const std::string config_str = config_file.read_all();
-    config.from_string(config_str);
+    bool success = config.from_string(config_str);
     auto name = split_string(file_name, '.');
     if(name.size() > 0)
         config.name = name.at(0);
     else
         config.name = "unknown";
     speed::set_wheel(config.wheel_size);
+
+    return success;
 }
 
 static void update_total_stats()
