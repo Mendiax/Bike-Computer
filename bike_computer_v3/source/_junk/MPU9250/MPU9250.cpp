@@ -22,7 +22,7 @@
 
 
 #include "MPU9250.hpp"
-#include "I2C.h"
+#include "i2c.h"
 #include <math.h>
 // #include "console/console.h"
 #include "pico/stdlib.h"

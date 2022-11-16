@@ -1,4 +1,4 @@
-#include "BMP280.hpp"
+#include "bmp280.hpp"
 
 #include <stdint.h>
 #include <stdio.h>

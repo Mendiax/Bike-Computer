@@ -4,7 +4,7 @@
   * @author  Waveshare Team
   * @version V1.0
   * @date    29-August-2014
-  * @brief   This file contains all the functions prototypes for the IMU firmware 
+  * @brief   This file contains all the functions prototypes for the IMU firmware
   *          library.
 
   ******************************************************************************
@@ -26,14 +26,14 @@
 #define __IMU_H
 
 #include "MPU9250.hpp"
-#include "BMP280.hpp"
+#include "bmp280.hpp"
 
 
 //#define M_PI  (float)3.1415926535
 #define IMU_PRES_TYPE_BM180     1
 #define IMU_PRES_TYPE_BM280     2
 
-void IMU_Init(void); 
+void IMU_Init(void);
 
 
 #endif

@@ -30,8 +30,8 @@
 
 
 
-#include "IMU.h"
-#include "I2C.h"
+//#include "IMU.h"
+#include "i2c.h"
 
 // #define printf(...) printf(__VA_ARGS__)
 // #define printf(...) printf(__VA_ARGS__)

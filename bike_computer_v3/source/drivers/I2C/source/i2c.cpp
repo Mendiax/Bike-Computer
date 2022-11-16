@@ -20,11 +20,12 @@
   */
 
 
-#include "I2C.h"
+#include "i2c.h"
 #include "hardware/i2c.h"
 #include "pico/binary_info.h"
 #include "pico/stdlib.h"
 #include "pico/stdio.h"
+#include <cstdint>
 #include <stdio.h>
 // #include "console/console.h"
 
@@ -60,7 +61,8 @@ void I2C_Init(void)
 
 void I2C_WriteOneByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t Data)
 {
-	i2c_write_blocking(i2c1, DevAddr, &RegAddr, 1, true);  // true to keep master control of bus
+  uint8_t packet[] = {RegAddr, Data};
+	i2c_write_blocking(i2c1, DevAddr, packet, sizeof(packet), false);  // true to keep master control of bus
 }
 
 /**
@@ -76,25 +78,8 @@ void I2C_WriteOneByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t Data)
 
 bool I2C_WriteBuff(uint8_t DevAddr, uint8_t RegAddr, uint8_t Num, uint8_t *pBuff)
 {
-	// uint8_t i;
-
-	// if(0 == Num || NULL == pBuff)
-	// {
-	// 	return false;
-	// }
-
-	// I2C_Start();
-	// I2C_WriteByte(DevAddr | I2C_Direction_Transmitter);
-	// I2C_WaiteForAck();
-	// I2C_WriteByte(RegAddr);
-	// I2C_WaiteForAck();
-
-	// for(i = 0; i < Num; i ++)
-	// {
-	// 	I2C_WriteByte(*(pBuff + i));
-	// 	I2C_WaiteForAck();
-	// }
-	// I2C_Stop();
+	i2c_write_blocking(i2c1, DevAddr, &RegAddr, 1, true);  // true to keep master control of bus
+	i2c_write_blocking(i2c1, DevAddr, pBuff, Num, false);  // true to keep master control of bus
 
 	return true;
 }

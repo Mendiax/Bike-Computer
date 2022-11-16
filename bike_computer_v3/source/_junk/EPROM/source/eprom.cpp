@@ -9,7 +9,7 @@
 
 // my includes
 #include "eprom.hpp"
-#include "I2C.h"
+#include "i2c.h"
 
 // #------------------------------#
 // |           macros             |

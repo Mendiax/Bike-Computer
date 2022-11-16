@@ -1,11 +1,11 @@
 /**
   ******************************************************************************
   * @file    MPU9250.h
-  * @author  
+  * @author
   * @version V1.0
   * @date    27-January-2015
   * @brief   Header file for MPU9250.c module.
-  
+
   ******************************************************************************
   * @attention
   *
@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
-//#include "I2C.h"
+//#include "i2c.h"
 //#include "IMU.H"
 
 
@@ -51,13 +51,13 @@
 #define	TEMP_OUT_L		0x42
 
 #define	GYRO_XOUT_H		0x43
-// #define	GYRO_XOUT_L		0x44	
+// #define	GYRO_XOUT_L		0x44
 // #define	GYRO_YOUT_H		0x45
 // #define	GYRO_YOUT_L		0x46
 // #define	GYRO_ZOUT_H		0x47
 // #define	GYRO_ZOUT_L		0x48
 
-		
+
 #define MAG_XOUT_L		0x03
 // #define MAG_XOUT_H		0x04
 // #define MAG_YOUT_L		0x05
@@ -73,7 +73,7 @@
 #define DEFAULT_ADDRESS     0x68
 
 #define	GYRO_ADDRESS   DEFAULT_ADDRESS //Gyro and Accel device address
-#define ACCEL_ADDRESS  DEFAULT_ADDRESS //0xD0 
+#define ACCEL_ADDRESS  DEFAULT_ADDRESS //0xD0
 #define MAG_ADDRESS    0xC //0x18   //compass device address
 
 #define WHO_AM_I_VAL				0x71 //identity of MPU9250 is 0x71. identity of MPU9255 is 0x73.

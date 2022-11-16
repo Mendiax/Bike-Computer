@@ -21,11 +21,11 @@
 
 
 
-#include "IMU.h"
+//#include "IMU.h"
 #include <math.h>
 #include <stdio.h>
 // #include "console/console.h"
-#include "I2C.h"
+#include "i2c.h"
 
 uint8_t u8PressureType;
 
@@ -59,7 +59,7 @@ void IMU_Init(void)
 	I2C_Init();
   //printf("IMU_Init()\n");
   uint8_t u8Ret;
-  mpu9250::init();
+  // mpu9250::init();
   bmp280::init();
   //scan();
 

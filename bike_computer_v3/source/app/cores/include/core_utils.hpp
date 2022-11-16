@@ -1,9 +1,11 @@
 #ifndef CORE_UTILS_HPP
 #define CORE_UTILS_HPP
+#include <cstddef>
 #include <stdint.h>
 #include "pico/time.h"
 #include "pico/stdlib.h"
-
+#include "pico/sync.h"
+#include "utils.hpp"
 
 #define CYCLE_UPDATE_SIMPLE(function, cycle, code) \
     do{ \
@@ -125,5 +127,42 @@ static inline bool is_absolute_time_zero(absolute_time_t time)
     return time._private_us_since_boot == 0;
     #endif
 }
+
+template<typename T>
+class Pc_Queue{
+    T* buffer;
+    size_t no_elements_cur;
+    const size_t no_elements_max;
+    mutex_t mutex;
+
+    Pc_Queue(size_t size)
+    : no_elements_cur{0}, no_elements_max{size}
+    {
+        buffer = new T[size];
+        mutex_init(&mutex);
+    }
+
+    inline bool is_full()
+    {
+        Unique_Mutex umutex(&mutex);
+        return no_elements_cur == no_elements_max;
+    }
+
+    inline bool is_empty()
+    {
+        Unique_Mutex umutex(&mutex);
+        return no_elements_cur == 0;
+    }
+
+    inline void append(const T& elem)
+    {
+        // if()
+    }
+
+    ~Pc_Queue()
+    {
+        delete [] buffer;
+    }
+};
 
 #endif

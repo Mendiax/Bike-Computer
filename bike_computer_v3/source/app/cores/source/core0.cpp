@@ -3,6 +3,7 @@
 // #-------------------------------#
 // pico includes
 #include <pico/stdlib.h>
+#include "bmp280.hpp"
 #include "display/driver.hpp"
 #include "pico/util/datetime.h"
 
@@ -32,15 +33,15 @@
 #include "sim868/gps.hpp"
 #include "sim868/gsm.hpp"
 // BMP
-#include "IMU.h"
-#include "I2C.h"
+//#include "IMU.h"
+#include "i2c.h"
 
 #include "hardware/rtc.h"
 
 // #-------------------------------#
 // |            macros             |
 // #-------------------------------#
-#define DATA_PER_SECOND 1
+#define DATA_PER_SECOND 100
 
 // cycles times
 #define BAT_LEV_CYCLE_MS (29*1000)
@@ -193,8 +194,9 @@ static void setup(void)
     sensors_data.current_state = SystemState::TURNED_ON;
     mutex_exit(&sensorDataMutex);
 
-    //I2C_Init();
-    IMU_Init();
+    I2C_Init();
+    bmp280::init();
+    // IMU_Init();
 }
 
 static int loop(void)

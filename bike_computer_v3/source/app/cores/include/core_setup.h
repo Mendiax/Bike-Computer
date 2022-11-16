@@ -5,6 +5,7 @@
 #include "core0.h"
 #include "common_data.hpp"
 
+#include "ringbuffer.h"
 #include "traces.h"
 
 static inline void core_setup(void);
@@ -13,6 +14,8 @@ static inline void core_setup(void)
 {
     TRACE_DEBUG(0, TRACE_MAIN, "Init common data\n");
     // sensors_data.current_state = SystemState::TURNED_ON;
+
+    ring_buffer_create(sizeof(Packet), 2);
 
     mutex_init(&sensorDataMutex);
 

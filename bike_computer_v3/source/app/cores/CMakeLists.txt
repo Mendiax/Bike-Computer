@@ -11,7 +11,8 @@ target_link_libraries(Cores PUBLIC pico_stdlib
     Speedometer
     Cadence
 
-    IMU
+    BMP280
+
     Common
     GSM
     Parser

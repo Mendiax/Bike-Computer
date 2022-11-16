@@ -16,7 +16,7 @@
 #include "session.hpp"
 #include "sd_common.h"
 
-#include "BMP280.hpp"
+#include "bmp280.hpp"
 
 #include "parser.hpp"
 

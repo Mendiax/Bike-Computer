@@ -31,8 +31,7 @@ add_compile_options(-Wfatal-errors -Werror=return-type)
 #                             INCLUDE DIRECTORIES                             #
 #-----------------------------------------------------------------------------#
 
-include_directories(source/app/gui/include)
-include_directories(source/app/cores/include)
+
 
 include_directories(source/lib/common/include)
 include_directories(source/lib/tools/include)
@@ -48,13 +47,16 @@ include_directories(source/drivers/cadence/include)
 include_directories(source/drivers/interrupts/include)
 include_directories(source/drivers/buttons/include)
 include_directories(source/drivers/gsm/include)
-include_directories(source/drivers/EPROM/include)
+# include_directories(source/drivers/EPROM/include)
 
 #DOF
-include_directories(source/drivers/DOF/BMP280)
-include_directories(source/drivers/DOF/I2C)
-include_directories(source/drivers/DOF/IMU)
-include_directories(source/drivers/DOF/MPU9250)
+include_directories(source/drivers/BMP280/include)
+include_directories(source/drivers/I2C/include)
+# include_directories(source/drivers/DOF/IMU)
+# include_directories(source/drivers/DOF/MPU9250)
+
+include_directories(source/app/gui/include)
+include_directories(source/app/cores/include)
 
 #tests
 include_directories(source/tests/bc_test)
@@ -66,8 +68,7 @@ include_directories(source/tests)
 
 ################################ SUBDIRECTORY #################################
 
-add_subdirectory(source/app/gui)
-add_subdirectory(source/app/cores)
+
 
 add_subdirectory(source/lib/common)
 add_subdirectory(source/lib/tools)
@@ -84,16 +85,19 @@ add_subdirectory(source/drivers/cadence)
 add_subdirectory(source/drivers/interrupts)
 add_subdirectory(source/drivers/buttons)
 add_subdirectory(source/drivers/gsm)
-add_subdirectory(source/drivers/EPROM)
+# add_subdirectory(source/drivers/EPROM)
 
 # DOF
-add_subdirectory(source/drivers/DOF/BMP280)
-add_subdirectory(source/drivers/DOF/I2C)
-add_subdirectory(source/drivers/DOF/IMU)
-add_subdirectory(source/drivers/DOF/MPU9250)
+add_subdirectory(source/drivers/BMP280)
+add_subdirectory(source/drivers/I2C)
+# add_subdirectory(source/drivers/DOF/IMU)
+# add_subdirectory(source/drivers/DOF/MPU9250)
 
 # SD
 add_subdirectory(source/external/no-OS-FatFS/FatFs_SPI)
+
+add_subdirectory(source/app/gui)
+add_subdirectory(source/app/cores)
 
 # tests
 add_subdirectory(source/tests/bc_test)
