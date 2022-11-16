@@ -90,6 +90,20 @@ void Core1::handle_sig_show_msg(const Signal &sig)
     delete payload;
 }
 
+void Core1::handle_sig_get_file(const Signal &sig)
+{
+    auto payload_respond = new Sig_Core0_Get_File_Respond();
+    auto payload = sig.get_payload<Sig_Core1_Get_File*>();
+    payload_respond->type = payload->type;
+
+    Sd_File file(payload->file_name);
+    payload_respond->file_content = file.read_all();
+
+    Signal sig_respond(SIG_CORE0_GET_FILE_RESPOND, payload_respond);
+    actor_core0.send_signal(sig_respond);
+    delete payload;
+}
+
 void Core1::handle_sig_log(const Signal &sig)
 {
     auto payload = sig.get_payload<Sig_Core1_Log*>();

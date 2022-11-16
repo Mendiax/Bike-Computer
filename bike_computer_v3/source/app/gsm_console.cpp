@@ -162,7 +162,7 @@ int main(void)
     }
 
     sleep_ms(1000);
-    consoleLogInit();
+    // consoleLogInit();
     sleep_ms(2000);
     tracesSetup();
     TRACES_ON(1, TRACE_SIM868);

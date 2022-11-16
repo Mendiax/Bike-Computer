@@ -32,6 +32,7 @@ enum Sig_Ids
     SIG_CORE0_CONTINUE,
     SIG_CORE0_SET_CONFIG,
     SIG_CORE0_SET_TOTAL,
+    SIG_CORE0_GET_FILE_RESPOND,
 
     // core 1
     SIG_CORE1_TOTAL_UPDATE,
@@ -40,8 +41,23 @@ enum Sig_Ids
     SIG_CORE1_LOAD_SESSION,
     SIG_CORE1_LOG_GPS,
     SIG_CORE1_LOG,
+    SIG_CORE1_GET_FILE,
     SIG_CORE1_SHOW_MSG,
     SIG_NO_MAX
+};
+
+enum class File_Respond{
+    time_offset
+};
+
+struct Sig_Core0_Get_File_Respond{
+    File_Respond type;
+    std::string file_content;
+};
+
+struct Sig_Core1_Get_File{
+    File_Respond type;
+    std::string file_name;
 };
 
 struct Sig_Core1_Show_Msg{
@@ -93,6 +109,7 @@ private:
 
     static void handle_sig_set_config(const Signal &sig);
     static void handle_sig_set_total(const Signal &sig);
+    static void handle_sig_get_file_resond(const Signal &sig);
 
     void handler_setup()
     {
@@ -103,6 +120,7 @@ private:
         this->handler_add(handle_sig_session_start, SIG_CORE0_SESION_START);
         this->handler_add(handle_sig_set_config, SIG_CORE0_SET_CONFIG);
         this->handler_add(handle_sig_set_total, SIG_CORE0_SET_TOTAL);
+        this->handler_add(handle_sig_get_file_resond, SIG_CORE0_GET_FILE_RESPOND);
     }
 
 public:
@@ -123,6 +141,8 @@ private:
     static void handle_sig_log_gps(const Signal &sig);
     static void handle_sig_log(const Signal &sig);
     static void handle_sig_show_msg(const Signal &sig);
+    static void handle_sig_get_file(const Signal &sig);
+
 
 
 
@@ -138,9 +158,7 @@ private:
         this->handler_add(handle_sig_log_gps, SIG_CORE1_LOG_GPS);
         this->handler_add(handle_sig_log, SIG_CORE1_LOG);
         this->handler_add(handle_sig_show_msg, SIG_CORE1_SHOW_MSG);
-
-
-
+        this->handler_add(handle_sig_get_file, SIG_CORE1_GET_FILE);
 
         // this->handler_add(handle_sig_get_file, SIG_CORE1_GET_FILE);
     }

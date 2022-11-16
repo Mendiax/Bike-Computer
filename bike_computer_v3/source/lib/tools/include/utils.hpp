@@ -3,6 +3,7 @@
 
 #include "common_types.h"
 #include "parser.hpp"
+#include "pico/types.h"
 
 #include <pico/mutex.h>
 
@@ -40,6 +41,82 @@ public:
         mutex_exit(mutex_p);
     }
 };
+
+static inline bool is_leap_year(int year)
+{
+  return (year % 4 == 0) && ( (year % 100 != 0) || (year % 400 == 0) );
+}
+
+static inline bool is_last_day_in_month(int year, int month, int day)
+{
+  return ((month == 1 && day == 31) ||
+          (is_leap_year(year) ? (month == 2 && day == 29) : (month == 2 && day == 28)) ||
+          (month == 3 && day == 31) ||
+          (month == 4 && day == 30) ||
+          (month == 5 && day == 31) ||
+          (month == 6 && day == 30) ||
+          (month == 7 && day == 31) ||
+          (month == 8 && day == 31) ||
+          (month == 9 && day == 30) ||
+          (month == 10 && day == 31) ||
+          (month == 11 && day == 30) ||
+          (month == 12 && day == 31)
+ );
+}
+
+static inline void change_time_by_hour(datetime_t* t, int offset)
+{
+    offset = offset % 24;
+    if((int)t->hour + offset < 0)
+    {
+        t->hour = ((int)t->hour + 24) - offset;
+
+         // decrease by one day
+        if (t->day == 1)
+        {
+            if(t->month == 1)
+            {
+                t->year--;
+                t->month = 12;
+            }
+            while (!is_last_day_in_month(t->year, t->month, t->day))
+            {
+                t->day--;
+            }
+        }
+        else
+        {
+            t->day--;
+        }
+
+    } else if((int)t->hour + offset > 23)
+    {
+        t->hour = t->hour + offset - 24;
+        // increase by one day
+        if (is_last_day_in_month(t->year, t->month, t->day))
+        {
+            if (t->month == 12)
+            {
+                t->month = 1;
+                t->day = 1;
+                t->year++;
+            }
+            else
+            {
+                t->day = 1;
+                t->month++;
+            }
+        }
+        else
+        {
+            t->day++;
+        }
+    } else
+    {
+        t->hour = offset + t->hour;
+    }
+
+}
 
 /**
  * @brief checks avaible memory with malloc

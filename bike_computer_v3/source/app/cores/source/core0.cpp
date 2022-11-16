@@ -277,6 +277,30 @@ void Core0::handle_sig_continue(const Signal &sig)
     session_p->cont();
 }
 
+void Core0::handle_sig_get_file_resond(const Signal &sig)
+{
+    auto payload = sig.get_payload<Sig_Core0_Get_File_Respond*>();
+    switch (payload->type) {
+        case File_Respond::time_offset:
+        {
+            auto offset = std::atoi(payload->file_content.c_str());
+                datetime_t t;
+                rtc_get_datetime(&t);
+                change_time_by_hour(&t, offset);
+                rtc_set_datetime(&t);
+
+        }
+        break;
+        default:
+        {
+            TRACE_ABNORMAL(TRACE_CORE_0, "unhandled file respond type %d\n", payload->type);
+        }
+    }
+
+    delete payload;
+
+}
+
 
 void Core0::handle_sig_session_start(const Signal &sig)
 {
@@ -655,6 +679,15 @@ static void cycle_get_gps_data()
     static float msl;
     static TimeS current_time;
     datetime_t t;
+
+    auto get_time_offset = [](void)
+    {
+        auto payload = new Sig_Core1_Get_File();
+        payload->type = File_Respond::time_offset;
+        payload->file_name = "time_offset.txt";
+        Signal sig(SIG_CORE1_GET_FILE, payload);
+        actor_core1.send_signal(sig);
+    };
     CYCLE_UPDATE_SIMPLE(sim868::gps::fetch_data(), GPS_FETCH_CYCLE_MS,
         {
             sim868::gps::get_speed(speed);
@@ -685,6 +718,7 @@ static void cycle_get_gps_data()
                 rtc_set_datetime(&t);
                 sensors_data.current_time = current_time;
                 PRINT("set time");
+                get_time_offset();
             }
 
             mutex_exit(&sensorDataMutex);

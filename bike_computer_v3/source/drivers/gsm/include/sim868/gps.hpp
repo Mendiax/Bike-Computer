@@ -36,12 +36,12 @@ void get_time_from_str(TimeS& time, const std::string& str);
 
 /**
  * @brief corrects time based on time passed from last fetch with correct time
- * 
- * @param time 
+ *
+ * @param time
  * @return true if date was fetch from module
- * @return false 
+ * @return false
  */
-TimeS correct_time(const GpsRawData& time);
+// TimeS correct_time(const GpsRawData& time);
 
 
 

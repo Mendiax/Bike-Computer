@@ -250,50 +250,53 @@ bool sim868::gps::get_date(TimeS& time)
     // PRINTF("get_date.utc_date_time: ");
     // time_print(gps_last_data.utc_date_time);
     //time = gps_last_data.utc_date_time;
-    time = correct_time(gps_last_data);
+
+    // time = correct_time(gps_last_data);
+    time = gps_last_data.utc_date_time;
     // PRINTF("return time           : ");
+
     // time_print(time);
     return true;
 
 }
 
-static void add_millis(TimeS& time, uint64_t millis_to_add)
-{
-    TimeS correct_time;
-    correct_time.seconds = ((float)millis_to_add / 1000.0f) + time.seconds;
-    uint64_t minutes_to_add = std::floor(correct_time.seconds / 60.0f);
-    correct_time.seconds -= (float)minutes_to_add * 60.0f;
-    //massert(correct_time.seconds < 60.0, "to many seconds %f\n", correct_time.seconds);
+// static void add_millis(TimeS& time, uint64_t millis_to_add)
+// {
+//     TimeS correct_time;
+//     correct_time.seconds = ((float)millis_to_add / 1000.0f) + time.seconds;
+//     uint64_t minutes_to_add = std::floor(correct_time.seconds / 60.0f);
+//     correct_time.seconds -= (float)minutes_to_add * 60.0f;
+//     //massert(correct_time.seconds < 60.0, "to many seconds %f\n", correct_time.seconds);
 
-    minutes_to_add += time.minutes;
-    uint64_t hours_to_add = minutes_to_add / 60;
-    minutes_to_add = minutes_to_add % 60;
-    //massert(minutes_to_add < 60, "to many minutes %" PRIu64 "\n", minutes_to_add);
-    correct_time.minutes = minutes_to_add;
+//     minutes_to_add += time.minutes;
+//     uint64_t hours_to_add = minutes_to_add / 60;
+//     minutes_to_add = minutes_to_add % 60;
+//     //massert(minutes_to_add < 60, "to many minutes %" PRIu64 "\n", minutes_to_add);
+//     correct_time.minutes = minutes_to_add;
 
-    hours_to_add += time.hour;
-    uint64_t days_to_add = hours_to_add / 24;
-    hours_to_add = hours_to_add % 24;
-    //massert(hours_to_add < 24, "to many hours %" PRIu64 "\n", hours_to_add);
-    correct_time.hour = hours_to_add;
+//     hours_to_add += time.hour;
+//     uint64_t days_to_add = hours_to_add / 24;
+//     hours_to_add = hours_to_add % 24;
+//     //massert(hours_to_add < 24, "to many hours %" PRIu64 "\n", hours_to_add);
+//     correct_time.hour = hours_to_add;
 
-    correct_time.day = time.day + days_to_add; // TODO
+//     correct_time.day = time.day + days_to_add; // TODO
 
-    // TODO month, yaer
-    correct_time.month = time.month;
-    correct_time.year = time.year;
+//     // TODO month, yaer
+//     correct_time.month = time.month;
+//     correct_time.year = time.year;
 
-    time = correct_time;
-}
+//     time = correct_time;
+// }
 
-TimeS correct_time(const GpsRawData& gps_data)
-{
-    auto current_time = gps_data.utc_date_time;
+// TimeS correct_time(const GpsRawData& gps_data)
+// {
+//     auto current_time = gps_data.utc_date_time;
 
-    uint64_t millis_to_add = us_to_ms(absolute_time_diff_us(gps_data.data_time_stamp, get_absolute_time()));
-    add_millis(current_time, millis_to_add);
+//     uint64_t millis_to_add = us_to_ms(absolute_time_diff_us(gps_data.data_time_stamp, get_absolute_time()));
+//     add_millis(current_time, millis_to_add);
 
-    add_millis(current_time, 7200 * 1000); // time offset
+//     add_millis(current_time, 7200 * 1000); // time offset
 
-    return current_time;
-}
+//     return current_time;
+// }
