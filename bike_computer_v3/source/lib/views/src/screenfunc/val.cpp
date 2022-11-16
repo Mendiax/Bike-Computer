@@ -208,7 +208,7 @@ void drawFormat_Time_DateS(const void *settings)
     const size_t max_str_len = valSettings->text.str_len + 1;
     char buffer[max_str_len];
 
-    if(snprintf(&buffer[0], max_str_len, "%02" PRIu8 ".""%02" PRIu8 ".""%02" PRIu16, time.day, time.month, time.year % 100 ) < 0){
+    if(snprintf(&buffer[0], max_str_len, "%s%02" PRIu8 ".""%02" PRIu8 ".""%02" PRIu16, valSettings->text.string, time.day, time.month, time.year % 100 ) < 0){
         return;
     }
     Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
@@ -222,7 +222,7 @@ void drawFormat_Time_HourS(const void *settings)
     const size_t max_str_len = valSettings->text.str_len + 1;
     char buffer[max_str_len];
 
-    if(snprintf(&buffer[0], max_str_len,  "%02" PRIu8 ":""%02" PRIu8 ":""%02.0f", time.hour, time.minutes, time.seconds) < 0){
+    if(snprintf(&buffer[0], max_str_len,  "%s%02" PRIu8 ":""%02" PRIu8 ":""%02.0f",valSettings->text.string, time.hour, time.minutes, time.seconds) < 0){
         return;
     }
     Paint_Println(valSettings->text.offsetX, valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);

@@ -9,6 +9,9 @@
 #include "view_velocity.hpp"
 #include "view_gear.hpp"
 
+#include "view_last_avg.hpp"
+#include "view_last_time.hpp"
+#include "view_last_date.hpp"
 
 #include "main/main_new_session.hpp"
 #include "main/main_load_config.hpp"

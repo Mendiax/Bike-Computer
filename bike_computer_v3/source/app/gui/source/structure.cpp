@@ -7,6 +7,9 @@
 // c/c++ includes
 
 // my includes
+#include "gui/view_last_avg.hpp"
+#include "gui/view_last_date.hpp"
+#include "gui/view_last_time.hpp"
 #include "views/view.hpp"
 
 #include "gui/structure.hpp"
@@ -85,8 +88,10 @@ void Gui::create()
     //      history
     // -----------------------------
     auto history_session_menu = new View_List(main_menu);
-    history_session_menu->add_view(new View_Velocity(*data, *session, true));
-    history_session_menu->add_view(new View_Max_Avg(*data, *session, true));
+    history_session_menu->add_view(new View_Last_Time(*data, *session, true));
+    history_session_menu->add_view(new View_Last_Avg(*data, *session, true));
+    history_session_menu->add_view(new View_Last_Date(*data, *session, true));
+
     // history_session_menu->add_view(new View_Gps(*data, *session, true));
     // history_session_menu->add_view(new View_Date(*data, *session, true));
     // history_session_menu->add_view(new View_Forecast(*data, *session, true));

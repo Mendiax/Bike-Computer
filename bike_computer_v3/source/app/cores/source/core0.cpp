@@ -70,6 +70,7 @@
 // #------------------------------#
 static Bike_Config_S config;
 static bool config_received = false;
+int local_time_offset = 0;
 
 // #------------------------------#
 // | static functions declarations|
