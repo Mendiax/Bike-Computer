@@ -28,10 +28,6 @@ namespace sim868
 {
     namespace gsm
     {
-        // deprecated
-        uint64_t send_request_httpread();
-        std::string get_respond_httpread(uint64_t id);
-
         /**
          * @brief Get the signal strength object
          * <rssi>
@@ -139,15 +135,6 @@ namespace sim868
 
             return url.str();
         }
-
-        bool get_cipgsmloc(char cipgsmloc[20]);
-
-        bool get_clbs(char clbs[27]);
-
-        bool setup_clts(bool& success);
-
-        bool get_time(TimeS& time);
-
     }
 }
 

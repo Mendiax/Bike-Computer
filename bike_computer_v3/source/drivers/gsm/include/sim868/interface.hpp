@@ -123,8 +123,6 @@ namespace sim868
                                 size_t bufferSize = 100
                                 );
 
-    uint64_t send_request_httpread();
-
 
     /**
      * @brief Function for sending request to SIM868 with flexible buffer
