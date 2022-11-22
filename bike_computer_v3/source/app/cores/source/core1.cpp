@@ -1,10 +1,22 @@
+// #-------------------------------#
+// |           includes            |
+// #-------------------------------#
+// pico includes
+#include "pico/time.h"
+#include "pico/sem.h"
+
+// c/c++ includes
+#include <string>
+#include <iostream>
+#include <stdio.h>
+
+// my includes
 #include "core1.h"
 #include "core_utils.hpp"
 #include "common_types.h"
 #include "utils.hpp"
 #include "common_data.hpp"
 #include "common_actors.hpp"
-
 #include "buttons/buttons.h"
 #include "traces.h"
 #include "sd_file.h"
@@ -14,35 +26,33 @@
 // display
 #include "display/print.h"
 #include "gui/structure.hpp"
-//veiws
 #include "views/view.hpp"
-// #include "views/display.h"
 
-#include <string>
-#include <iostream>
-#include <stdio.h>
+// #-------------------------------#
+// |            macros             |
+// #-------------------------------#
 
-#include "pico/time.h"
-
-#define FRAME_PER_SECOND 10
+#define SEM_TIMEOUT_MS 1000
+#define FRAME_PER_SECOND 25
 #define MINIMAL_TIME_BTN 300
 
-// static variables
-static Sensor_Data sensors_data_display = {0};
-static Session_Data sessionDataDisplay;
 
-static volatile uint32_t lastBtn1Press = 0;
-static volatile uint32_t btnPressedCount = 0;
+// #------------------------------#
+// | static variables definitions |
+// #------------------------------#
+static common_memory::Packet local_packet = {0};
+static Sensor_Data& sensors_data_display = local_packet.sensors;
+static Session_Data& sessionDataDisplay = local_packet.session;
 
-static volatile uint32_t last_btn2_press = 0;
-static volatile uint32_t last_btn2_rel = 0;
 
 static volatile bool change_state = 0;
 static volatile bool stop = 0;
 
 
 
-// static functions
+// #------------------------------#
+// | static functions declarations|
+// #------------------------------#
 static void incDisplay(void);
 static void incDisplayRel(void);
 
@@ -55,7 +65,9 @@ static void set_total_data(float time, float dist);
 
 
 
-// global functions
+// #------------------------------#
+// | global function definitions  |
+// #------------------------------#
 void core1LaunchThread(void)
 {
     setup();
@@ -64,9 +76,13 @@ void core1LaunchThread(void)
     }
 }
 
-void Core1::handle_sig_show_msg(const Signal &sig)
+// #------------------------------#
+// | static functions definitions |
+// #------------------------------#
+
+void Display_Actor::handle_sig_show_msg(const Signal &sig)
 {
-    auto payload = sig.get_payload<Sig_Core1_Show_Msg*>();
+    auto payload = sig.get_payload<Sig_Display_Actor_Show_Msg*>();
 
     display::clear();
     Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
@@ -90,23 +106,23 @@ void Core1::handle_sig_show_msg(const Signal &sig)
     delete payload;
 }
 
-void Core1::handle_sig_get_file(const Signal &sig)
+void Display_Actor::handle_sig_get_file(const Signal &sig)
 {
-    auto payload_respond = new Sig_Core0_Get_File_Respond();
-    auto payload = sig.get_payload<Sig_Core1_Get_File*>();
+    auto payload_respond = new Sig_Data_Actor_Get_File_Respond();
+    auto payload = sig.get_payload<Sig_Display_Actor_Get_File*>();
     payload_respond->type = payload->type;
 
     Sd_File file(payload->file_name);
     payload_respond->file_content = file.read_all();
 
-    Signal sig_respond(SIG_CORE0_GET_FILE_RESPOND, payload_respond);
-    actor_core0.send_signal(sig_respond);
+    Signal sig_respond(SIG_DATA_ACTOR_GET_FILE_RESPOND, payload_respond);
+    data_actor.send_signal(sig_respond);
     delete payload;
 }
 
-void Core1::handle_sig_log(const Signal &sig)
+void Display_Actor::handle_sig_log(const Signal &sig)
 {
-    auto payload = sig.get_payload<Sig_Core1_Log*>();
+    auto payload = sig.get_payload<Sig_Display_Actor_Log*>();
     Sd_File config_file(payload->file_name);
     if(config_file.is_empty())
     {
@@ -118,9 +134,9 @@ void Core1::handle_sig_log(const Signal &sig)
 }
 
 
-void Core1::handle_sig_log_gps(const Signal &sig)
+void Display_Actor::handle_sig_log_gps(const Signal &sig)
 {
-    auto payload = sig.get_payload<Sig_Core1_Log_Gps*>();
+    auto payload = sig.get_payload<Sig_Display_Actor_Log_Gps*>();
     Sd_File config_file(payload->file_name);
     if(config_file.is_empty())
     {
@@ -133,13 +149,13 @@ void Core1::handle_sig_log_gps(const Signal &sig)
     delete payload;
 }
 
-void Core1::handle_sig_total_update(const Signal &sig)
+void Display_Actor::handle_sig_total_update(const Signal &sig)
 {
     float dist, time;
     // read from file dist and time
     get_total_data(time, dist);
     {
-        auto payload = sig.get_payload<Sig_Core1_Total_Update*>();
+        auto payload = sig.get_payload<Sig_Display_Actor_Total_Update*>();
 
         // update data
         dist += payload->ridden_dist;
@@ -148,20 +164,17 @@ void Core1::handle_sig_total_update(const Signal &sig)
     }
 
     {
-        auto payload = new Sig_Core0_Set_Total();
+        auto payload = new Sig_Data_Actor_Set_Total();
         // update data
         payload->ridden_dist_total = dist;
         payload->ridden_time_total = time;
-        Signal sig(SIG_CORE0_SET_TOTAL, payload);
-        actor_core0.send_signal(sig);
+        Signal sig(SIG_DATA_ACTOR_SET_TOTAL, payload);
+        data_actor.send_signal(sig);
     }
 
     // write to file
     set_total_data(time, dist);
 }
-
-
-//static functions definitions
 
 
 static void setup(void)
@@ -181,23 +194,23 @@ static void setup(void)
         Sd_File config_file(config_file_name);
         auto content = config_file.read_all();
 
-        auto payload = new Sig_Core0_Set_Config();
+        auto payload = new Sig_Data_Actor_Set_Config();
         payload->file_content = config_file.read_all();
         payload->file_name = config_file_name;
-        Signal sig(SIG_CORE0_SET_CONFIG ,payload);
-        actor_core0.send_signal(sig);
+        Signal sig(SIG_DATA_ACTOR_SET_CONFIG ,payload);
+        data_actor.send_signal(sig);
     }
 
     // update data on start
     {
         float dist = 0.0f, time = 0.0f;
         get_total_data(time, dist);
-        auto payload = new Sig_Core0_Set_Total();
+        auto payload = new Sig_Data_Actor_Set_Total();
         // update data
         payload->ridden_dist_total = dist;
         payload->ridden_time_total = time;
-        Signal sig(SIG_CORE0_SET_TOTAL, payload);
-        actor_core0.send_signal(sig);
+        Signal sig(SIG_DATA_ACTOR_SET_TOTAL, payload);
+        data_actor.send_signal(sig);
     }
 
 }
@@ -211,8 +224,8 @@ void handle_pause_start()
     {
         case SystemState::PAUSED:
             {
-                Signal sig(SIG_CORE0_CONTINUE);
-                actor_core0.send_signal(sig);
+                Signal sig(SIG_DATA_ACTOR_CONTINUE);
+                data_actor.send_signal(sig);
                 TRACE_DEBUG(2, TRACE_CORE_1, "sending signal continue %d\n", (int) sig.get_sig_id());
 
             }
@@ -220,16 +233,16 @@ void handle_pause_start()
         case SystemState::AUTOSTART:
         case SystemState::RUNNING:
             {
-                Signal sig(SIG_CORE0_PAUSE);
-                actor_core0.send_signal(sig);
+                Signal sig(SIG_DATA_ACTOR_PAUSE);
+                data_actor.send_signal(sig);
                 TRACE_DEBUG(2, TRACE_CORE_1, "sending signal pause %d\n", (int) sig.get_sig_id());
 
             }
             break;
         case SystemState::TURNED_ON:
             {
-                Signal sig(SIG_CORE0_SESION_START);
-                actor_core0.send_signal(sig);
+                Signal sig(SIG_DATA_ACTOR_SESION_START);
+                data_actor.send_signal(sig);
                 TRACE_DEBUG(2, TRACE_CORE_1, "sending signal start %d\n", (int) sig.get_sig_id());
             }
             break;
@@ -253,8 +266,8 @@ void handle_end_session()
     Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
     display::display();
 
-    Signal sig(SIG_CORE0_STOP);
-    actor_core0.send_signal(sig);
+    Signal sig(SIG_DATA_ACTOR_STOP);
+    data_actor.send_signal(sig);
 
     mutex_enter_blocking(&sensorDataMutex);
     sessionDataDisplay.end(sensors_data.current_time);
@@ -307,18 +320,18 @@ void handle_end_session()
     // Gui::get_gui()->go_back();
 }
 
-void Core1::handle_sig_start_pause_btn(const Signal &sig)
+void Display_Actor::handle_sig_start_pause_btn(const Signal &sig)
 {
     handle_pause_start();
 }
-void Core1::handle_sig_end_btn(const Signal &sig)
+void Display_Actor::handle_sig_end_btn(const Signal &sig)
 {
     handle_end_session();
 }
 
-void Core1::handle_sig_load_session(const Signal &sig)
+void Display_Actor::handle_sig_load_session(const Signal &sig)
 {
-    auto payload = sig.get_payload<Sig_Core1_Load_Session*>();
+    auto payload = sig.get_payload<Sig_Display_Actor_Load_Session*>();
     auto id = payload->session_id;
     delete payload;
     std::string content;
@@ -333,7 +346,7 @@ void Core1::handle_sig_load_session(const Signal &sig)
         content = last_save.read_line(id, SESION_DATA_CSV_LEN_NO_GEARS);
     }
 
-
+    // TODO send it to core 0
     Unique_Mutex mtx(&sensorDataMutex);
     if (session_p)
         delete session_p;
@@ -344,18 +357,27 @@ void Core1::handle_sig_load_session(const Signal &sig)
 static int loop(void)
 {
     absolute_time_t frameStart = get_absolute_time();
-    actor_core1.handle_all();
+    display_actor.handle_all();
     // frame update
     {
         Gui::get_gui()->handle_buttons();
 
-        // copy data
-        mutex_enter_blocking(&sensorDataMutex);
-        sensors_data_display = sensors_data;
-        if (session_p)
-            sessionDataDisplay = *session_p;
+        // send packet
+        {
+            if(sem_acquire_timeout_ms(&number_of_queueing_portions, SEM_TIMEOUT_MS))
+            {
+                Unique_Mutex um(&pc_mutex);
+                auto queue = common_memory::get_pc_queue();
+                ring_buffer_pop(queue, (char*) &local_packet);
+                sem_release(&number_of_empty_positions);
+            }
+
+        }
+
+
+
         auto system_sate = sensors_data_display.current_state;
-        mutex_exit(&sensorDataMutex);
+        // mutex_exit(&sensorDataMutex);
 
         // render
         auto gui = Gui::get_gui();

@@ -36,8 +36,8 @@ void View_Session::action(void)
 {
     if(!view_only)
     {
-        Signal sig(SIG_CORE1_START_PAUSE_BTN);
-        actor_core1.send_signal(sig);
+        Signal sig(SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
+        display_actor.send_signal(sig);
     }
 }
 
@@ -46,8 +46,8 @@ void View_Session::action_long(void)
 {
     if(!view_only)
     {
-        Signal sig(SIG_CORE1_END_BTN);
-        actor_core1.send_signal(sig);
+        Signal sig(SIG_DISPLAY_ACTOR_END_BTN);
+        display_actor.send_signal(sig);
     }
     Gui::get_gui()->go_back();
 }

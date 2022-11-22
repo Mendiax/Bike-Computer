@@ -138,10 +138,10 @@ void Main_History::render()
 void Main_History::action_long()
 {
     //TODO send load data from file to core 1
-    auto payload = new Sig_Core1_Load_Session();
+    auto payload = new Sig_Display_Actor_Load_Session();
     payload->session_id = this->current_log_idx;
-    Signal sig(SIG_CORE1_LOAD_SESSION, payload);
-    actor_core1.send_signal(sig);
+    Signal sig(SIG_DISPLAY_ACTOR_LOAD_SESSION, payload);
+    display_actor.send_signal(sig);
 
     // PRINTF("main manu new session btn pressed next list:%p\n", this->get_next_view_list());
     auto gui = Gui::get_gui();

@@ -15,9 +15,13 @@ static inline void core_setup(void)
     TRACE_DEBUG(0, TRACE_MAIN, "Init common data\n");
     // sensors_data.current_state = SystemState::TURNED_ON;
 
-    ring_buffer_create(sizeof(Packet), 2);
 
     mutex_init(&sensorDataMutex);
+
+    mutex_init(&pc_mutex);
+
+    sem_init(&number_of_queueing_portions, 0, QUEUE_LEN);
+    sem_init(&number_of_empty_positions, QUEUE_LEN, QUEUE_LEN);
 
 
     TRACE_DEBUG(0, TRACE_MAIN, "Launch core1\n");

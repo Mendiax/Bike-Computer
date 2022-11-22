@@ -5,6 +5,8 @@
 #include <pico/stdlib.h>
 #include "bmp280.hpp"
 #include "display/driver.hpp"
+#include "pico/mutex.h"
+#include "pico/sem.h"
 #include "pico/util/datetime.h"
 
 // c/c++ includes
@@ -18,6 +20,7 @@
 // my includes
 #include "core_utils.hpp"
 #include "core0.h"
+#include "ringbuffer.h"
 #include "signals.hpp"
 #include "traces.h"
 #include "common_types.h"
@@ -37,11 +40,14 @@
 #include "i2c.h"
 
 #include "hardware/rtc.h"
+#include "utils.hpp"
 
 // #-------------------------------#
 // |            macros             |
 // #-------------------------------#
-#define DATA_PER_SECOND 100
+#define DATA_PER_SECOND 25
+
+#define SEM_TIMEOUT_MS 1000
 
 // cycles times
 #define BAT_LEV_CYCLE_MS (29*1000)
@@ -151,7 +157,7 @@ static void setup(void)
     // wait for config
     while(!config_received)
     {
-        actor_core0.handle_all();
+        data_actor.handle_all();
         sleep_ms(10);
     }
     config.to_string();
@@ -230,22 +236,22 @@ static int loop(void)
     return 1;
 }
 
-void Core0::handle_sig_set_config(const Signal &sig)
+void Data_Actor::handle_sig_set_config(const Signal &sig)
 {
-    const auto payload = sig.get_payload<Sig_Core0_Set_Config*>();
+    const auto payload = sig.get_payload<Sig_Data_Actor_Set_Config*>();
     config_received = load_config_from_file(payload->file_content.c_str(), payload->file_name.c_str());
     if(!config_received)
     {
         // send msg to user
 
-        auto payload = new Sig_Core1_Show_Msg();
+        auto payload = new Sig_Display_Actor_Show_Msg();
         *payload = {
             std::string("Cannot load bike config"),
             {0xf,0xf,0xf},
             0
         };
-        Signal sig(SIG_CORE1_SHOW_MSG, payload);
-        actor_core1.send_signal(sig);
+        Signal sig(SIG_DISPLAY_ACTOR_SHOW_MSG, payload);
+        display_actor.send_signal(sig);
     }
     else
     {
@@ -254,9 +260,9 @@ void Core0::handle_sig_set_config(const Signal &sig)
     delete payload;
 }
 
-void Core0::handle_sig_set_total(const Signal &sig)
+void Data_Actor::handle_sig_set_total(const Signal &sig)
 {
-    const auto payload = sig.get_payload<Sig_Core0_Set_Total*>();
+    const auto payload = sig.get_payload<Sig_Data_Actor_Set_Total*>();
     Unique_Mutex mutex_lock(&sensorDataMutex);
     sensors_data.total_time_ridden = payload->ridden_time_total;
     sensors_data.total_distance_ridden = payload->ridden_dist_total;
@@ -264,14 +270,14 @@ void Core0::handle_sig_set_total(const Signal &sig)
 }
 
 
-void Core0::handle_sig_pause(const Signal &sig)
+void Data_Actor::handle_sig_pause(const Signal &sig)
 {
     speed::stop();
     Unique_Mutex mutex_lock(&sensorDataMutex);
     sensors_data.current_state = SystemState::PAUSED;
     session_p->pause();
 }
-void Core0::handle_sig_continue(const Signal &sig)
+void Data_Actor::handle_sig_continue(const Signal &sig)
 {
     speed::start();
     Unique_Mutex mutex_lock(&sensorDataMutex);
@@ -279,9 +285,9 @@ void Core0::handle_sig_continue(const Signal &sig)
     session_p->cont();
 }
 
-void Core0::handle_sig_get_file_resond(const Signal &sig)
+void Data_Actor::handle_sig_get_file_resond(const Signal &sig)
 {
-    auto payload = sig.get_payload<Sig_Core0_Get_File_Respond*>();
+    auto payload = sig.get_payload<Sig_Data_Actor_Get_File_Respond*>();
     switch (payload->type) {
         case File_Respond::time_offset:
         {
@@ -304,7 +310,7 @@ void Core0::handle_sig_get_file_resond(const Signal &sig)
 }
 
 
-void Core0::handle_sig_session_start(const Signal &sig)
+void Data_Actor::handle_sig_session_start(const Signal &sig)
 {
     speed::stop();
     speed::reset();
@@ -320,7 +326,7 @@ void Core0::handle_sig_session_start(const Signal &sig)
     speed::start();
 }
 
-void Core0::handle_sig_start(const Signal &sig)
+void Data_Actor::handle_sig_start(const Signal &sig)
 {
     Unique_Mutex mutex_lock(&sensorDataMutex);
     session_p->pause();
@@ -329,7 +335,7 @@ void Core0::handle_sig_start(const Signal &sig)
     // session_p->start(sensors_data.current_time);
 
 }
-void Core0::handle_sig_stop(const Signal &sig)
+void Data_Actor::handle_sig_stop(const Signal &sig)
 {
     speed::stop();
     Unique_Mutex mutex_lock(&sensorDataMutex);
@@ -349,7 +355,7 @@ static int loop_frame_update()
 {
     // update_total_stats();
 
-    actor_core0.handle_all();
+    data_actor.handle_all();
     {
         Unique_Mutex mutex(&sensorDataMutex);
         datetime_t t;
@@ -467,7 +473,7 @@ static int loop_frame_update()
             }
             if(session.is_running() && session.get_start_time().is_valid())
             {
-                auto payload = new Sig_Core1_Log();
+                auto payload = new Sig_Display_Actor_Log();
                 {
                     std::stringstream ss;
                     ss << "gear_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
@@ -480,8 +486,8 @@ static int loop_frame_update()
                     payload->line = ss.str();
                 }
 
-                Signal sig(SIG_CORE1_LOG, payload);
-                actor_core1.send_signal(sig);
+                Signal sig(SIG_DISPLAY_ACTOR_LOG, payload);
+                display_actor.send_signal(sig);
             }
         }
     }
@@ -537,7 +543,23 @@ static int loop_frame_update()
         last_gear_idx = current_gear_idx;
     }
     const auto state = sensors_data.current_state;
-    mutex_exit(&sensorDataMutex);
+
+    mutex_exit(&sensorDataMutex); //  TODO remove
+
+    // send packet
+    {
+        common_memory::Packet new_packet{sensors_data, *session_p};
+        if(sem_acquire_timeout_ms(&number_of_empty_positions, SEM_TIMEOUT_MS))
+        {
+            Unique_Mutex um(&pc_mutex);
+            auto queue = common_memory::get_pc_queue();
+            if (!ring_buffer_is_full(queue)) {
+                ring_buffer_push(queue, (char*) &new_packet);
+            }
+            sem_release(&number_of_queueing_portions);
+        }
+    }
+
 
     switch (state)
     {
@@ -546,7 +568,7 @@ static int loop_frame_update()
             {
                 // TODO send start signal
                 PRINTF("AUTOSTART\n");
-                actor_core0.send_signal(SIG_CORE0_CONTINUE);
+                data_actor.send_signal(SIG_DATA_ACTOR_CONTINUE);
             }
 
         case SystemState::ENDED:
@@ -554,7 +576,7 @@ static int loop_frame_update()
         case SystemState::RUNNING:
         if(velocity == 0.0)
         {
-            actor_core0.send_signal(SIG_CORE0_START);
+            data_actor.send_signal(SIG_DATA_ACTOR_START);
             on_stop();
         }
         case SystemState::TURNED_ON:
@@ -569,7 +591,7 @@ static int loop_frame_update()
     // speedDataUpdate(sensors_data.speed, sensors_data.current_state);
     //sensors_data.time.t = to_ms_since_boot(get_absolute_time()) / 1000;
 
-    actor_core0.handle_all();
+    data_actor.handle_all();
     return 0;
 }
 
@@ -597,11 +619,11 @@ static void update_total_stats()
         // calc drive time
         const float ridden_time = speed::get_time_total();
 
-        auto payload = new Sig_Core1_Total_Update();
+        auto payload = new Sig_Display_Actor_Total_Update();
         payload->ridden_dist = ridden_dist;
         payload->ridden_time = ridden_time;
-        Signal sig(SIG_CORE1_TOTAL_UPDATE, payload);
-        actor_core1.send_signal(sig);
+        Signal sig(SIG_DISPLAY_ACTOR_TOTAL_UPDATE, payload);
+        display_actor.send_signal(sig);
 
         ridden_dist = 0.0;
     }
@@ -642,7 +664,7 @@ static void cycle_get_battery_status()
 
 static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const Session_Data& session, const Sensor_Data& sensor_data)
 {
-    auto payload = new Sig_Core1_Log();
+    auto payload = new Sig_Display_Actor_Log();
     std::stringstream ss;
     ss << "gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
     payload->file_name = ss.str();
@@ -652,8 +674,8 @@ static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const 
     sprintf(buffer, "%s;%f;%f;%f;%f;%f;%f\n", time_to_str(time).c_str(), gps.lat, gps.lon, gps.speed, sensor_data.velocity, gps.msl, sensor_data.altitude);
     payload->line = buffer;
 
-    Signal sig(SIG_CORE1_LOG, payload);
-    actor_core1.send_signal(sig);
+    Signal sig(SIG_DISPLAY_ACTOR_LOG, payload);
+    display_actor.send_signal(sig);
 }
 
 static void cycle_log_data()
@@ -684,11 +706,11 @@ static void cycle_get_gps_data()
 
     auto get_time_offset = [](void)
     {
-        auto payload = new Sig_Core1_Get_File();
+        auto payload = new Sig_Display_Actor_Get_File();
         payload->type = File_Respond::time_offset;
         payload->file_name = "time_offset.txt";
-        Signal sig(SIG_CORE1_GET_FILE, payload);
-        actor_core1.send_signal(sig);
+        Signal sig(SIG_DISPLAY_ACTOR_GET_FILE, payload);
+        display_actor.send_signal(sig);
     };
     CYCLE_UPDATE_SIMPLE(sim868::gps::fetch_data(), GPS_FETCH_CYCLE_MS,
         {

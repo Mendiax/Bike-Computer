@@ -17,8 +17,8 @@
 // | global variables definitions |
 // #------------------------------#
 
-Core0 actor_core0;
-Core1 actor_core1;
+Data_Actor data_actor;
+Display_Actor display_actor;
 
 // #------------------------------#
 // | static variables definitions |

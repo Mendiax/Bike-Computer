@@ -93,7 +93,7 @@ int multicore_actor();
 
 volatile std::atomic_bool end_core1 = false;
 
-static void multicore_actor_core1()
+static void multicore_display_actor()
 {
     while (end_core1 != true)
     {
@@ -128,7 +128,7 @@ int multicore_actor()
         // reset
         last_id = 0;
         counter = 0;
-        multicore_launch_core1(multicore_actor_core1);
+        multicore_launch_core1(multicore_display_actor);
         sleep_ms(100);
 
         for(int i = 0; i < 10; i++)
