@@ -29,12 +29,13 @@
 #include "display/print.h"
 #include "gui/structure.hpp"
 #include "views/view.hpp"
+#include "common_data.hpp"
+
 
 // #-------------------------------#
 // |            macros             |
 // #-------------------------------#
 
-#define SEM_TIMEOUT_MS 1000
 #define FRAME_PER_SECOND 25
 #define MINIMAL_TIME_BTN 300
 
@@ -42,26 +43,15 @@
 // #------------------------------#
 // | static variables definitions |
 // #------------------------------#
-static common_data::Packet local_packet = {0};
+static actors_common::Packet local_packet = {0};
 static Sensor_Data& sensors_data_display = local_packet.sensors;
 static Session_Data& sessionDataDisplay = local_packet.session;
-
-
-static volatile bool change_state = 0;
-static volatile bool stop = 0;
 
 
 
 // #------------------------------#
 // | static functions declarations|
 // #------------------------------#
-static void incDisplay(void);
-static void incDisplayRel(void);
-
-static void change_state_irq_handler();
-static void setup(void);
-static int loop(void);
-
 static void get_total_data(float& time, float& dist);
 static void set_total_data(float time, float dist);
 
@@ -180,13 +170,13 @@ void Display_Actor::handle_sig_total_update(const Signal &sig)
 }
 
 
-static void setup(void)
+void Display_Actor::setup(void)
 {
     interruptSetupCore1();
     // setup
-    auto gui = Gui::get_gui(&sensors_data_display, &sessionDataDisplay);
-    gui->render();
-    gui->refresh();
+    this->gui = Gui::get_gui(&sensors_data_display, &sessionDataDisplay);
+    this->gui->render();
+    this->gui->refresh();
 
     {
         const std::string config_file_name = "bike_gears.cfg";
@@ -214,10 +204,9 @@ static void setup(void)
 
 }
 
-void handle_pause_start()
+void Display_Actor::handle_sig_start_pause_btn(const Signal &sig)
 {
-    TRACE_DEBUG(2, TRACE_CORE_1, "pause btn pressed %d\n", change_state);
-    change_state = false;
+    TRACE_DEBUG(2, TRACE_CORE_1, "pause btn pressed \n");
     switch(sensors_data_display.current_state)
     {
         case SystemState::PAUSED:
@@ -250,7 +239,7 @@ void handle_pause_start()
     }
 }
 
-void handle_end_session()
+void Display_Actor::handle_sig_end_btn(const Signal &sig)
 {
     display::clear();
     Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
@@ -262,8 +251,8 @@ void handle_end_session()
     Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
     display::display();
 
-    Signal sig(actors_common::SIG_DATA_ACTOR_STOP);
-    Data_Actor::get_instance().send_signal(sig);
+    Signal sig_stop(actors_common::SIG_DATA_ACTOR_STOP);
+    Data_Actor::get_instance().send_signal(sig_stop);
 
 
     sessionDataDisplay.end(sensors_data_display.current_time);
@@ -296,7 +285,7 @@ void handle_end_session()
         sessionDataDisplay.set_id(id);
     }
     last_save.append(sessionDataDisplay.get_line().c_str());
-    // while(stop)
+
     {
         // PRINTF("STOPPED\n");
         display::clear();
@@ -311,16 +300,7 @@ void handle_end_session()
         sleep_ms(1000);
     }
     // retunrn to main menu
-    // Gui::get_gui()->go_back();
-}
-
-void Display_Actor::handle_sig_start_pause_btn(const Signal &sig)
-{
-    handle_pause_start();
-}
-void Display_Actor::handle_sig_end_btn(const Signal &sig)
-{
-    handle_end_session();
+    // this->gui->go_back();
 }
 
 void Display_Actor::handle_sig_load_session(const Signal &sig)
@@ -349,37 +329,26 @@ void Display_Actor::handle_sig_load_session(const Signal &sig)
 }
 
 
-static int loop(void)
+int Display_Actor::loop(void)
 {
     absolute_time_t frameStart = get_absolute_time();
     Display_Actor::get_instance().handle_all();
     // frame update
     {
-        Gui::get_gui()->handle_buttons();
+        this->gui->handle_buttons();
 
         // send packet
-        {
-            if(sem_acquire_timeout_ms(&common_data::number_of_queueing_portions, SEM_TIMEOUT_MS))
-            {
-
-                auto queue = common_data::get_pc_queue();
-                ring_buffer_pop(queue, (char*) &local_packet);
-                sem_release(&common_data::number_of_empty_positions);
-            }
-
-        }
-
+        pc_queue->pop_blocking(local_packet);
 
 
         auto system_sate = sensors_data_display.current_state;
 
         // render
-        auto gui = Gui::get_gui();
-        gui->refresh();
+        this->gui->refresh();
 
         if(system_sate == SystemState::AUTOSTART)
         {
-            TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label %d\n", change_state);
+            TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label\n");
             Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
             const sFONT* font = 0;
             uint8_t scale;
@@ -392,7 +361,7 @@ static int loop(void)
 
         if(system_sate == SystemState::PAUSED)
         {
-            TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label %d\n", change_state);
+            TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label\n");
             Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
             const sFONT* font = 0;
             uint8_t scale;

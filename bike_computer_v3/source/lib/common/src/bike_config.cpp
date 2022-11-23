@@ -10,19 +10,19 @@ class Gear_Iterator
 {
     uint8_t current_front;
     uint8_t current_rear;
-    const Bike_Config_S& config;
+    const Bike_Config& config;
 public:
-    Gear_Iterator(const Bike_Config_S& config);
+    Gear_Iterator(const Bike_Config& config);
     bool has_next();
     float get_next();
     Gear_S get_gear();
 };
 
-Gear_Iterator::Gear_Iterator(const Bike_Config_S& config)
+Gear_Iterator::Gear_Iterator(const Bike_Config& config)
     :config{config},current_front{0}, current_rear{0}
 {}
 
-// Gear_Iterator::Gear_Iterator(const Bike_Config_S& config, Gear_S gear)
+// Gear_Iterator::Gear_Iterator(const Bike_Config& config, Gear_S gear)
 //     :config{config},current_front{gear.front - 1}, current_rear{gear - 1}
 // {}
 
@@ -53,7 +53,7 @@ Gear_S Gear_Iterator::get_gear()
 #define WHEEL_SIZE_STR "WS"
 
 
-Gear_S Bike_Config_S::get_next_gear(Gear_S gear) const
+Gear_S Bike_Config::get_next_gear(Gear_S gear) const
 {
     gear.rear++;
     if(gear.rear <= gear_rear.size())
@@ -70,7 +70,7 @@ Gear_S Bike_Config_S::get_next_gear(Gear_S gear) const
     // reached max gear
     return {0,0};
 }
-Gear_S Bike_Config_S::get_prev_gear(Gear_S gear) const
+Gear_S Bike_Config::get_prev_gear(Gear_S gear) const
 {
     if(gear.rear > 1)
     {
@@ -86,7 +86,7 @@ Gear_S Bike_Config_S::get_prev_gear(Gear_S gear) const
     // reached min gear
     return {0,0};
 }
-float Bike_Config_S::get_gear_ratio(Gear_S gear) const
+float Bike_Config::get_gear_ratio(Gear_S gear) const
 {
     if(is_gear_null(gear))
     {
@@ -95,7 +95,7 @@ float Bike_Config_S::get_gear_ratio(Gear_S gear) const
     return (float)gear_front.at(gear.front - 1) / (float)gear_rear.at(gear.rear - 1);
 }
 
-const char* Bike_Config_S::to_string()
+const char* Bike_Config::to_string()
 {
     std::stringstream ss;
     ss << GEARS_FRONT_STR ":";
@@ -113,7 +113,7 @@ const char* Bike_Config_S::to_string()
     return ss.str().c_str();
 }
 
-bool Bike_Config_S::from_string(const char* str)
+bool Bike_Config::from_string(const char* str)
 {
     this->wheel_size = 0.0;
     this->gear_front.clear();
@@ -195,7 +195,7 @@ bool Bike_Config_S::from_string(const char* str)
  */
 static inline bool check_floats_prec(float f1, float f2, float prec);
 
-Gear_S Bike_Config_S::get_current_gear(float ratio)
+Gear_S Bike_Config::get_current_gear(float ratio)
 {
     Gear_Iterator iter(*this);
     while (iter.has_next())
@@ -221,7 +221,7 @@ Gear_S Bike_Config_S::get_current_gear(float ratio)
     return {0,0};
 }
 
-float Bike_Config_S::get_gear_ratio(Gear_S gear)
+float Bike_Config::get_gear_ratio(Gear_S gear)
 {
     return (float)this->gear_front.at(gear.front - 1) / (float) this->gear_rear.at(gear.rear - 1);
 }

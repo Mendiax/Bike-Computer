@@ -11,6 +11,7 @@
 
 // my includes
 #include "common_types.h"
+#include "session.hpp"
 #include "actors.hpp"
 #include "display/driver.hpp"
 #include "pico/stdlib.h"
@@ -51,6 +52,10 @@ namespace actors_common {
     };
     enum class File_Respond { time_offset };
 
+    struct Packet{
+        Sensor_Data sensors;
+        Session_Data session;
+    };
 }
 
 // #-------------------------------#

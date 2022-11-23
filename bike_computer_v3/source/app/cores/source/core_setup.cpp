@@ -5,24 +5,26 @@
 #include "data_actor.hpp"
 #include "common_data.hpp"
 
-#include "ringbuffer.h"
 #include "traces.h"
 
 #include <pico/multicore.h>
 
+#define QUEUE_LEN 2
+
+
 void core1LaunchThread(void);
+
+static Data_Queue<actors_common::Packet>* pc_queue;
 
 void core_setup(void)
 {
     TRACE_DEBUG(0, TRACE_MAIN, "Init common data\n");
 
-    mutex_init(&common_data::pc_mutex);
-
-    sem_init(&common_data::number_of_queueing_portions, 0, QUEUE_LEN);
-    sem_init(&common_data::number_of_empty_positions, QUEUE_LEN, QUEUE_LEN);
+    pc_queue = new Data_Queue<actors_common::Packet>(QUEUE_LEN);
 
 
     auto data_actor = Data_Actor::get_instance();
+    data_actor.set_pc_queue(pc_queue);
     TRACE_DEBUG(0, TRACE_MAIN, "Launch core1\n");
     multicore_launch_core1(core1LaunchThread);
 
@@ -33,6 +35,7 @@ void core_setup(void)
 void core1LaunchThread(void)
 {
     auto display_actor = Display_Actor::get_instance();
+    display_actor.set_pc_queue(pc_queue);
     display_actor.run_thread();
 }
 

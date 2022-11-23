@@ -29,7 +29,7 @@ struct Gear_S
     };
 };
 
-struct Bike_Config_S
+struct Bike_Config
 {
     std::vector<uint8_t> gear_front; // chaing rings sizes for front
     std::vector<uint8_t> gear_rear; // chaing rings sizes for rear
@@ -79,7 +79,7 @@ struct Bike_Config_S
 };
 
 /**
- * @brief sets gears in Bike_Config_S
+ * @brief sets gears in Bike_Config
  *
  */
 #define BIKE_CONFIG_SET_GEARS(bike_config, arr_gears_front,  arr_gears_rear) \

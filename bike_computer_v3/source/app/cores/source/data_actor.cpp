@@ -77,7 +77,7 @@
 // #------------------------------#
 // | static variables definitions |
 // #------------------------------#
-static Bike_Config_S config;
+static Bike_Config config;
 static bool config_received = false;
 int local_time_offset = 0;
 static Sensor_Data sensors_data = {0};
@@ -87,9 +87,7 @@ static Session_Data *session_p = 0;
 // #------------------------------#
 // | static functions declarations|
 // #------------------------------#
-static void setup(void);
-static int loop(void);
-static int loop_frame_update();
+
 
 static bool load_config_from_file(const char* config_str, const char* file_name);
 
@@ -120,7 +118,7 @@ void Data_Actor::run_thread(void)
 // #------------------------------#
 // | static functions definitions |
 // #------------------------------#
-static void setup(void)
+void Data_Actor::setup(void)
 {
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
@@ -207,7 +205,7 @@ static void setup(void)
     // IMU_Init();
 }
 
-static int loop(void)
+int Data_Actor::loop(void)
 {
     absolute_time_t frameStart = get_absolute_time();
 
@@ -346,7 +344,7 @@ static void on_stop()
 }
 
 
-static int loop_frame_update()
+int Data_Actor::loop_frame_update()
 {
     // update_total_stats();
 
@@ -538,16 +536,8 @@ static int loop_frame_update()
 
     // send packet
     {
-        common_data::Packet new_packet{sensors_data, *session_p};
-        if(sem_acquire_timeout_ms(&common_data::number_of_empty_positions, SEM_TIMEOUT_MS))
-        {
-
-            auto queue = common_data::get_pc_queue();
-            if (!ring_buffer_is_full(queue)) {
-                ring_buffer_push(queue, (char*) &new_packet);
-            }
-            sem_release(&common_data::number_of_queueing_portions);
-        }
+        actors_common::Packet new_packet{sensors_data, *session_p};
+        pc_queue->push_blocking(new_packet);
     }
 
 

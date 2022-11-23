@@ -5,6 +5,11 @@
 #include "common_types.h"
 #include "common_actors.hpp"
 
+#include "session.hpp"
+#include "common_types.h"
+#include "common_data.hpp"
+#include "gui/structure.hpp"
+
 class Display_Actor : public Actor
 {
 public:
@@ -41,6 +46,9 @@ public:
     };
 
 private:
+    Data_Queue<actors_common::Packet>* pc_queue;
+    Gui* gui;
+
     // definde in core1.cpp
     static void handle_sig_total_update(const Signal &sig);
     static void handle_sig_start_pause_btn(const Signal &sig);
@@ -66,6 +74,13 @@ private:
 
         // this->handler_add(handle_sig_get_file, actors_common::SIG_DISPLAY_ACTOR_GET_FILE);
     }
+
+    inline void set_pc_queue(Data_Queue<actors_common::Packet>* pc_queue)
+    {
+        this->pc_queue = pc_queue;
+    }
+    void setup();
+    int loop();
 
     void run_thread(void);
     Display_Actor()

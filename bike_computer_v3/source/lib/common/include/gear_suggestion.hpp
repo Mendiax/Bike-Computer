@@ -40,12 +40,12 @@ struct Gear_Suggestion_Data
     float cadence_max;
 };
 
-void calc_gear(const float& speed, const float& cadence, const Bike_Config_S& gears);
+void calc_gear(const float& speed, const float& cadence, const Bike_Config& gears);
 
 
 class Gear_Suggestion_Calculator
 {
-    const Bike_Config_S& gears;
+    const Bike_Config& gears;
     const float __accel_up;
     const float __cadence_min;
     const float __cadence_max;
@@ -101,7 +101,7 @@ class Gear_Suggestion_Calculator
 
     float get_next_cadence(const Gear_S& current_gear, float cadence)
     {
-        if (Bike_Config_S::is_gear_null(gears.get_next_gear(current_gear)))
+        if (Bike_Config::is_gear_null(gears.get_next_gear(current_gear)))
         {
             return 0.0f;
         }
@@ -112,7 +112,7 @@ class Gear_Suggestion_Calculator
 
     float get_prev_cadence(const Gear_S& current_gear, float cadence)
     {
-        if (Bike_Config_S::is_gear_null(gears.get_prev_gear(current_gear)))
+        if (Bike_Config::is_gear_null(gears.get_prev_gear(current_gear)))
         {
             return 0.0f;
         }
@@ -122,7 +122,7 @@ class Gear_Suggestion_Calculator
     }
 
 public:
-    Gear_Suggestion_Calculator(const Bike_Config_S& gears)
+    Gear_Suggestion_Calculator(const Bike_Config& gears)
     : gears{gears}, __accel_up{5.0}, __cadence_min{80}, __cadence_max{90}
     {
     }

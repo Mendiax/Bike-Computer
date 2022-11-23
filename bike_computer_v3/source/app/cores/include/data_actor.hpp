@@ -1,6 +1,7 @@
 #ifndef CORE0_H
 #define CORE0_H
 #include "common_actors.hpp"
+#include "common_data.hpp"
 
 class Data_Actor : public Actor
 {
@@ -25,7 +26,8 @@ public:
     };
 
 private:
-    // definde in core0.cpp
+    Data_Queue<actors_common::Packet>* pc_queue;
+
     static void handle_sig_session_load(const Signal &sig);
     static void handle_sig_session_start(const Signal &sig);
     static void handle_sig_pause(const Signal &sig);
@@ -50,7 +52,13 @@ private:
         this->handler_add(handle_sig_get_file_respond, actors_common::SIG_DATA_ACTOR_GET_FILE_RESPOND);
     }
 
-
+    inline void set_pc_queue(Data_Queue<actors_common::Packet>* pc_queue)
+    {
+        this->pc_queue = pc_queue;
+    }
+    void setup(void);
+    int loop(void);
+    int loop_frame_update();
     void run_thread(void);
     Data_Actor()
     {
