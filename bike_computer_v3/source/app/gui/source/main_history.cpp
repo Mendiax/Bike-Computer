@@ -15,6 +15,8 @@
 #include "sd_common.h"
 #include "utils.hpp"
 #include "common_actors.hpp"
+#include "display_actor.hpp"
+#include "data_actor.hpp"
 // #------------------------------#
 // |           macros             |
 // #------------------------------#
@@ -77,11 +79,6 @@ void Main_History::insert_files_into_display(void)
         if(data_idx <= no_sessions)
         {
             extract_session_name(f, sessions, data_idx);
-            // strncpy(f, this->all_log_files.at(data_idx).c_str(), MAX_LOG_NAME_LEN + 1);
-            // strncpy(f, extract_session_name(sessions, data_idx).c_str(), MAX_LOG_NAME_LEN );
-
-            // f[MAX_LOG_NAME_LEN] = '\0';
-            // f = this->all_log_files.at(data_idx).c_str();
             data_idx++;
         }
         else
@@ -137,11 +134,10 @@ void Main_History::render()
 }
 void Main_History::action_long()
 {
-    //TODO send load data from file to core 1
-    auto payload = new Sig_Display_Actor_Load_Session();
+    auto payload = new Display_Actor::Sig_Display_Actor_Load_Session();
     payload->session_id = this->current_log_idx;
-    Signal sig(SIG_DISPLAY_ACTOR_LOAD_SESSION, payload);
-    display_actor.send_signal(sig);
+    Signal sig(actors_common::SIG_DISPLAY_ACTOR_LOAD_SESSION, payload);
+    Display_Actor::get_instance().send_signal(sig);
 
     // PRINTF("main manu new session btn pressed next list:%p\n", this->get_next_view_list());
     auto gui = Gui::get_gui();

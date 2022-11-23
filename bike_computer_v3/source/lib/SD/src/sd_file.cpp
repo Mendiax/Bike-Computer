@@ -48,7 +48,6 @@ void Sd_File::remove()
 
 Sd_File::Result Sd_File::append(const char* string)
 {
-    // TODO return error
     FIL file_p;
     FRESULT res;
 FILE_OPEN:

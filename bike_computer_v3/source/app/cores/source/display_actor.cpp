@@ -11,12 +11,14 @@
 #include <stdio.h>
 
 // my includes
-#include "core1.h"
+#include "display_actor.hpp"
 #include "core_utils.hpp"
 #include "common_types.h"
 #include "utils.hpp"
 #include "common_data.hpp"
 #include "common_actors.hpp"
+#include "display_actor.hpp"
+#include "data_actor.hpp"
 #include "buttons/buttons.h"
 #include "traces.h"
 #include "sd_file.h"
@@ -40,7 +42,7 @@
 // #------------------------------#
 // | static variables definitions |
 // #------------------------------#
-static common_memory::Packet local_packet = {0};
+static common_data::Packet local_packet = {0};
 static Sensor_Data& sensors_data_display = local_packet.sensors;
 static Session_Data& sessionDataDisplay = local_packet.session;
 
@@ -68,7 +70,8 @@ static void set_total_data(float time, float dist);
 // #------------------------------#
 // | global function definitions  |
 // #------------------------------#
-void core1LaunchThread(void)
+
+void Display_Actor::run_thread(void)
 {
     setup();
     while (loop())
@@ -82,7 +85,7 @@ void core1LaunchThread(void)
 
 void Display_Actor::handle_sig_show_msg(const Signal &sig)
 {
-    auto payload = sig.get_payload<Sig_Display_Actor_Show_Msg*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Show_Msg*>();
 
     display::clear();
     Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
@@ -108,21 +111,21 @@ void Display_Actor::handle_sig_show_msg(const Signal &sig)
 
 void Display_Actor::handle_sig_get_file(const Signal &sig)
 {
-    auto payload_respond = new Sig_Data_Actor_Get_File_Respond();
-    auto payload = sig.get_payload<Sig_Display_Actor_Get_File*>();
+    auto payload_respond = new Data_Actor::Sig_Data_Actor_Get_File_Respond();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Get_File*>();
     payload_respond->type = payload->type;
 
     Sd_File file(payload->file_name);
     payload_respond->file_content = file.read_all();
 
-    Signal sig_respond(SIG_DATA_ACTOR_GET_FILE_RESPOND, payload_respond);
-    data_actor.send_signal(sig_respond);
+    Signal sig_respond(actors_common::SIG_DATA_ACTOR_GET_FILE_RESPOND, payload_respond);
+    Data_Actor::get_instance().send_signal(sig_respond);
     delete payload;
 }
 
 void Display_Actor::handle_sig_log(const Signal &sig)
 {
-    auto payload = sig.get_payload<Sig_Display_Actor_Log*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Log*>();
     Sd_File config_file(payload->file_name);
     if(config_file.is_empty())
     {
@@ -136,7 +139,7 @@ void Display_Actor::handle_sig_log(const Signal &sig)
 
 void Display_Actor::handle_sig_log_gps(const Signal &sig)
 {
-    auto payload = sig.get_payload<Sig_Display_Actor_Log_Gps*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Log_Gps*>();
     Sd_File config_file(payload->file_name);
     if(config_file.is_empty())
     {
@@ -155,7 +158,7 @@ void Display_Actor::handle_sig_total_update(const Signal &sig)
     // read from file dist and time
     get_total_data(time, dist);
     {
-        auto payload = sig.get_payload<Sig_Display_Actor_Total_Update*>();
+        auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Total_Update*>();
 
         // update data
         dist += payload->ridden_dist;
@@ -164,12 +167,12 @@ void Display_Actor::handle_sig_total_update(const Signal &sig)
     }
 
     {
-        auto payload = new Sig_Data_Actor_Set_Total();
+        auto payload = new Data_Actor::Sig_Data_Actor_Set_Total();
         // update data
         payload->ridden_dist_total = dist;
         payload->ridden_time_total = time;
-        Signal sig(SIG_DATA_ACTOR_SET_TOTAL, payload);
-        data_actor.send_signal(sig);
+        Signal sig(actors_common::SIG_DATA_ACTOR_SET_TOTAL, payload);
+        Data_Actor::get_instance().send_signal(sig);
     }
 
     // write to file
@@ -180,10 +183,6 @@ void Display_Actor::handle_sig_total_update(const Signal &sig)
 static void setup(void)
 {
     interruptSetupCore1();
-
-    sensors_data_display = sensors_data;
-
-
     // setup
     auto gui = Gui::get_gui(&sensors_data_display, &sessionDataDisplay);
     gui->render();
@@ -194,23 +193,23 @@ static void setup(void)
         Sd_File config_file(config_file_name);
         auto content = config_file.read_all();
 
-        auto payload = new Sig_Data_Actor_Set_Config();
+        auto payload = new Data_Actor::Sig_Data_Actor_Set_Config();
         payload->file_content = config_file.read_all();
         payload->file_name = config_file_name;
-        Signal sig(SIG_DATA_ACTOR_SET_CONFIG ,payload);
-        data_actor.send_signal(sig);
+        Signal sig(actors_common::SIG_DATA_ACTOR_SET_CONFIG ,payload);
+        Data_Actor::get_instance().send_signal(sig);
     }
 
     // update data on start
     {
         float dist = 0.0f, time = 0.0f;
         get_total_data(time, dist);
-        auto payload = new Sig_Data_Actor_Set_Total();
+        auto payload = new Data_Actor::Sig_Data_Actor_Set_Total();
         // update data
         payload->ridden_dist_total = dist;
         payload->ridden_time_total = time;
-        Signal sig(SIG_DATA_ACTOR_SET_TOTAL, payload);
-        data_actor.send_signal(sig);
+        Signal sig(actors_common::SIG_DATA_ACTOR_SET_TOTAL, payload);
+        Data_Actor::get_instance().send_signal(sig);
     }
 
 }
@@ -219,13 +218,12 @@ void handle_pause_start()
 {
     TRACE_DEBUG(2, TRACE_CORE_1, "pause btn pressed %d\n", change_state);
     change_state = false;
-    mutex_enter_blocking(&sensorDataMutex);
     switch(sensors_data_display.current_state)
     {
         case SystemState::PAUSED:
             {
-                Signal sig(SIG_DATA_ACTOR_CONTINUE);
-                data_actor.send_signal(sig);
+                Signal sig(actors_common::SIG_DATA_ACTOR_CONTINUE);
+                Data_Actor::get_instance().send_signal(sig);
                 TRACE_DEBUG(2, TRACE_CORE_1, "sending signal continue %d\n", (int) sig.get_sig_id());
 
             }
@@ -233,16 +231,16 @@ void handle_pause_start()
         case SystemState::AUTOSTART:
         case SystemState::RUNNING:
             {
-                Signal sig(SIG_DATA_ACTOR_PAUSE);
-                data_actor.send_signal(sig);
+                Signal sig(actors_common::SIG_DATA_ACTOR_PAUSE);
+                Data_Actor::get_instance().send_signal(sig);
                 TRACE_DEBUG(2, TRACE_CORE_1, "sending signal pause %d\n", (int) sig.get_sig_id());
 
             }
             break;
         case SystemState::TURNED_ON:
             {
-                Signal sig(SIG_DATA_ACTOR_SESION_START);
-                data_actor.send_signal(sig);
+                Signal sig(actors_common::SIG_DATA_ACTOR_SESSION_START);
+                Data_Actor::get_instance().send_signal(sig);
                 TRACE_DEBUG(2, TRACE_CORE_1, "sending signal start %d\n", (int) sig.get_sig_id());
             }
             break;
@@ -250,8 +248,6 @@ void handle_pause_start()
             TRACE_ABNORMAL(TRACE_CORE_1, "pause has no effect %d\n", (int) sensors_data_display.current_state);
             break;
     }
-    sensors_data.current_state = sensors_data_display.current_state;
-    mutex_exit(&sensorDataMutex);
 }
 
 void handle_end_session()
@@ -266,11 +262,11 @@ void handle_end_session()
     Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
     display::display();
 
-    Signal sig(SIG_DATA_ACTOR_STOP);
-    data_actor.send_signal(sig);
+    Signal sig(actors_common::SIG_DATA_ACTOR_STOP);
+    Data_Actor::get_instance().send_signal(sig);
 
-    mutex_enter_blocking(&sensorDataMutex);
-    sessionDataDisplay.end(sensors_data.current_time);
+
+    sessionDataDisplay.end(sensors_data_display.current_time);
 
     Sd_File last_save("last_track.csv");
     if (last_save.is_empty())
@@ -300,8 +296,6 @@ void handle_end_session()
         sessionDataDisplay.set_id(id);
     }
     last_save.append(sessionDataDisplay.get_line().c_str());
-    mutex_exit(&sensorDataMutex);
-
     // while(stop)
     {
         // PRINTF("STOPPED\n");
@@ -331,7 +325,7 @@ void Display_Actor::handle_sig_end_btn(const Signal &sig)
 
 void Display_Actor::handle_sig_load_session(const Signal &sig)
 {
-    auto payload = sig.get_payload<Sig_Display_Actor_Load_Session*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Load_Session*>();
     auto id = payload->session_id;
     delete payload;
     std::string content;
@@ -346,30 +340,31 @@ void Display_Actor::handle_sig_load_session(const Signal &sig)
         content = last_save.read_line(id, SESION_DATA_CSV_LEN_NO_GEARS);
     }
 
-    // TODO send it to core 0
-    Unique_Mutex mtx(&sensorDataMutex);
-    if (session_p)
-        delete session_p;
-    session_p = new Session_Data(content.c_str(), false); // TODO load gear if needed in the future
+    {
+        auto payload = new Data_Actor::Sig_Data_Actor_Load_Session();
+        payload->session_string=std::move(content);
+        Signal sig(actors_common::SIG_DATA_ACTOR_SESSION_LOAD, payload);
+        Data_Actor::get_instance().send_signal(sig);
+    }
 }
 
 
 static int loop(void)
 {
     absolute_time_t frameStart = get_absolute_time();
-    display_actor.handle_all();
+    Display_Actor::get_instance().handle_all();
     // frame update
     {
         Gui::get_gui()->handle_buttons();
 
         // send packet
         {
-            if(sem_acquire_timeout_ms(&number_of_queueing_portions, SEM_TIMEOUT_MS))
+            if(sem_acquire_timeout_ms(&common_data::number_of_queueing_portions, SEM_TIMEOUT_MS))
             {
-                Unique_Mutex um(&pc_mutex);
-                auto queue = common_memory::get_pc_queue();
+
+                auto queue = common_data::get_pc_queue();
                 ring_buffer_pop(queue, (char*) &local_packet);
-                sem_release(&number_of_empty_positions);
+                sem_release(&common_data::number_of_empty_positions);
             }
 
         }
@@ -377,7 +372,6 @@ static int loop(void)
 
 
         auto system_sate = sensors_data_display.current_state;
-        // mutex_exit(&sensorDataMutex);
 
         // render
         auto gui = Gui::get_gui();
@@ -412,18 +406,9 @@ static int loop(void)
 
     absolute_time_t frameEnd = get_absolute_time();
     auto frameTimeUs = absolute_time_diff_us(frameStart, frameEnd);
-    if(fpsToUs(FRAME_PER_SECOND) > frameTimeUs)
-    {
-        // frame took less time
-        int64_t timeToSleep = fpsToUs(FRAME_PER_SECOND) - frameTimeUs;
-        sleep_us(timeToSleep);
-        TRACE_DEBUG(1, TRACE_CORE_1, "frame took %" PRIi64 " max time is %" PRIi64 " sleeping %" PRIi64 "\n",frameTimeUs, fpsToUs(FRAME_PER_SECOND), timeToSleep);
-    }
-    else
-    {
-        int64_t timeToSleep = fpsToUs(FRAME_PER_SECOND) - frameTimeUs;
-        TRACE_ABNORMAL(TRACE_CORE_1, "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",frameTimeUs, fpsToUs(FRAME_PER_SECOND), timeToSleep);
-    }
+    int64_t timeToSleep = fpsToUs(FRAME_PER_SECOND) - frameTimeUs;
+    TRACE_DEBUG(1, TRACE_CORE_1, "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",
+                   frameTimeUs, fpsToUs(FRAME_PER_SECOND), timeToSleep);
     return 1;
 }
 

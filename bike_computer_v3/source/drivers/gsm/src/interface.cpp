@@ -57,7 +57,7 @@ void sim868::init(void)
 
     gpio_init(SIM868_PIN_DTR);
     gpio_set_dir(SIM868_PIN_DTR, GPIO_OUT);
-    gpio_put(SIM868_PIN_DTR, 1); // TODO idk co to jest xd
+    gpio_put(SIM868_PIN_DTR, 1);
 
 
     // UART
@@ -229,11 +229,6 @@ bool sim868::get_bat_level(bool& is_charging,
             return false;
         }
 
-        // TODO add debug ind
-        // std::cout << values[0] << std::endl;
-        // std::cout << values[1] << std::endl;
-        // std::cout << values[2] << std::endl;
-
         is_charging = std::atoi(values[0].c_str());
         bat_lev = std::atoi(values[1].c_str());
         voltage = std::atoi(values[2].c_str());
@@ -248,8 +243,6 @@ bool sim868::get_bat_level(bool& is_charging,
     {
         // still waits for response
     }
-    //TRACE_ABNORMAL(TRACE_SIM868, "req\n");
-    //auto respond = sendRequestLong("AT+CBC",100);
     return false;
 }
 
@@ -303,7 +296,6 @@ void on_uart_rx(void)
 }
 
 
-// TODO add queue
 uint64_t sim868::send_request(const std::string&& cmd,
                               long timeout,
                               size_t bufferSize
@@ -324,8 +316,6 @@ uint64_t sim868::send_request(const std::string&& cmd,
         return 0;
     }
     ++id;
-    // TODO do optimization ??
-    //TRACE_DEBUG(1,TRACE_SIM868,"requesting\'%s\'\n", cmd.c_str());
 
     // prepare
     current_response.response.clear();
@@ -392,7 +382,6 @@ bool sim868::check_response(uint64_t id)
 std::string sim868::sendRequestLong(const std::string&& cmd, long timeout, const size_t bufferSize)
 {
     std::string resp;
-    // std::string cmd_ = cmd;
     auto req = sim868::send_request(cmd.c_str(), timeout, bufferSize);
     if(req == 0)
     {
@@ -405,64 +394,6 @@ std::string sim868::sendRequestLong(const std::string&& cmd, long timeout, const
     resp = get_respond(req);
     std::cout << resp << std::endl;
     return resp;
-
-    //     if(!is_on())
-    //     {
-    //         TRACE_ABNORMAL(TRACE_SIM868, "sim868 is off, cannot send request\n");
-    //         return "";
-    //     }
-    //     // TODO do optimization ??
-
-    //     std::string returnString("");
-    //     returnString.reserve(bufferSize);
-    //     StateStringMachine findOk("OK\r\n");
-    //     StateStringMachine findError("ERROR\r\n");
-
-    //     TRACE_DEBUG(1,TRACE_SIM868,"requesting\'%s\'\n", cmd.c_str());
-    //     uint64_t t = time_us_64();
-    //     size_t i = 0;
-
-    //     rx_buffer = "";
-
-    //     uart_puts(UART_ID, cmd.c_str());
-    //     uart_puts(UART_ID, "\r\n");
-
-    //     #if 1
-
-    //     while (time_us_64() - t < timeout * 1000)
-    //     {
-    //         sleep_ms(1);
-    //     }
-
-    //     returnString = rx_buffer;
-
-
-    //     #else
-
-    //     //static char inputBuffer[BUFFER_SIZE];
-    //     while (time_us_64() - t < timeout * 1000)
-    //     {
-    //         while (uart_is_readable_within_us(UART_ID, 100))
-    //         {
-    //             const char c = uart_getc(UART_ID);
-    //             returnString += c;
-    //              // TRACE_ABNORMAL(TRACE_SIM868, "read char '%c'\n", c);
-    //             if(findOk.updateChar(c)) {goto AT_EXIT;}
-    //             if(findError.updateChar(c)) {goto AT_EXIT;}
-    //             // inputBuffer[i++] = uart_getc(UART_ID0);
-    //             // if(i >= BUFFER_SIZE)
-    //             // {
-    //             //     i = BUFFER_SIZE - 1;
-    //             //     goto CHECK;
-    //             // }
-    //         }
-    //     }
-    //     #endif
-    // //     inputBuffer[i] = '\0';
-    // AT_EXIT:
-    //     returnString.shrink_to_fit();
-    //     TRACE_DEBUG(1,TRACE_SIM868,"received\'%s\'\n", returnString.c_str());
-    //     return returnString;
 }
 
 

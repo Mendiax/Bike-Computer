@@ -27,21 +27,6 @@
  */
 std::vector<std::string> split_string(const std::string& string, char sep = ',');
 
-class Unique_Mutex
-{
-    mutex_t* mutex_p;
-public:
-    Unique_Mutex(mutex_t* mutex_p)
-        :mutex_p{mutex_p}
-    {
-        mutex_enter_blocking(mutex_p);
-    }
-    ~Unique_Mutex()
-    {
-        mutex_exit(mutex_p);
-    }
-};
-
 static inline bool is_leap_year(int year)
 {
   return (year % 4 == 0) && ( (year % 100 != 0) || (year % 400 == 0) );
@@ -64,7 +49,8 @@ static inline bool is_last_day_in_month(int year, int month, int day)
  );
 }
 
-static inline void change_time_by_hour(datetime_t* t, int offset)
+template <typename T>
+void change_time_by_hour(T* t, int offset)
 {
     offset = offset % 24;
     if((int)t->hour + offset < 0)
@@ -129,9 +115,6 @@ std::string time_to_str_file_name_conv(const TimeS& time);
 std::string time_to_str(const TimeS& time);
 std::string time_to_str(const Time_HourS& time);
 
-Time_HourS time_from_millis(uint64_t millis_to_add);
-
-
 void time_print(const TimeS& time);
 
 
@@ -173,7 +156,7 @@ static inline void set_minmax(ArrayMinMaxS<T,N>& array)
 {
     for(size_t i = 0; i< N; ++i)
     {
-        array.min = std::max(array.min, array.array[i]);
+        array.min = std::min(array.min, array.array[i]);
         array.max = std::max(array.max, array.array[i]);
     }
 }

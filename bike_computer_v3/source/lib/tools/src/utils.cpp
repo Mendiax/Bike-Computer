@@ -130,22 +130,3 @@ void time_print(const TimeS& time)
 {
     PRINTF("time: %s \n", time_to_str(time).c_str());
 }
-
-// TODO remove if not needed
-Time_HourS time_from_millis(uint64_t millis_to_add)
-{
-    Time_HourS correct_time;
-    correct_time.seconds = ((float)millis_to_add / 1000.0f);
-    uint64_t minutes_to_add = std::floor(correct_time.seconds / 60.0f);
-    correct_time.seconds -= (float)minutes_to_add * 60.0f;
-
-    uint64_t hours_to_add = minutes_to_add / 60;
-    minutes_to_add = minutes_to_add % 60;
-    correct_time.minutes = minutes_to_add;
-
-    // uint64_t days_to_add = hours_to_add / 24;
-    hours_to_add = hours_to_add % 24;
-    correct_time.hour = hours_to_add;
-
-    return correct_time;
-}

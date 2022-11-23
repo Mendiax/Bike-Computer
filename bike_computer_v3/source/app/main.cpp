@@ -1,23 +1,12 @@
 // pico includes
 #include <pico/stdlib.h>
-// #include <hardware/adc.h>
-#include <pico/multicore.h>
+
 
 // c/c++ includes
 
 // my includes
 #include "traces.h"
-// #include "common_types.h"
-// #include "common_data.hpp"
 #include "core_setup.h"
-// #include "core1.h"
-// #include "core0.h"
-
-// static float getTemp();
-
-
-//Sensor_Data sensors_data = {0};
-
 
 int main()
 {

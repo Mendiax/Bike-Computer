@@ -36,6 +36,7 @@ struct Bike_Config_S
     double wheel_size; // circumstance of wheel
     double min_gear_diff; // min difference of ratio betweens gears
     // std::unordered_map<Gear_S, float, Gear_S::HashFunction> gear_ratios;
+    int hour_offset;
 
     constexpr static inline bool is_gear_null(const Gear_S& gear)
     {

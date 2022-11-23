@@ -11,6 +11,7 @@
 #include "traces.h"
 #include "common_actors.hpp"
 #include "gui/structure.hpp"
+#include "display_actor.hpp"
 
 // #------------------------------#
 // |           macros             |
@@ -36,8 +37,8 @@ void View_Session::action(void)
 {
     if(!view_only)
     {
-        Signal sig(SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
-        display_actor.send_signal(sig);
+        Signal sig(actors_common::SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
+        Display_Actor::get_instance().send_signal(sig);
     }
 }
 
@@ -46,8 +47,8 @@ void View_Session::action_long(void)
 {
     if(!view_only)
     {
-        Signal sig(SIG_DISPLAY_ACTOR_END_BTN);
-        display_actor.send_signal(sig);
+        Signal sig(actors_common::SIG_DISPLAY_ACTOR_END_BTN);
+        Display_Actor::get_instance().send_signal(sig);
     }
     Gui::get_gui()->go_back();
 }

@@ -56,8 +56,6 @@ namespace sim868
 
         GpsRawData get_gps_from_respond(const std::string& respond);
         bool fetch_data();
-        // void check_satelites();
-        // void check_date();
 
         // getters
         bool get_speed(float& speed);

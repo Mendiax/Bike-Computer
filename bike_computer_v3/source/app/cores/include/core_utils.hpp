@@ -128,41 +128,4 @@ static inline bool is_absolute_time_zero(absolute_time_t time)
     #endif
 }
 
-template<typename T>
-class Pc_Queue{
-    T* buffer;
-    size_t no_elements_cur;
-    const size_t no_elements_max;
-    mutex_t mutex;
-
-    Pc_Queue(size_t size)
-    : no_elements_cur{0}, no_elements_max{size}
-    {
-        buffer = new T[size];
-        mutex_init(&mutex);
-    }
-
-    inline bool is_full()
-    {
-        Unique_Mutex umutex(&mutex);
-        return no_elements_cur == no_elements_max;
-    }
-
-    inline bool is_empty()
-    {
-        Unique_Mutex umutex(&mutex);
-        return no_elements_cur == 0;
-    }
-
-    inline void append(const T& elem)
-    {
-        // if()
-    }
-
-    ~Pc_Queue()
-    {
-        delete [] buffer;
-    }
-};
-
 #endif

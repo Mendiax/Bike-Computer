@@ -40,19 +40,18 @@ uint8_t display_buffer[DISPLAY_BUFFER_SIZE] = {0};
 // Back light
 uint lcd_bl_level;
 
-//TODO make static
 // static def
 /********************************************************************************
 function:   Set the display Window(Xstart, Ystart, Xend, Yend)
 parameter:
         xStart :   X direction Start coordinates
         Ystart :   Y direction Start coordinates
-        Xend   :   X direction end coordinates 
-            (Parameter range: 0 < XS [15:0] < XE [15:0] < 239 (00Efh)): MV=”0”) 
-            (Parameter range: 0 < XS [15:0] < XE [15:0] < 319 (013Fh)): MV=”1”) 
+        Xend   :   X direction end coordinates
+            (Parameter range: 0 < XS [15:0] < XE [15:0] < 239 (00Efh)): MV=”0”)
+            (Parameter range: 0 < XS [15:0] < XE [15:0] < 319 (013Fh)): MV=”1”)
         Yend   :   Y direction end coordinates
-            (Parameter range: 0 < YS [15:0] < YE [15:0] < 319 (013fh)): MV=”0”) 
-            (Parameter range: 0 < YS [15:0] < YE [15:0] < 239 (00EFh)): MV=”1”) 
+            (Parameter range: 0 < YS [15:0] < YE [15:0] < 319 (013fh)): MV=”0”)
+            (Parameter range: 0 < YS [15:0] < YE [15:0] < 239 (00EFh)): MV=”1”)
 ********************************************************************************/
 void OLED_SetWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend);
 void assert_loop(bool b);
@@ -127,25 +126,25 @@ function:
 static void OLED_InitReg(void)
 {
 
-    // MY Bit D7- Page Address Order 
+    // MY Bit D7- Page Address Order
     //     “0” = Top to Bottom (When MADCTL D7=”0”).
     //     “1” = Bottom to Top (When MADCTL D7=”1”).
-    // MX Bit D6- Column Address Order 
+    // MX Bit D6- Column Address Order
     //     “0” = Left to Right (When MADCTL D6=”0”).
     //     “1” = Right to Left (When MADCTL D6=”1”).
-    // MV Bit D5- Page/Column Order 
+    // MV Bit D5- Page/Column Order
     //     “0” = Normal Mode (When MADCTL D5=”0”).
     //     “1” = Reverse Mode (When MADCTL D5=”1”)
-    //     Note: Bits D7 to D5, alse refer to section 8.12 Address Control 
-    // ML Bit D4- Line Address Order 
-    //     “0” = LCD Refresh Top to Bottom (When MADCTL D4=”0”) 
-    //     “1” = LCD Refresh Bottom to Top (When MADCTL D4=”1”) 
-    // RGB Bit D3- RGB/BGR Order 
-    //     “0” = RGB (When MADCTL D3=”0”) 
-    //     “1” = BGR (When MADCTL D3=”1”) 
-    // MH Bit D2- Display Data Latch Data Order 
-    //     “0” = LCD Refresh Left to Right (When MADCTL D2=”0”) 
-    //     “1” = LCD Refresh Right to Left (When MADCTL D2=”1”) 
+    //     Note: Bits D7 to D5, alse refer to section 8.12 Address Control
+    // ML Bit D4- Line Address Order
+    //     “0” = LCD Refresh Top to Bottom (When MADCTL D4=”0”)
+    //     “1” = LCD Refresh Bottom to Top (When MADCTL D4=”1”)
+    // RGB Bit D3- RGB/BGR Order
+    //     “0” = RGB (When MADCTL D3=”0”)
+    //     “1” = BGR (When MADCTL D3=”1”)
+    // MH Bit D2- Display Data Latch Data Order
+    //     “0” = LCD Refresh Left to Right (When MADCTL D2=”0”)
+    //     “1” = LCD Refresh Right to Left (When MADCTL D2=”1”)
 
     DEBUG_OLED("ini reg\n");
 
@@ -174,7 +173,7 @@ static void OLED_InitReg(void)
 
     spi::writeRegister(0x36); // MY  MX  MV  ML RGB  MH  --  --
                          //  0   0   0   0   0   0   0   0
-    const uint8_t glob = 0x0 
+    const uint8_t glob = 0x0
         | (MY << 7)
         | (MX << 6)
         | (MV << 5)
@@ -503,7 +502,7 @@ void display::clear(void)
     // }
     memset(::display_buffer, 0x0, DISPLAY_BUFFER_SIZE);
     //display::display();
-} 
+}
 
 void display::fill(const display::DisplayColor color)
 {

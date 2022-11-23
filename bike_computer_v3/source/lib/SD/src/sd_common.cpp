@@ -77,7 +77,6 @@ std::vector<std::string> dir::get_files(const char* path)
             if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
             if (fno.fattrib & AM_DIR) {                    /* It is a directory */
             } else {                                       /* It is a file. */
-                // printf("%s/%s\n", fno.fname); TODO TRACE
                 founded_files.emplace_back(fno.fname);
             }
         }

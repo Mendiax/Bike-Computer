@@ -26,7 +26,6 @@ class Button : public Button_Interface
 private:
     volatile bool pressed;
 
-    // TODO volatile
     volatile uint32_t time_press;
     volatile uint32_t time_release;
 

@@ -15,7 +15,6 @@
 enum class SystemState
 {
     TURNED_ON,
-    // SESSION_AUTOSTART,
     AUTOSTART,
     RUNNING,
     PAUSED,
@@ -26,14 +25,14 @@ enum class SystemState
 struct SpeedData
 {
     //RingBuffer* speedBuffer;
+    uint64_t drive_time; // in s
+    uint64_t stop_time; // in ms
+    int16_t distance;
     float velocity;
     float velocityMax;
     float avg;
     float avg_global;
-    int16_t distance;
     int8_t distanceDec;
-    uint64_t drive_time; // in s
-    uint64_t stop_time; // in ms
 };
 
 struct Time_DateS
@@ -134,34 +133,33 @@ struct ForecastArrS
 
 struct Weather_BMP280_S
 {
-    float temperature;
     int32_t pressure;
+    float temperature;
 };
-
-
-
-// void reset_session_data(Session_Data& data)
-// {
-//     memset(&data, 0 ,sizeof(data));
-// }
 
 struct Gear_Suggestions
 {
-    char gear_suggestion[GEAR_SUGGESTION_LEN + 1];
-    display::DisplayColor gear_suggestion_color;
     float cadence_min;
     float cadence_max;
+    display::DisplayColor gear_suggestion_color;
+    char gear_suggestion[GEAR_SUGGESTION_LEN + 1];
 };
 
 /**
  * @brief Contains data from sensors
  *
  */
-typedef struct Sensor_Data // TODO optimize size
+typedef struct Sensor_Data
 {
     ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
     TimeS current_time;
     Weather_BMP280_S weather;
+    GpsDataS gps_data;
+    Battery lipo; // battery info
+    Gear_S gear;  // gear {front, rear}
+    SystemState current_state;
+    // gear suggestions
+    Gear_Suggestions gear_suggestions;
     float altitude; // height in m
     float cadence;  // rpm
     float velocity; // speed in kph
@@ -169,13 +167,6 @@ typedef struct Sensor_Data // TODO optimize size
     float slope; // slope in %
     float total_time_ridden; // in h
     float total_distance_ridden; // in km
-    GpsDataS gps_data;
-    Battery lipo; // battery info
-    Gear_S gear;  // gear {front, rear}
-    SystemState current_state;
-
-    // gear suggestions
-    Gear_Suggestions gear_suggestions;
 
 } Sensor_Data;
 

@@ -182,7 +182,7 @@ void draw_battery_level(const void *settings)
     const size_t max_str_len = 6;
     static char buffer[max_str_len + 1];
     static uint_fast8_t last_bat;
-    // TODO macro
+
     if(__builtin_expect(last_bat != bat.level, 0))
     {
         int write = -1;

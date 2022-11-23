@@ -54,21 +54,9 @@ namespace display
     struct DisplayColor
     {
         int8_t r, g, b;
-    // public:
-    //     //uint16_t color;
-    //     int8_t r, g, b;
-    //     DisplayColor()
-    //         : r{0}, g{0}, b{0}
-    //         {}
-    //     DisplayColor(int8_t r, int8_t g, int8_t b)
-    //         : r(r & 0xf), g(g & 0xf), b(b & 0xf)
-    //     {
-
-    //     }
     };
 
     void init(void);
-    // TODO add param with color
     void clear(void);
     void fill(const DisplayColor color);
     void fill(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const DisplayColor color);

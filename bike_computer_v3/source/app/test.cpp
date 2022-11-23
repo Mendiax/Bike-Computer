@@ -26,7 +26,6 @@
 #include "traces.h"
 
 #include "test.hpp"
-// TODO split tests into files
 
 
 

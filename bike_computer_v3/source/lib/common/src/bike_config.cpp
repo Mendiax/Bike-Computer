@@ -169,7 +169,7 @@ bool Bike_Config_S::from_string(const char* str)
     }
 
     // setup gear diff
-    float gear_diff = 100.0; // TODO add define
+    float gear_diff = 100.0;
     Gear_Iterator iter(*this);
     float last_gear_ratio = 0.0f;
     while (iter.has_next())
@@ -210,7 +210,6 @@ Gear_S Bike_Config_S::get_current_gear(float ratio)
          0.7111111111111111, 0.6274509803921569]
         */
 
-       // TODO add algoriths that work better at reading gear (precision) ??? now we tak minimum
         if(check_floats_prec(gear_ratio, ratio, this->min_gear_diff))
         {
             return gear;
@@ -262,7 +261,6 @@ void Gear_Usage::from_string(const std::string& str)
     // auto len = fp - lp + 1;
     // auto header_str = str.substr(lp, len);
 
-    // TODO optimize memory usage
 
     auto start_pos = str.find_first_of(']') + 1;
 
