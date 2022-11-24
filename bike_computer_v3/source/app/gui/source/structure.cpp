@@ -76,26 +76,21 @@ void Gui::create()
     //      session
     // -----------------------------
     auto session_menu = new View_List(main_menu);
-    session_menu->add_view(new View_Velocity(*data, *session, false));
-    session_menu->add_view(new View_Gear(*data, *session, false));
-    session_menu->add_view(new View_Max_Avg(*data, *session, false));
-    session_menu->add_view(new View_Gps(*data, *session, false));
-    session_menu->add_view(new View_Date(*data, *session, false));
-    session_menu->add_view(new View_Forecast(*data, *session, false));
-    session_menu->add_view(new View_Total(*data, *session, false));
+    session_menu->add_view(new View_Velocity(*data, *session));
+    // session_menu->add_view(new View_Gear(*data, *session)); TODO remove files
+    session_menu->add_view(new View_Max_Avg(*data, *session));
+    session_menu->add_view(new View_Gps(*data, *session));
+    session_menu->add_view(new View_Date(*data, *session));
+    session_menu->add_view(new View_Forecast(*data, *session));
+    session_menu->add_view(new View_Total(*data, *session));
 
     // -----------------------------
     //      history
     // -----------------------------
     auto history_session_menu = new View_List(main_menu);
-    history_session_menu->add_view(new View_Last_Time(*data, *session, true));
-    history_session_menu->add_view(new View_Last_Avg(*data, *session, true));
-    history_session_menu->add_view(new View_Last_Date(*data, *session, true));
-
-    // history_session_menu->add_view(new View_Gps(*data, *session, true));
-    // history_session_menu->add_view(new View_Date(*data, *session, true));
-    // history_session_menu->add_view(new View_Forecast(*data, *session, true));
-    // history_session_menu->add_view(new View_Total(*data, *session, true));
+    history_session_menu->add_view(new View_Last_Time(*data, *session));
+    history_session_menu->add_view(new View_Last_Avg(*data, *session));
+    history_session_menu->add_view(new View_Last_Date(*data, *session));
 
 
     // -----------------------------
@@ -111,6 +106,7 @@ void Gui::create()
     // massert(view1 == get_current(), "current view on create failed\n");
 }
 
+static void blank(){}
 
 void Gui::handle_buttons()
 {
@@ -128,7 +124,13 @@ void Gui::handle_buttons()
 
     BTN_HANDLE(BTN_NAVIGATE,
                this->go_next(),
-               this->go_prev());
+               blank());
+
+    BTN_HANDLE(BTN_NAVIGATE_BACK,
+               this->go_prev(),
+               blank());
+
+
 
     BTN_HANDLE(BTN_ACTION,
                this->get_current()->action(),

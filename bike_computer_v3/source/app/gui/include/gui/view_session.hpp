@@ -27,14 +27,12 @@
  */
 class View_Session : public gui::View
 {
-private:
-    bool view_only;
 protected:
     const Sensor_Data& data;
     const Session_Data& session;
 
 public:
-    View_Session(const Sensor_Data& data, const Session_Data& session, bool view_only);
+    View_Session(const Sensor_Data& data, const Session_Data& session);
     ~View_Session();
 
     // start/pause

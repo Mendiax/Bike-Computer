@@ -16,6 +16,7 @@
 // #-------------------------------#
 #define BTN_ACTION btn2
 #define BTN_NAVIGATE btn1
+#define BTN_NAVIGATE_BACK btn0
 
 // #-------------------------------#
 // | global types declarations     |

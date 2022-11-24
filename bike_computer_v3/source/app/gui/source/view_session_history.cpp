@@ -7,7 +7,7 @@
 // c/c++ includes
 
 // my includes
-#include "gui/view_session.hpp"
+#include "gui/view_session_history.hpp"
 #include "traces.h"
 #include "common_actors.hpp"
 #include "gui/structure.hpp"
@@ -21,29 +21,25 @@
 // | global variables definitions |
 // #------------------------------#
 
-View_Session::View_Session(const Sensor_Data& data, const Session_Data& session)
+View_Session_History::View_Session_History(const Sensor_Data& data, const Session_Data& session)
     : data{data}, session{session}
 {
-    TRACE_DEBUG(4, TRACE_VIEWS, "View_Session constructor\n");
+    TRACE_DEBUG(4, TRACE_VIEWS, "View_Session_History constructor\n");
 }
 
-View_Session::~View_Session()
+View_Session_History::~View_Session_History()
 {
 
 }
 
 // start/pause
-void View_Session::action(void)
+void View_Session_History::action(void)
 {
-    Signal sig(actors_common::SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
-    Display_Actor::get_instance().send_signal(sig);
 }
 
 // end session
-void View_Session::action_long(void)
+void View_Session_History::action_long(void)
 {
-    Signal sig(actors_common::SIG_DISPLAY_ACTOR_END_BTN);
-    Display_Actor::get_instance().send_signal(sig);
     Gui::get_gui()->go_back();
 }
 

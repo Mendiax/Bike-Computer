@@ -79,7 +79,7 @@
 #include "parser.hpp"
 
 #include <unordered_map>
-
+#include "traces.h"
 
 static void yyerror(const char *msg);
 static int yyparse(void);
@@ -1417,7 +1417,7 @@ yyreduce:
   case 2:
 #line 100 "source/lib/Parser/parser.y"
                                               {
-        std::cout << "finished" << std::endl;
+        // std::cout << "finished" << std::endl;
     }
 #line 1423 "source/lib/Parser/src/parser_bison.cpp"
     break;
@@ -1460,7 +1460,7 @@ yyreduce:
                 }
             }
             case DataState::HOURLY:
-            case DataState::DAILY: // TODO idk
+            case DataState::DAILY:
             break;
         }
         delete (yyvsp[-2].str_p);
@@ -2010,7 +2010,7 @@ yyreturn:
 static void yyerror(const char* msg)
 {
     grammarError = true;
-    std:: cout << "!!!ERROR " << msg << std::endl;
+    /* std:: cout << "!!!ERROR " << msg << std::endl; */
 }
 
 
@@ -2036,8 +2036,7 @@ ForecastS* parse_json(const std::string& json, uint8_t days)
     parse_string(json.c_str());
 
     if(grammarError){
-        // TODO
-        std::cout << "ERROR in parsing file" << std::endl;
+        /* std::cout << "ERROR in parsing file" << std::endl; */
         delete new_forecast;
         new_forecast = 0;
         return NULL;

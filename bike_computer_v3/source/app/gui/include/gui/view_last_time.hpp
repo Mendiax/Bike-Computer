@@ -8,6 +8,7 @@
 // c/c++ includes
 
 // my includes
+#include "gui/view_session_history.hpp"
 #include "view_session.hpp"
 
 // #-------------------------------#
@@ -18,13 +19,13 @@
 // | global types declarations     |
 // #-------------------------------#
 
-class View_Last_Time : public View_Session
+class View_Last_Time : public View_Session_History
 {
 private:
 
 
 public:
-    using View_Session::View_Session;
+    using View_Session_History::View_Session_History;
     // ~View_Velocity();
 
     /**

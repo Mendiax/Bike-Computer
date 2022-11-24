@@ -1,5 +1,5 @@
-#ifndef __session_VIEW_LAST_DATE_HPP__
-#define __session_VIEW_LAST_DATE_HPP__
+#ifndef __session_VIEW_SESSION_HISTORY_HPP__
+#define __session_VIEW_SESSION_HISTORY_HPP__
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
@@ -8,7 +8,11 @@
 // c/c++ includes
 
 // my includes
-#include "view_session_history.hpp"
+#include "gui_common.hpp"
+#include "views/view.hpp"
+#include "common_types.h"
+#include "session.hpp"
+
 
 // #-------------------------------#
 // |            macros             |
@@ -17,27 +21,24 @@
 // #-------------------------------#
 // | global types declarations     |
 // #-------------------------------#
-
-class View_Last_Date : public View_Session_History
+/**
+ * @brief class that display data of current session
+ *
+ */
+class View_Session_History : public gui::View
 {
-private:
-
+protected:
+    const Sensor_Data& data;
+    const Session_Data& session;
 
 public:
-    using View_Session_History::View_Session_History;
-    // ~View_Velocity();
+    View_Session_History(const Sensor_Data& data, const Session_Data& session);
+    ~View_Session_History();
 
-    /**
-     * @brief render function that renders current view
-     *
-     */
-    void render(void);
-    // /**
-    //  * @brief special function that executes when special button is pressed
-    //  * Mainly used to go to the next view
-    //  *
-    //  */
-    // void action(void);
+    // start/pause
+    void action(void);
+    // end session
+    void action_long(void);
 };
 
 // #-------------------------------#
