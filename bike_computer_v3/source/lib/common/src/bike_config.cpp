@@ -48,9 +48,14 @@ Gear_S Gear_Iterator::get_gear()
     return {fr, rr};
 }
 
-#define GEARS_FRONT_STR "GF"
-#define GEARS_REAR_STR "GR"
-#define WHEEL_SIZE_STR "WS"
+#define GEARS_FRONT_STR "GEARS_FRONT"
+#define GEARS_REAR_STR "GEARS_REAR"
+#define WHEEL_SIZE_STR "WHEEL_SIZE"
+#define TIME_OFFSET_STR "TIME_OFFSET"
+#define CADENCE_MIN_STR "CAD_MIN"
+#define CADENCE_MAX_STR "CAD_MAX"
+
+
 
 
 Gear_S Bike_Config::get_next_gear(Gear_S gear) const
@@ -95,6 +100,7 @@ float Bike_Config::get_gear_ratio(Gear_S gear) const
     return (float)gear_front.at(gear.front - 1) / (float)gear_rear.at(gear.rear - 1);
 }
 
+// TODO remove
 const char* Bike_Config::to_string()
 {
     std::stringstream ss;
@@ -113,6 +119,15 @@ const char* Bike_Config::to_string()
     return ss.str().c_str();
 }
 
+/*
+str example:
+GEARS_FRONT:32
+GEARS_REAR:51,45,39,33,28,24,21,18,15,13,11
+WHEEL_SIZE:2.186484
+TIME_OFFSET:+1
+CAD_MIN:75
+CAD_MAX:90
+*/
 bool Bike_Config::from_string(const char* str)
 {
     this->wheel_size = 0.0;
@@ -127,22 +142,14 @@ bool Bike_Config::from_string(const char* str)
         if(line_arr.size() < 2) {
             continue;
         }
-        // PRINTF("[0] = %s\n", line_arr.at(0).c_str());
-        // PRINTF("[1] = %s\n", line_arr.at(1).c_str());
         if(line_arr.at(0).compare(GEARS_FRONT_STR) == 0)
         {
-            // PRINTF( GEARS_FRONT_STR "\n");
             auto gears = split_string(line_arr.at(1), ',');
-            // TRACE_DEBUG(1, TRACE_BIKE_CONFIG, " read front gears size %zu\n", gears.size());
-
             gear_front.clear();
             for(auto&& gear_str : gears)
             {
-                // PRINTF( " gear %s\n", gear_str.c_str());
                 gear_front.emplace_back(std::atoi(gear_str.c_str()));
             }
-            // TRACE_DEBUG(1, TRACE_BIKE_CONFIG, " read front gears size %zu\n", gears.size());
-
         }
         else if(line_arr.at(0).compare(GEARS_REAR_STR) == 0)
         {
@@ -156,10 +163,22 @@ bool Bike_Config::from_string(const char* str)
         }
         else if(line_arr.at(0).compare(WHEEL_SIZE_STR) == 0)
         {
-            // PRINTF( WHEEL_SIZE_STR "\n");
             wheel_size = std::atof(line_arr.at(1).c_str());
         }
+        else if(line_arr.at(0).compare(TIME_OFFSET_STR) == 0)
+        {
+            this->hour_offset = std::atoi(line_arr.at(1).c_str());
+        }
+        else if(line_arr.at(0).compare(CADENCE_MAX_STR) == 0)
+        {
+            this->cadence_max = std::atoi(line_arr.at(1).c_str());
+        }
+        else if(line_arr.at(0).compare(CADENCE_MIN_STR) == 0)
+        {
+            this->cadence_min = std::atoi(line_arr.at(1).c_str());
+        }
     }
+
     if(gear_front.size() < 1 ||
        gear_rear.size() < 1 ||
        wheel_size == 0.0)

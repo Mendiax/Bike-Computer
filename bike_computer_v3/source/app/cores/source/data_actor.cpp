@@ -79,7 +79,6 @@
 // #------------------------------#
 static Bike_Config config;
 static bool config_received = false;
-int local_time_offset = 0;
 static Sensor_Data sensors_data = {0};
 static Session_Data *session_p = 0;
 
@@ -178,6 +177,7 @@ void Data_Actor::setup(void)
         PRINTF("cadence=%f\n",cadence);
         cadence::emulate(cadence);
     }
+    gear_suggestion_calc = new Gear_Suggestion_Calculator(config);
 
     // sensors_data.forecast.windgusts_10m.array[0] = 1.8;
     // sensors_data.forecast.windgusts_10m.array[1] = 5.9;
@@ -278,37 +278,12 @@ void Data_Actor::handle_sig_continue(const Signal &sig)
     session_p->cont();
 }
 
-void Data_Actor::handle_sig_get_file_respond(const Signal &sig)
-{
-    auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Get_File_Respond*>();
-    switch (payload->type) {
-        case actors_common::File_Respond::time_offset:
-        {
-            auto offset = std::atoi(payload->file_content.c_str());
-                datetime_t t;
-                rtc_get_datetime(&t);
-                change_time_by_hour(&t, offset);
-                rtc_set_datetime(&t);
-
-        }
-        break;
-        default:
-        {
-            TRACE_ABNORMAL(TRACE_CORE_0, "unhandled file respond type %d\n", payload->type);
-        }
-    }
-
-    delete payload;
-
-}
-
 
 void Data_Actor::handle_sig_session_start(const Signal &sig)
 {
     speed::stop();
     speed::reset();
     {
-
         sensors_data.current_state = SystemState::AUTOSTART;
         if(session_p != nullptr)
             delete session_p;
@@ -369,7 +344,6 @@ int Data_Actor::loop_frame_update()
     else
     {
         PRINT("Booting sim868");
-
         //boot sim
         if(sim868::check_for_boot() && !sim868::is_booted())
         {
@@ -381,9 +355,6 @@ int Data_Actor::loop_frame_update()
             PRINT("Booting done");
         }
     }
-
-
-
 
     if(session_p != nullptr)
     {
@@ -443,44 +414,43 @@ int Data_Actor::loop_frame_update()
         }
     }
     // calc gear suggestion
-    Gear_Suggestion_Calculator suggestion(config);
-    auto gear_suggestion = suggestion.get_suggested_gear(cadence, accel, gear);
+    auto gear_suggestion = gear_suggestion_calc->get_suggested_gear(cadence, gear);
 
     TRACE_DEBUG(5, TRACE_CORE_0,
         "dist=%f wheel_rpm=%f, cadence=%f, read_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
         distance, wheel_rpm, cadence, read_ratio, gear.front, gear.rear);
 
 
-    {
-        static uint8_t last_gear = 0;
-        if(gear.rear != last_gear)
-        {
-            last_gear = gear.rear;
-            Session_Data session;
-            {
+    // {
+    //     static uint8_t last_gear = 0;
+    //     if(gear.rear != last_gear)
+    //     {
+    //         last_gear = gear.rear;
+    //         Session_Data session;
+    //         {
 
-                session = *session_p;
-            }
-            if(session.is_running() && session.get_start_time().is_valid())
-            {
-                auto payload = new Display_Actor::Sig_Display_Actor_Log();
-                {
-                    std::stringstream ss;
-                    ss << "gear_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
-                    payload->file_name = ss.str();
-                }
-                payload->header = "accel;wheel_rpm;cadence;read_ratio;gear\n";
-                {
-                    std::stringstream ss;
-                    ss << accel << ";" << wheel_rpm << ";" << cadence << ";" << read_ratio << ";" << (int)gear.rear << "\n";
-                    payload->line = ss.str();
-                }
+    //             session = *session_p;
+    //         }
+    //         if(session.is_running() && session.get_start_time().is_valid())
+    //         {
+    //             auto payload = new Display_Actor::Sig_Display_Actor_Log();
+    //             {
+    //                 std::stringstream ss;
+    //                 ss << "gear_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
+    //                 payload->file_name = ss.str();
+    //             }
+    //             payload->header = "accel;wheel_rpm;cadence;read_ratio;gear\n";
+    //             {
+    //                 std::stringstream ss;
+    //                 ss << accel << ";" << wheel_rpm << ";" << cadence << ";" << read_ratio << ";" << (int)gear.rear << "\n";
+    //                 payload->line = ss.str();
+    //             }
 
-                Signal sig(actors_common::SIG_DISPLAY_ACTOR_LOG, payload);
-                Display_Actor::get_instance().send_signal(sig);
-            }
-        }
-    }
+    //             Signal sig(actors_common::SIG_DISPLAY_ACTOR_LOG, payload);
+    //             Display_Actor::get_instance().send_signal(sig);
+    //         }
+    //     }
+    // }
 
 
 
@@ -513,12 +483,6 @@ int Data_Actor::loop_frame_update()
         sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
         break;
     }
-    // sensors_data.cadence_min = cadence_min;
-    // sensors_data.cadence_max = cadence_max;
-
-    // strncpy(sensors_data.gear_suggestion, gear_suggestion, GEAR_SUGGESTION_LEN);
-    // sensors_data.gear_suggestion[GEAR_SUGGESTION_LEN] = '\0';
-    // sensors_data.gear_suggestion_color = gear_suggestion_color;
 
     // update if running
     session_p->update(velocity, distance);
@@ -563,12 +527,6 @@ int Data_Actor::loop_frame_update()
         default:
             break;
     }
-    //memcpy(&sensors_data.hour, &current_time.hour, sizeof(sensors_data.hour));
-    // std::cout << "Core0: \n";
-    //  print(sensors_data.forecast.windgusts_10m);
-    //  std::cout << "len: " << sensors_data.forecast.len << std::endl;
-    // speedDataUpdate(sensors_data.speed, sensors_data.current_state);
-    //sensors_data.time.t = to_ms_since_boot(get_absolute_time()) / 1000;
 
     Data_Actor::get_instance().handle_all();
     return 0;
@@ -576,8 +534,6 @@ int Data_Actor::loop_frame_update()
 
 static bool load_config_from_file(const char* config_str, const char* file_name)
 {
-    //Sd_File config_file(file_name);
-    //const std::string config_str = config_file.read_all();
     bool success = config.from_string(config_str);
     auto name = split_string(file_name, '.');
     if(name.size() > 0)
@@ -669,7 +625,7 @@ static void cycle_log_data()
                 // send log to core1
                 send_log_signal(sensors_data.current_time.hours, sensors_data.gps_data, *session_p, sensors_data);
             }
-                    });
+        });
 }
 
 static void cycle_get_gps_data()
@@ -681,29 +637,11 @@ static void cycle_get_gps_data()
     static TimeS current_time;
     datetime_t t;
 
-    auto get_time_offset = [](void)
-    {
-        auto payload = new Display_Actor::Sig_Display_Actor_Get_File();
-        payload->type = actors_common::File_Respond::time_offset;
-        payload->file_name = "time_offset.txt";
-        Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_FILE, payload);
-        Display_Actor::get_instance().send_signal(sig);
-    };
     CYCLE_UPDATE_SIMPLE(sim868::gps::fetch_data(), GPS_FETCH_CYCLE_MS,
         {
             sim868::gps::get_speed(speed);
             sim868::gps::get_position(latitude, longitude);
             sim868::gps::get_msl(msl);
-            // speed = 69.3;
-            // msl = 123.34;
-
-            // time_print(current_time);
-
-            // if(latitude == 0.0 || longitude == 0.0)
-            // {
-            //     latitude = 51.104877842621484;
-            //     longitude = 17.031670433667298;
-            // }
 
             sim868::gps::get_signal(sensors_data.gps_data.sat,
                                     sensors_data.gps_data.sat2);
@@ -716,18 +654,18 @@ static void cycle_get_gps_data()
             if(!sensors_data.current_time.is_valid() && current_time.is_valid())
             {
                 t = current_time.to_date_time();
+                change_time_by_hour(&t, config.hour_offset);
                 rtc_set_datetime(&t);
                 sensors_data.current_time = current_time;
-                PRINT("set time");
-                get_time_offset();
+                // PRINT("set time");
+                // get_time_offset();
             }
-
-                        TRACE_DEBUG(3, TRACE_CORE_0,
+            TRACE_DEBUG(3, TRACE_CORE_0,
                         "gps speed %.1f, pos [%.5f,%.5f] date = %s signal = [%" PRIu8 ",%" PRIu8 "]\n",
                         speed, latitude, longitude, time_to_str(current_time).c_str(),
                         sensors_data.gps_data.sat,
                         sensors_data.gps_data.sat2);
-        });
+            });
 }
 
 static void cycle_get_forecast_data()

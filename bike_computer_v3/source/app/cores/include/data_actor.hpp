@@ -6,10 +6,6 @@
 class Data_Actor : public Actor
 {
 public:
-    struct Sig_Data_Actor_Get_File_Respond {
-        actors_common::File_Respond type;
-        std::string file_content;
-    };
 
     struct Sig_Data_Actor_Load_Session {
         std::string session_string;
@@ -27,6 +23,7 @@ public:
 
 private:
     Data_Queue<actors_common::Packet>* pc_queue;
+    Gear_Suggestion_Calculator* gear_suggestion_calc;
 
     static void handle_sig_session_load(const Signal &sig);
     static void handle_sig_session_start(const Signal &sig);
@@ -37,7 +34,6 @@ private:
 
     static void handle_sig_set_config(const Signal &sig);
     static void handle_sig_set_total(const Signal &sig);
-    static void handle_sig_get_file_respond(const Signal &sig);
 
     void handler_setup()
     {
@@ -49,7 +45,6 @@ private:
         this->handler_add(handle_sig_session_load, actors_common::SIG_DATA_ACTOR_SESSION_LOAD);
         this->handler_add(handle_sig_set_config, actors_common::SIG_DATA_ACTOR_SET_CONFIG);
         this->handler_add(handle_sig_set_total, actors_common::SIG_DATA_ACTOR_SET_TOTAL);
-        this->handler_add(handle_sig_get_file_respond, actors_common::SIG_DATA_ACTOR_GET_FILE_RESPOND);
     }
 
     inline void set_pc_queue(Data_Queue<actors_common::Packet>* pc_queue)

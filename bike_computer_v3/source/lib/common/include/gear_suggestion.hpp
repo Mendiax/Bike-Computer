@@ -46,21 +46,9 @@ void calc_gear(const float& speed, const float& cadence, const Bike_Config& gear
 class Gear_Suggestion_Calculator
 {
     const Bike_Config& gears;
-    const float __accel_up;
-    const float __cadence_min;
-    const float __cadence_max;
-    float cadence_min;
-    float cadence_max;
 
-
-
-    inline void calc_optimal_cadence(float accel)
-    {
-        // whole logic is here
-        // set cadence_min and cadence_max
-        this->cadence_min = this->__cadence_min + accel * this->__accel_up;
-        this->cadence_max = this->__cadence_max + accel * this->__accel_up;
-    }
+    const float cadence_min;
+    const float cadence_max;
 
     inline bool get_too_slow_cadence_range(float cadence)
     {
@@ -123,13 +111,12 @@ class Gear_Suggestion_Calculator
 
 public:
     Gear_Suggestion_Calculator(const Bike_Config& gears)
-    : gears{gears}, __accel_up{5.0}, __cadence_min{80}, __cadence_max{90}
+    : gears{gears}, cadence_min{(float)gears.cadence_min}, cadence_max{(float)gears.cadence_max}
     {
     }
 
-    Gear_Suggestion_Data get_suggested_gear(const float cadence, const float accel, const Gear_S& current_gear)
+    Gear_Suggestion_Data get_suggested_gear(const float cadence, const Gear_S& current_gear)
     {
-        this->calc_optimal_cadence(accel);
         Gear_Suggestion_Data gear_suggestions
             {
                 Gear_Suggestion::NO_SHIFT,
@@ -138,19 +125,12 @@ public:
             };
         if (this->get_too_slow_cadence_range(cadence) && this->get_prev_ratio(current_gear) != 0.0)
         {
-            // downshift
             gear_suggestions.suggestion = Gear_Suggestion::DOWN_SHIFT;
-            // strncpy(gear_suggestions.gear_suggestion, "\\/", GEAR_SUGGESTION_LEN);
-            // gear_suggestions.gear_suggestion_color = {0xf,0x0,0x1};
         }
         else if (this->get_too_fast_cadence_range(cadence)
                 && (this->get_optimal_too_fast_cadence_range(this->get_next_cadence(current_gear, cadence))))
         {
-            // upshift
             gear_suggestions.suggestion = Gear_Suggestion::UP_SHIFT;
-
-            // strncpy(gear_suggestions.gear_suggestion, "/\\", GEAR_SUGGESTION_LEN);
-            // gear_suggestions.gear_suggestion_color = {0x0,0xf,0x0};
         }
 
         return gear_suggestions;

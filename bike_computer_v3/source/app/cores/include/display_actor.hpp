@@ -13,11 +13,6 @@
 class Display_Actor : public Actor
 {
 public:
-    struct Sig_Display_Actor_Get_File {
-        actors_common::File_Respond type;
-        std::string file_name;
-    };
-
     struct Sig_Display_Actor_Show_Msg {
         std::string msg;
         display::DisplayColor color;
@@ -30,11 +25,11 @@ public:
         std::string file_name;
     };
 
-    struct Sig_Display_Actor_Log_Gps {
-        GpsDataS data;
-        Time_HourS time;
-        std::string file_name;
-    };
+    // struct Sig_Display_Actor_Log_Gps {
+    //     GpsDataS data;
+    //     Time_HourS time;
+    //     std::string file_name;
+    // };
 
     struct Sig_Display_Actor_Load_Session {
         uint16_t session_id;
@@ -54,11 +49,10 @@ private:
     static void handle_sig_start_pause_btn(const Signal &sig);
     static void handle_sig_end_btn(const Signal &sig);
     static void handle_sig_load_session(const Signal &sig);
-    static void handle_sig_log_gps(const Signal &sig);
+    // static void handle_sig_log_gps(const Signal &sig);
     static void handle_sig_log(const Signal &sig);
     static void handle_sig_show_msg(const Signal &sig);
-    static void handle_sig_get_file(const Signal &sig);
-    // static void handle_sig_get_file(const Signal &sig);
+
 
 
     void handler_setup()
@@ -67,10 +61,9 @@ private:
         this->handler_add(handle_sig_start_pause_btn, actors_common::SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
         this->handler_add(handle_sig_end_btn, actors_common::SIG_DISPLAY_ACTOR_END_BTN);
         this->handler_add(handle_sig_load_session, actors_common::SIG_DISPLAY_ACTOR_LOAD_SESSION);
-        this->handler_add(handle_sig_log_gps, actors_common::SIG_DISPLAY_ACTOR_LOG_GPS);
+        // this->handler_add(handle_sig_log_gps, actors_common::SIG_DISPLAY_ACTOR_LOG_GPS);
         this->handler_add(handle_sig_log, actors_common::SIG_DISPLAY_ACTOR_LOG);
         this->handler_add(handle_sig_show_msg, actors_common::SIG_DISPLAY_ACTOR_SHOW_MSG);
-        this->handler_add(handle_sig_get_file, actors_common::SIG_DISPLAY_ACTOR_GET_FILE);
 
         // this->handler_add(handle_sig_get_file, actors_common::SIG_DISPLAY_ACTOR_GET_FILE);
     }
@@ -82,6 +75,7 @@ private:
     void setup();
     int loop();
 
+
     void run_thread(void);
     Display_Actor()
     {
@@ -89,6 +83,9 @@ private:
     }
     friend void core1LaunchThread(void);
 public:
+    static inline const char* get_session_log_file_name(){
+        return "session_log.csv";
+    }
     static inline Display_Actor& get_instance()
     {
         static Display_Actor* this_p = nullptr;

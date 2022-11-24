@@ -39,7 +39,7 @@
 Main_History::Main_History(gui::view_list_p p)
     :gui::View(p)
 {
-    // sessions = new Sd_File("last_track.csv");
+    // sessions = new Sd_File(Display_Actor::get_session_log_file_name());
     // no_sessions = sessions->get_no_of_lines() - 1;
     // TRACE_DEBUG(1, TRACE_GUI, "no_sessions = %zu\n", no_sessions);
     // TRACE_DEBUG(1, TRACE_GUI, "last_track create\n");
@@ -68,7 +68,7 @@ void extract_session_name(char* f, Sd_File& sessions, size_t id)
 void Main_History::insert_files_into_display(void)
 {
     // TODO reduce reads from file
-    Sd_File sessions("last_track.csv");
+    Sd_File sessions(Display_Actor::get_session_log_file_name());
     no_sessions = sessions.get_no_of_lines();
     no_sessions = no_sessions <= 2 ? no_sessions = 0 : no_sessions - 2;
     TRACE_DEBUG(1, TRACE_GUI, "no_sessions = %zu\n", no_sessions);
@@ -97,7 +97,7 @@ void Main_History::insert_files_into_display(void)
 void Main_History::render()
 {
     // get data
-    // Sd_File file("last_track.csv");
+    // Sd_File file(Display_Actor::get_session_log_file_name());
     // no_sessions = sessions->get_no_of_lines() - 1;
     // TRACE_DEBUG(1, TRACE_GUI, "no_sessions = %zu\n", no_sessions);
 

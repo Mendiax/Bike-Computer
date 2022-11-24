@@ -94,22 +94,6 @@ void Display_Actor::handle_sig_show_msg(const Signal &sig)
             sleep_ms(100000);
         }
     }
-
-
-    delete payload;
-}
-
-void Display_Actor::handle_sig_get_file(const Signal &sig)
-{
-    auto payload_respond = new Data_Actor::Sig_Data_Actor_Get_File_Respond();
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Get_File*>();
-    payload_respond->type = payload->type;
-
-    Sd_File file(payload->file_name);
-    payload_respond->file_content = file.read_all();
-
-    Signal sig_respond(actors_common::SIG_DATA_ACTOR_GET_FILE_RESPOND, payload_respond);
-    Data_Actor::get_instance().send_signal(sig_respond);
     delete payload;
 }
 
@@ -127,20 +111,20 @@ void Display_Actor::handle_sig_log(const Signal &sig)
 }
 
 
-void Display_Actor::handle_sig_log_gps(const Signal &sig)
-{
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Log_Gps*>();
-    Sd_File config_file(payload->file_name);
-    if(config_file.is_empty())
-    {
-        config_file.append("time;latitude;longitude\n");
-    }
-    char buffer[64] = {0};
-    sprintf(buffer, "%s;%f;%f\n", time_to_str(payload->time).c_str(), payload->data.lat, payload->data.lon);
-    config_file.append(buffer);
+// void Display_Actor::handle_sig_log_gps(const Signal &sig)
+// {
+//     auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Log_Gps*>();
+//     Sd_File config_file(payload->file_name);
+//     if(config_file.is_empty())
+//     {
+//         config_file.append("time;latitude;longitude\n");
+//     }
+//     char buffer[64] = {0};
+//     sprintf(buffer, "%s;%f;%f\n", time_to_str(payload->time).c_str(), payload->data.lat, payload->data.lon);
+//     config_file.append(buffer);
 
-    delete payload;
-}
+//     delete payload;
+// }
 
 void Display_Actor::handle_sig_total_update(const Signal &sig)
 {
@@ -257,7 +241,7 @@ void Display_Actor::handle_sig_end_btn(const Signal &sig)
 
     sessionDataDisplay.end(sensors_data_display.current_time);
 
-    Sd_File last_save("last_track.csv");
+    Sd_File last_save(Display_Actor::get_session_log_file_name());
     if (last_save.is_empty())
     {
         last_save.append(sessionDataDisplay.get_header());
@@ -310,7 +294,7 @@ void Display_Actor::handle_sig_load_session(const Signal &sig)
     delete payload;
     std::string content;
     {
-        Sd_File last_save("last_track.csv");
+        Sd_File last_save(Display_Actor::get_session_log_file_name());
         auto no_sessions = last_save.get_no_of_lines();
         no_sessions = no_sessions <= 2 ? no_sessions = 0 : no_sessions - 2;
         if(no_sessions < id)
