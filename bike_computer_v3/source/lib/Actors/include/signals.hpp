@@ -43,14 +43,6 @@ public:
         : id{id}, actor_p{nullptr}, payload_size{sizeof(T)}
     {
         this->payload = (char *)payload;
-        // this->payload = new char[payload_size];
-        // memcpy(this->payload, &payload, payload_size);
-        // printf("payload = %p\n", this->payload);
-        // printf("payload cont = %p\n", payload);
-
-        // T payload_cop;
-        // memcpy(&payload_cop, this->payload, this->payload_size);
-        // printf("payload copied = %p\n", payload_cop);
     }
     // ~Signal()
     // {
@@ -79,15 +71,6 @@ public:
     }
 };
 
-// template<typename T>
-// struct Signal
-// {
-//     const uint16_t sig_id;
-//     const T payload;
-
-//     Signal(const T &payload);
-//     T get_signal() const;
-// };
 
 // #-------------------------------#
 // | global variables declarations |

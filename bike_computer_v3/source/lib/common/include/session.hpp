@@ -58,9 +58,21 @@ public:
                 return false;
         }
     }
+    inline bool has_started(){
+        switch (this->status)
+        {
+            case Session_Data::Status::RUNNING:
+            case Session_Data::Status::PAUSED:
+                return true;
+            case Session_Data::Status::NOT_STARTED:
+            case Session_Data::Status::ENDED:
+            default:
+                return false;
+        }
+    }
 
     inline TimeS get_start_time() const {return this->time_start;}
-    inline void set_start_time(TimeS time) {if(status != Status::ENDED && time_start.year < 2022) this->time_start = time;}
+    inline void set_start_time(TimeS time) {if(has_started() && !time_start.is_valid()) this->time_start = time;}
 
     inline absolute_time_t get_start_absolute_time() {return this->absolute_time_start;}
 

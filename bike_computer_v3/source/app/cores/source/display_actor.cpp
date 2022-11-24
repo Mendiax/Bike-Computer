@@ -321,10 +321,6 @@ int Display_Actor::loop(void)
     {
         this->gui->handle_buttons();
 
-        // send packet
-        pc_queue->pop_blocking(local_packet);
-
-
         auto system_sate = sensors_data_display.current_state;
 
         // render
@@ -355,6 +351,9 @@ int Display_Actor::loop(void)
             Paint_Println(pause_label.x, pause_label.y, label, font, {0xf,0x0,0x0}, scale);
         }
         display::display();
+
+        // send packet
+        pc_queue->pop_blocking(local_packet);
     }
 
     absolute_time_t frameEnd = get_absolute_time();

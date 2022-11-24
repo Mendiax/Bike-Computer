@@ -81,7 +81,6 @@ void Actor::handle_next_signal()
 
     //printf("rec sig id=%" PRIu16 "\n", sig.get_sig_id());
 
-
     bool handled = false;
     //printf("no of handlesr = %zu \n", this->handlers.size());
     for(auto& handler : this->handlers)

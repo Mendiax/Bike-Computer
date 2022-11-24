@@ -28,10 +28,6 @@ void speed_delete();
 
 void speed_emulate(float speed = 20.0);
 
-// void speedDataInit(SpeedData& speedData);
-
-// void speedDataUpdate(SpeedData& speedData, SystemState& state);
-
 namespace speed
 {
     /**

@@ -141,17 +141,6 @@ void Data_Actor::setup(void)
         "GR:51,45,39,33,28,24,21,18,15,13,11\n"
         "WS:2.186484\n"
     );
-    // config.to_string();
-    //PRINTF("%s\n", config.to_string());
-
-    // Sd_File config_file("giant_trance.cfg");
-    // config_file.clear();
-    // config_file.append(
-    //     "GF:32\n"
-    //     "GR:51,45,39,33,28,24,21,18,15,13,11\n"
-    //     "WS:2.186484\n"
-    // );
-    // load_config_from_file("giant_trance.cfg");
 #else
 
     // wait for config
@@ -263,6 +252,13 @@ void Data_Actor::handle_sig_set_total(const Signal &sig)
     delete payload;
 }
 
+
+
+
+
+
+
+
 void Data_Actor::handle_sig_pause(const Signal &sig)
 {
     speed::stop();
@@ -338,7 +334,7 @@ int Data_Actor::loop_frame_update()
 
         // battery
         cycle_get_battery_status();
-        cycle_get_weather_data();
+        cycle_get_forecast_data();
         cycle_log_data();
     }
     else
@@ -355,23 +351,9 @@ int Data_Actor::loop_frame_update()
             PRINT("Booting done");
         }
     }
+    cycle_get_weather_data();
 
-    if(session_p != nullptr)
-    {
-        auto time_start = session_p->get_start_time();
-        if(!time_start.is_valid() && sensors_data.current_time.is_valid())
-        {
-            const auto current_absolute_time = get_absolute_time();
-            const auto start_absolute_time = session_p->get_start_absolute_time();
-            const auto diff_ms = us_to_ms(absolute_time_diff_us(start_absolute_time, current_absolute_time));
 
-            // calc how many hours to remove
-            time_start = sensors_data.current_time;
-
-            time_start.substract_ms(diff_ms);
-            session_p->set_start_time(time_start);
-        }
-    }
 
 
 
@@ -421,41 +403,7 @@ int Data_Actor::loop_frame_update()
         distance, wheel_rpm, cadence, read_ratio, gear.front, gear.rear);
 
 
-    // {
-    //     static uint8_t last_gear = 0;
-    //     if(gear.rear != last_gear)
-    //     {
-    //         last_gear = gear.rear;
-    //         Session_Data session;
-    //         {
-
-    //             session = *session_p;
-    //         }
-    //         if(session.is_running() && session.get_start_time().is_valid())
-    //         {
-    //             auto payload = new Display_Actor::Sig_Display_Actor_Log();
-    //             {
-    //                 std::stringstream ss;
-    //                 ss << "gear_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
-    //                 payload->file_name = ss.str();
-    //             }
-    //             payload->header = "accel;wheel_rpm;cadence;read_ratio;gear\n";
-    //             {
-    //                 std::stringstream ss;
-    //                 ss << accel << ";" << wheel_rpm << ";" << cadence << ";" << read_ratio << ";" << (int)gear.rear << "\n";
-    //                 payload->line = ss.str();
-    //             }
-
-    //             Signal sig(actors_common::SIG_DISPLAY_ACTOR_LOG, payload);
-    //             Display_Actor::get_instance().send_signal(sig);
-    //         }
-    //     }
-    // }
-
-
-
-    // update sensor
-
+    // update data in sensor
     sensors_data.velocity = velocity;
     sensors_data.cadence = cadence;
     sensors_data.accel = accel;
@@ -485,26 +433,39 @@ int Data_Actor::loop_frame_update()
     }
 
     // update if running
-    session_p->update(velocity, distance);
+    if(session_p != nullptr && session_p->has_started())
     {
-        static uint8_t last_gear_idx = 0;
-        uint8_t current_gear_idx = config.to_idx(gear);
-        if (last_gear_idx == current_gear_idx)
+        // check if session has valid start time
+        auto time_start = session_p->get_start_time();
+        if(!time_start.is_valid() && sensors_data.current_time.is_valid())
         {
-            // add gear time if is running
-            session_p->add_gear_time(current_gear_idx, cadence, delta_ms);
+            const auto current_absolute_time = get_absolute_time();
+            const auto start_absolute_time = session_p->get_start_absolute_time();
+            const auto diff_ms = us_to_ms(absolute_time_diff_us(start_absolute_time, current_absolute_time));
+
+            // calc how many hours to remove
+            time_start = sensors_data.current_time;
+
+            time_start.substract_ms(diff_ms);
+            session_p->set_start_time(time_start);
         }
-        last_gear_idx = current_gear_idx;
+
+        // update if running
+        session_p->update(velocity, distance);
+        {
+            static uint8_t last_gear_idx = 0;
+            uint8_t current_gear_idx = config.to_idx(gear);
+            if (last_gear_idx == current_gear_idx)
+            {
+                // add gear time if is running
+                session_p->add_gear_time(current_gear_idx, cadence, delta_ms);
+            }
+            last_gear_idx = current_gear_idx;
+        }
     }
+
+    // handle autostart and auto stop
     const auto state = sensors_data.current_state;
-
-    // send packet
-    {
-        actors_common::Packet new_packet{sensors_data, *session_p};
-        pc_queue->push_blocking(new_packet);
-    }
-
-
     switch (state)
     {
         case SystemState::AUTOSTART:
@@ -513,22 +474,27 @@ int Data_Actor::loop_frame_update()
                 PRINTF("AUTOSTART\n");
                 Data_Actor::get_instance().send_signal(actors_common::SIG_DATA_ACTOR_CONTINUE);
             }
-
+            break;
+        // TODO should this be ended and pused ?
         case SystemState::ENDED:
         case SystemState::PAUSED:
         case SystemState::RUNNING:
-        if(velocity == 0.0)
-        {
-            Data_Actor::get_instance().send_signal(actors_common::SIG_DATA_ACTOR_START);
-            on_stop();
-        }
+            if(velocity == 0.0)
+            {
+                Data_Actor::get_instance().send_signal(actors_common::SIG_DATA_ACTOR_START);
+                on_stop();
+            }
+            break;
         case SystemState::TURNED_ON:
-        case SystemState::CHARGING:
         default:
             break;
     }
 
-    Data_Actor::get_instance().handle_all();
+    // send packet
+    {
+        actors_common::Packet new_packet{sensors_data, *session_p};
+        pc_queue->push_blocking(new_packet);
+    }
     return 0;
 }
 
@@ -618,9 +584,9 @@ static void cycle_log_data()
         {
 
             if(sensors_data.gps_data.lat != 0 &&
-            sensors_data.gps_data.lon != 0 &&
-            session_p->is_running() &&
-            session_p->get_start_time().is_valid())
+                sensors_data.gps_data.lon != 0 &&
+                session_p->is_running() &&
+                session_p->get_start_time().is_valid())
             {
                 // send log to core1
                 send_log_signal(sensors_data.current_time.hours, sensors_data.gps_data, *session_p, sensors_data);
@@ -684,7 +650,7 @@ static void cycle_get_forecast_data()
     }
     float latitude = sensors_data.gps_data.lat;
     float longitude = sensors_data.gps_data.lon;
-        if(current_time.is_valid() && (latitude > 0.0 || longitude > 0.0) )
+    if(current_time.is_valid() && (latitude > 0.0 || longitude > 0.0) )
     {
 
         CYCLE_UPDATE(sim868::gsm::get_http_req(success,http_req_addr.c_str(),forecast_json),
@@ -716,7 +682,7 @@ static void cycle_get_forecast_data()
                         {
 
                             move_forecasts_to_forecastplots(forecast_raw, &sensors_data.forecast, current_time.hour);
-                                                    }
+                        }
                         else
                         {
                             TRACE_ABNORMAL(TRACE_CORE_0, "parser returned null ptr\n");
@@ -764,7 +730,7 @@ static void cycle_get_weather_data()
                      sensors_data.weather.temperature = (float)temp / 100.0f;
                      sensors_data.weather.pressure = press;
                      sensors_data.altitude = altitude;
-                                          TRACE_DEBUG(4, TRACE_CORE_0,
+                     TRACE_DEBUG(4, TRACE_CORE_0,
                                  "Current weather temp:%" PRId32 "C press:%" PRId32 "Pa altitude:%.2fm\n",
                                  temp, press, altitude);
                  });

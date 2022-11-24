@@ -19,7 +19,6 @@ enum class SystemState
     RUNNING,
     PAUSED,
     ENDED,
-    CHARGING
 };
 
 struct SpeedData
