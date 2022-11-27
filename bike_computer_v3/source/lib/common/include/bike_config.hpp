@@ -31,8 +31,14 @@ struct Gear_S
 
 struct Bike_Config
 {
+    struct Gear_Ratio_Range{
+        float min;
+        float max;
+    };
+    std::vector<Gear_Ratio_Range> gear_ranges;
     std::vector<uint8_t> gear_front; // chaing rings sizes for front
     std::vector<uint8_t> gear_rear; // chaing rings sizes for rear
+
     double wheel_size; // circumstance of wheel
     double min_gear_diff; // min difference of ratio betweens gears
     // std::unordered_map<Gear_S, float, Gear_S::HashFunction> gear_ratios;

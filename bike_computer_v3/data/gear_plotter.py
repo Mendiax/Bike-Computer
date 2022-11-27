@@ -37,7 +37,7 @@ class Current_State:
         for ratio in self.gear_ratios:
             self.gear_diff = min(abs(last_ratio - ratio), self.gear_diff)
             last_ratio = self.gear_diff
-        self.gear_diff = self.gear_diff * 0.99
+        self.gear_diff = self.gear_diff * 0.5
         print(self.gear_diff)
 
     def get_current_ratio(self):

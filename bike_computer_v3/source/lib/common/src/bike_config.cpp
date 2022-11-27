@@ -188,17 +188,47 @@ bool Bike_Config::from_string(const char* str)
     }
 
     // setup gear diff
-    float gear_diff = 100.0;
+    // float gear_diff = 100.0;
     Gear_Iterator iter(*this);
-    float last_gear_ratio = 0.0f;
+    // float last_gear_ratio = 0.0f;
+
+    const auto gear_len = gear_rear.size();
+
+    std::vector<float> gear_ratios(gear_len);
+    size_t i = 0;
     while (iter.has_next())
     {
         float gear_ratio = iter.get_next();
-        gear_diff = std::min(std::abs(last_gear_ratio - gear_ratio), gear_diff);
-        last_gear_ratio = gear_ratio;
+        gear_ratios[i++] = gear_ratio;
+        // gear_diff = std::min(std::abs(last_gear_ratio - gear_ratio), gear_diff);
+        // last_gear_ratio = gear_ratio;
     }
-    TRACE_DEBUG(2, TRACE_BIKE_CONFIG, "min diff gear ratio: %f\n", gear_diff);
-    this->min_gear_diff = gear_diff * 0.99f; // add some space for errors
+
+    auto get_diff = [&](size_t k)
+    {
+        return gear_ratios[k + 1] - gear_ratios[k];
+    };
+
+    gear_ranges.resize(gear_len);
+    gear_ranges[0] = {
+        gear_ratios[0] - get_diff(0)/2.0f,
+        gear_ratios[0] + get_diff(0)/2.0f,
+    };
+    for(int i = 1; i < gear_len - 1; i++)
+    {
+        gear_ranges[i] = {
+            gear_ratios[i] - get_diff(i-1)/2.0f,
+            gear_ratios[i] + get_diff(i)/2.0f,
+        };
+    }
+     gear_ranges[gear_len - 1] = {
+            gear_ratios[gear_len - 1] - get_diff(gear_len-2)/2.0f,
+            gear_ratios[gear_len - 1] + get_diff(gear_len-2)/2.0f,
+        };
+
+
+    // TRACE_DEBUG(2, TRACE_BIKE_CONFIG, "min diff gear ratio: %f\n", gear_diff);
+    // this->min_gear_diff = gear_diff * 0.5f;
 
     return true; // success
 }
@@ -216,27 +246,34 @@ static inline bool check_floats_prec(float f1, float f2, float prec);
 
 Gear_S Bike_Config::get_current_gear(float ratio)
 {
-    Gear_Iterator iter(*this);
-    while (iter.has_next())
+    for(size_t i = 0; i < gear_ranges.size(); i++)
     {
-        Gear_S gear = iter.get_gear();
-        float gear_ratio = iter.get_next();
-        /*
-        my gears:
-        [2.909090909090909, 2.4615384615384617, 2.1333333333333333,
-         1.7777777777777777, 1.5238095238095237, 1.3333333333333333,
-         1.1428571428571428, 0.9696969696969697, 0.8205128205128205,
-         0.7111111111111111, 0.6274509803921569]
-        */
-
-        if(check_floats_prec(gear_ratio, ratio, this->min_gear_diff))
+        if(gear_ranges.at(i).min <= ratio && ratio <= gear_ranges.at(i).max)
         {
-            return gear;
+            return {1, (uint8_t) (i + 1)};
         }
-        // TRACE_DEBUG(5, TRACE_CORE_0,
-        //     "ratio=%f, gear_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
-        //     ratio, gear_ratio, gear.front + 1, gear.rear + 1);
     }
+    // Gear_Iterator iter(*this);
+    // while (iter.has_next())
+    // {
+    //     Gear_S gear = iter.get_gear();
+    //     float gear_ratio = iter.get_next();
+    //     /*
+    //     my gears:
+    //     [2.909090909090909, 2.4615384615384617, 2.1333333333333333,
+    //      1.7777777777777777, 1.5238095238095237, 1.3333333333333333,
+    //      1.1428571428571428, 0.9696969696969697, 0.8205128205128205,
+    //      0.7111111111111111, 0.6274509803921569]
+    //     */
+
+    //     if(check_floats_prec(gear_ratio, ratio, this->min_gear_diff))
+    //     {
+    //         return gear;
+    //     }
+    //     // TRACE_DEBUG(5, TRACE_CORE_0,
+    //     //     "ratio=%f, gear_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
+    //     //     ratio, gear_ratio, gear.front + 1, gear.rear + 1);
+    // }
     return {0,0};
 }
 
