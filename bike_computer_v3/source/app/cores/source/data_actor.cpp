@@ -54,7 +54,7 @@
 
 // cycles times
 #define BAT_LEV_CYCLE_MS (29*1000)
-#define WEATHER_CYCLE_MS (1*1000)
+#define WEATHER_CYCLE_MS (500)
 #define HEART_BEAT_CYCLE_MS (10*1000)
 #define GPS_FETCH_CYCLE_MS (1*1000)
 #define TIME_FETCH_CYCLE_MS (10*1000)
@@ -128,7 +128,7 @@ void Data_Actor::setup(void)
         .year  = 2000,
         .month = 01,
         .day   = 01,
-        .dotw  = 0, // 0 is Sunday, so 5 is Friday
+        .dotw  = 6, // 0 is Sunday, so 5 is Friday
         .hour  = 0,
         .min   = 0,
         .sec   = 00
@@ -156,12 +156,12 @@ void Data_Actor::setup(void)
     // for testing purpose
     if(SIM_WHEEL_CADENCE) // TODO true when usb connected
     {
-        float emulated_speed = 20.0;
+        float emulated_speed = 5.0;
         speed_emulate(emulated_speed);
         PRINTF("emulated_speed=%f\n", emulated_speed);
         float wheel_rpm = speed::kph_to_rpm(emulated_speed);
         PRINTF("wheel_rpm=%f\n",wheel_rpm);
-        float ratio = config.get_gear_ratio({1,10});
+        float ratio = config.get_gear_ratio({1,1});
         PRINTF("ratio=%f\n",ratio);
         float cadence = wheel_rpm / ratio;
         PRINTF("cadence=%f\n",cadence);
@@ -253,7 +253,15 @@ void Data_Actor::handle_sig_set_total(const Signal &sig)
     delete payload;
 }
 
-
+void Data_Actor::handle_sig_req_packet(const Signal &sig)
+{
+    auto payload = sig.get_payload<Data_Actor::Sig_Display_Actor_Req_Packet*>();
+    *payload->packet_p = {sensors_data, *session_p};
+    {
+        Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
+        Display_Actor::get_instance().send_signal(sig);
+    }
+}
 
 
 
@@ -472,8 +480,9 @@ int Data_Actor::loop_frame_update()
         case SystemState::AUTOSTART:
             if(velocity > 0.0)
             {
-                PRINTF("AUTOSTART\n");
-                Data_Actor::get_instance().send_signal(actors_common::SIG_DATA_ACTOR_CONTINUE);
+                // PRINTF("AUTOSTART\n");
+                // Data_Actor::get_instance().send_signal(actors_common::SIG_DATA_ACTOR_CONTINUE);
+                Data_Actor::handle_sig_continue(Signal(actors_common::SIG_DATA_ACTOR_CONTINUE));
             }
             break;
         // TODO should this be ended and pused ?
@@ -482,7 +491,8 @@ int Data_Actor::loop_frame_update()
         case SystemState::RUNNING:
             if(velocity == 0.0)
             {
-                Data_Actor::get_instance().send_signal(actors_common::SIG_DATA_ACTOR_START);
+                // Data_Actor::get_instance().send_signal(actors_common::SIG_DATA_ACTOR_START);
+                Data_Actor::handle_sig_start(Signal(actors_common::SIG_DATA_ACTOR_START));
                 on_stop();
             }
             break;
@@ -491,11 +501,11 @@ int Data_Actor::loop_frame_update()
             break;
     }
 
-    // send packet
-    {
-        actors_common::Packet new_packet{sensors_data, *session_p};
-        pc_queue->push_blocking(new_packet);
-    }
+    // // send packet
+    // {
+    //     actors_common::Packet new_packet{sensors_data, *session_p};
+    //     pc_queue->push_blocking(new_packet);
+    // }
     return 0;
 }
 

@@ -21,6 +21,10 @@ public:
         float ridden_time_total;
     };
 
+    struct Sig_Display_Actor_Req_Packet {
+        actors_common::Packet* packet_p;
+    };
+
 private:
     Data_Queue<actors_common::Packet>* pc_queue;
     Gear_Suggestion_Calculator* gear_suggestion_calc;
@@ -34,6 +38,8 @@ private:
 
     static void handle_sig_set_config(const Signal &sig);
     static void handle_sig_set_total(const Signal &sig);
+    static void handle_sig_req_packet(const Signal &sig);
+
 
     void handler_setup()
     {
@@ -45,7 +51,9 @@ private:
         this->handler_add(handle_sig_session_load, actors_common::SIG_DATA_ACTOR_SESSION_LOAD);
         this->handler_add(handle_sig_set_config, actors_common::SIG_DATA_ACTOR_SET_CONFIG);
         this->handler_add(handle_sig_set_total, actors_common::SIG_DATA_ACTOR_SET_TOTAL);
+        this->handler_add(handle_sig_req_packet, actors_common::SIG_DATA_ACTOR_REQ_PACKET);
     }
+
 
     inline void set_pc_queue(Data_Queue<actors_common::Packet>* pc_queue)
     {

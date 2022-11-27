@@ -31,6 +31,10 @@ public:
     //     std::string file_name;
     // };
 
+    struct Sig_Display_Actor_Get_Packet {
+        actors_common::Packet* packet_p;
+    };
+
     struct Sig_Display_Actor_End_Sesion {
         bool save;
     };
@@ -63,6 +67,9 @@ private:
     static void handle_sig_log(const Signal &sig);
     static void handle_sig_show_msg(const Signal &sig);
 
+    static void handle_sig_get_packet(const Signal &sig);
+
+
 
 
     void handler_setup()
@@ -77,6 +84,8 @@ private:
         // this->handler_add(handle_sig_log_gps, actors_common::SIG_DISPLAY_ACTOR_LOG_GPS);
         this->handler_add(handle_sig_log, actors_common::SIG_DISPLAY_ACTOR_LOG);
         this->handler_add(handle_sig_show_msg, actors_common::SIG_DISPLAY_ACTOR_SHOW_MSG);
+        this->handler_add(handle_sig_get_packet, actors_common::SIG_DISPLAY_ACTOR_GET_PACKET);
+
 
         // this->handler_add(handle_sig_get_file, actors_common::SIG_DISPLAY_ACTOR_GET_FILE);
     }

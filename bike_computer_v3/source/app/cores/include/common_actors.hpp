@@ -37,6 +37,7 @@ namespace actors_common {
         SIG_DATA_ACTOR_CONTINUE,
         SIG_DATA_ACTOR_SET_CONFIG,
         SIG_DATA_ACTOR_SET_TOTAL,
+        SIG_DATA_ACTOR_REQ_PACKET,
         // SIG_DATA_ACTOR_GET_FILE_RESPOND,
 
         // core 1
@@ -49,6 +50,7 @@ namespace actors_common {
         SIG_DISPLAY_ACTOR_LOG,
         // SIG_DISPLAY_ACTOR_GET_FILE,
         SIG_DISPLAY_ACTOR_SHOW_MSG,
+        SIG_DISPLAY_ACTOR_GET_PACKET,
         SIG_NO_MAX
     };
     enum class File_Respond { time_offset };

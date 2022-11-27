@@ -14,6 +14,7 @@
 #include "display_actor.hpp"
 #include "core_utils.hpp"
 #include "common_types.h"
+#include "signals.hpp"
 #include "utils.hpp"
 #include "common_data.hpp"
 #include "common_actors.hpp"
@@ -72,6 +73,16 @@ void Display_Actor::run_thread(void)
 // #------------------------------#
 // | static functions definitions |
 // #------------------------------#
+
+void Display_Actor::handle_sig_get_packet(const Signal &sig)
+{
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Get_Packet*>();
+    local_packet = *payload->packet_p;
+    {
+        Signal sig(actors_common::SIG_DATA_ACTOR_REQ_PACKET, payload);
+        Data_Actor::get_instance().send_signal(sig);
+    }
+}
 
 void Display_Actor::handle_sig_show_msg(const Signal &sig)
 {
@@ -183,6 +194,13 @@ void Display_Actor::setup(void)
         payload->ridden_dist_total = dist;
         payload->ridden_time_total = time;
         Signal sig(actors_common::SIG_DATA_ACTOR_SET_TOTAL, payload);
+        Data_Actor::get_instance().send_signal(sig);
+    }
+
+    auto payload = new Data_Actor::Sig_Display_Actor_Req_Packet();
+    payload->packet_p = new actors_common::Packet();
+    {
+        Signal sig(actors_common::SIG_DATA_ACTOR_REQ_PACKET, payload);
         Data_Actor::get_instance().send_signal(sig);
     }
 
@@ -349,7 +367,7 @@ int Display_Actor::loop(void)
         display::display();
 
         // send packet
-        pc_queue->pop_blocking(local_packet);
+        // pc_queue->pop_blocking(local_packet);
     }
 
     absolute_time_t frameEnd = get_absolute_time();

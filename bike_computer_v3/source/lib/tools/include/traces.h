@@ -121,7 +121,7 @@ static inline void tracesSetup()
     // ==================================================
     //                   CORE 1 TRACES
     // ==================================================
-    //TRACES_ON(1,TRACE_CORE_1); // render time for scree
+    TRACES_ON(1,TRACE_CORE_1); // render time for scree
     //TRACES_ON(2,TRACE_CORE_1); // pause btn
 
 
