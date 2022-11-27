@@ -21,15 +21,15 @@
 // | global types declarations     |
 // #-------------------------------#
 
-typedef void(*sig_hander)(const Signal&);
+typedef void(*sig_handler)(const Signal&);
 
 class Actor
 {
     struct Handler
     {
-        sig_hander handler_func;
+        sig_handler handler_func;
         sig_id id;
-        Handler(sig_hander handler_func, sig_id id)
+        Handler(sig_handler handler_func, sig_id id)
             : handler_func{handler_func}, id{id}
         {}
     };
@@ -38,20 +38,24 @@ private:
     mutex mutex_queue;
 protected:
     std::vector<Handler> handlers;
-    inline void handler_add(sig_hander handler, sig_id id)
+    inline void handler_add(sig_handler handler, sig_id id)
     {
         this->handlers.emplace_back(handler, id);
     }
-
-public:
     /**
      * @brief adds sig handlers to actor
      *
      */
     virtual void handler_setup() = 0;
-    // {
-    //     printf("default :(\n");
-    // }
+
+    /**
+     * @brief checks if there is no signals in queue
+     *
+     * @return true
+     * @return false
+     */
+    bool is_queue_empty();
+
 public:
     Actor();
     ~Actor();
@@ -63,7 +67,7 @@ public:
      * @param sig
      */
     void send_signal(const Signal& sig);
-    void send_signal(Signal& sig, Actor* from);
+    // void send_signal(Signal& sig, Actor* from);
 
 
     /**
@@ -77,15 +81,6 @@ public:
      *
      */
     void handle_all();
-
-
-    /**
-     * @brief checks if there is no signals in queue
-     *
-     * @return true
-     * @return false
-     */
-    bool is_queue_empty();
 };
 
 // #-------------------------------#

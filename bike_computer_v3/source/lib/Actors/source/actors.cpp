@@ -56,11 +56,11 @@ void Actor::send_signal(const Signal &sig)
     TRACE_DEBUG(1, TRACE_ACTOR,"sent sig id=%" PRIu16 "\n", sig.get_sig_id());
 }
 
-void Actor::send_signal(Signal& sig, Actor* from)
-{
-    sig.set_actor(from);
-    send_signal(sig);
-}
+// void Actor::send_signal(Signal& sig, Actor* from)
+// {
+//     sig.set_actor(from);
+//     send_signal(sig);
+// }
 
 
 /**

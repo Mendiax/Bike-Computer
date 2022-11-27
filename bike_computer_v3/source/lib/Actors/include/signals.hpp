@@ -6,6 +6,7 @@
 // pico includes
 
 // c/c++ includes
+#include <cstdint>
 #include <typeinfo>
 #include <inttypes.h>
 #include <string.h>
@@ -29,25 +30,22 @@ struct Signal
 private:
     const sig_id id;
     char *payload;
-    void* actor_p;
+    // void* actor_p;
     const size_t payload_size;
 
 public:
     Signal(sig_id id)
-        : id{id}, actor_p{nullptr}, payload_size{0}
+        : id{id}, payload_size{0}
     {
         this->payload = nullptr;
     }
     template<typename T>
     Signal(sig_id id, T* payload)
-        : id{id}, actor_p{nullptr}, payload_size{sizeof(T)}
+        : id{id}, payload_size{sizeof(T)}
     {
         this->payload = (char *)payload;
     }
-    // ~Signal()
-    // {
-    //     //delete[] this->payload;
-    // }
+
     sig_id get_sig_id() const
     {
         return this->id;
@@ -55,20 +53,16 @@ public:
     template <typename T>
     inline T get_payload(void) const
     {
-        //T payload;
-        //memcpy(&payload, this->payload, this->payload_size);
-        //printf("payload copied = %p\n", payload);
-
         return (T)this->payload;
     }
-    inline void set_actor(void* actor)
-    {
-        actor_p = actor;
-    }
-    inline void* get_actor() const
-    {
-        return actor_p;
-    }
+    // inline void set_actor(void* actor)
+    // {
+    //     actor_p = actor;
+    // }
+    // inline void* get_actor() const
+    // {
+    //     return actor_p;
+    // }
 };
 
 

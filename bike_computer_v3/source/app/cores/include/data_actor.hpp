@@ -59,15 +59,17 @@ private:
     {
         this->pc_queue = pc_queue;
     }
+    void run_thread(void);
     void setup(void);
     int loop(void);
     int loop_frame_update();
-    void run_thread(void);
+
+    friend void core_setup(void);
+
     Data_Actor()
     {
         handler_setup();
     }
-    friend void core_setup(void);
 public:
     static inline Data_Actor& get_instance()
     {

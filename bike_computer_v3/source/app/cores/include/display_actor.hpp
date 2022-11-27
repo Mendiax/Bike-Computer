@@ -70,8 +70,6 @@ private:
     static void handle_sig_get_packet(const Signal &sig);
 
 
-
-
     void handler_setup()
     {
         this->handler_add(handle_sig_total_update, actors_common::SIG_DISPLAY_ACTOR_TOTAL_UPDATE);

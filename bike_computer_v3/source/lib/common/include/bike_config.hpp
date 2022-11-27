@@ -68,7 +68,7 @@ struct Bike_Config
      * File looks like this:
      * GF:{32} \\ gears on the front
      * GR:{51,45,39,33,28,24,21,18,15,13,11} \\ gears on the rear
-     * WS:1.2 \\ wheel size in meters
+     * WS:2.2 \\ wheel size in meters
      *
      *
      * @return const char*

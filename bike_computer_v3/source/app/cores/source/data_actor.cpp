@@ -515,8 +515,7 @@ static float calc_slope(const float distance, const float altitude)
     static float last_altitude = 0.0f;
     static float slope;
     // check if last_distance is no bigger than current distance
-    // if(last_distance > distance){last_distance = distance;}
-    // if(std::abs(altitude - last_altitude) >= 1.0f)
+    if(distance > last_distance)
     {
 
         const float current_alt = altitude;
@@ -527,6 +526,9 @@ static float calc_slope(const float distance, const float altitude)
 
         last_distance = distance;
         last_altitude = current_alt;
+    }
+    else {
+        last_distance = distance;
     }
     return slope;
 }
