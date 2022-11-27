@@ -48,7 +48,7 @@ namespace speed
      *
      * @return float distance in km
      */
-    float get_distance_total();
+    float get_distance_total(bool reset = true);
 
     float get_velocity_kph();
     float get_distance_m();

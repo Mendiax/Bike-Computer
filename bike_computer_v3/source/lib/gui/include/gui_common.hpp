@@ -14,9 +14,12 @@
 // #-------------------------------#
 // |            macros             |
 // #-------------------------------#
-#define BTN_ACTION btn2
-#define BTN_NAVIGATE btn1
 #define BTN_NAVIGATE_BACK btn0
+#define BTN_NAVIGATE btn1
+#define BTN_ACTION btn2
+#define BTN_ACTION_SECOND btn3
+
+
 
 // #-------------------------------#
 // | global types declarations     |
@@ -25,18 +28,18 @@
 
 namespace gui
 {
-    typedef void* view_list_p;
+    class View_List;
 
     class View
     {
     private:
-        view_list_p next;
+        View_List* next;
 
     public:
-        View(view_list_p next = nullptr);
+        View(View_List* next = nullptr);
         ~View();
 
-        view_list_p get_next_view_list();
+        View_List* get_next_view_list();
         /**
          * @brief render function that renders current view
          *
@@ -50,6 +53,9 @@ namespace gui
          */
         virtual void action(void);
         virtual void action_long(void);
+
+        virtual void action_second(void);
+        virtual void action_second_long(void);
 
     };
 

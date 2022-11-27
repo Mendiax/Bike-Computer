@@ -2,6 +2,7 @@
 // |           includes            |
 // #-------------------------------#
 // pico includes
+#include <cstddef>
 #include <pico/stdlib.h>
 #include "bmp280.hpp"
 #include "display/driver.hpp"
@@ -87,7 +88,7 @@ static Session_Data *session_p = 0;
 // | static functions declarations|
 // #------------------------------#
 
-
+static float calc_slope(const float distance, const float altitude);
 static bool load_config_from_file(const char* config_str, const char* file_name);
 
 static void update_total_stats();
@@ -304,7 +305,20 @@ void Data_Actor::handle_sig_stop(const Signal &sig)
     speed::stop();
 
     sensors_data.current_state = SystemState::TURNED_ON;
-    session_p->end(sensors_data.current_time);
+
+    if(session_p == nullptr)
+    {
+        return;
+    }
+
+    if(session_p->has_started())
+    {
+        session_p->end(sensors_data.current_time);
+        auto payload = new Display_Actor::Sig_Display_Actor_Save_Sesion();
+        payload->session = *session_p;
+        Signal sig(actors_common::SIG_DISPLAY_ACTOR_SAVE_SESSION, payload);
+        Data_Actor::get_instance().send_signal(sig);
+    }
 }
 
 
@@ -335,7 +349,6 @@ int Data_Actor::loop_frame_update()
         // battery
         cycle_get_battery_status();
         cycle_get_forecast_data();
-        cycle_log_data();
     }
     else
     {
@@ -351,66 +364,48 @@ int Data_Actor::loop_frame_update()
             PRINT("Booting done");
         }
     }
+    cycle_log_data();
     cycle_get_weather_data();
 
 
 
 
 
-    // calc delta
-    const absolute_time_t time_update_current = get_absolute_time();
-    static absolute_time_t time_update_prev;
-    const auto delta_ms = us_to_ms(absolute_time_diff_us(time_update_prev, time_update_current));
-    time_update_prev = time_update_current;
+
 
     // read data first
-    static float last_velocity;
+    // static float last_velocity;
     const float velocity = speed::get_velocity_kph();
     const float cadence = cadence::get_cadence();
-
-    const float accel = (velocity - last_velocity)/((double)delta_ms / 1000.0);
-    last_velocity = velocity;
+    // this gets distance without paused fragments
+    const float distance = speed::get_distance_m();
+    // sensors_data.slope = calc_slope(distance, sensors_data.altitude);
 
     // get gear
     const float wheel_rpm = speed::kph_to_rpm(velocity);
     const float read_ratio = wheel_rpm / cadence;
     const Gear_S gear = config.get_current_gear(read_ratio);
 
-    // this gets distance without paused fragments
-    const float distance = speed::get_distance_m();
+    // const float accel = (velocity - last_velocity)/((double)delta_ms / 1000.0);
+    // last_velocity = velocity;
 
-    {
-        static float last_distance = 0.0f;
-        static float last_altitude = 0.0f;
-        if(distance - last_distance > 5.0f)
-        {
-
-            const float current_alt = sensors_data.altitude;
-            const float d_alt = current_alt - last_altitude;
-            const float d_dis = distance - last_distance;
-            const float tg = d_alt / d_dis;
-            sensors_data.slope = tg * 100.0f;
-
-            last_distance = distance;
-            last_altitude = current_alt;
-        }
-    }
     // calc gear suggestion
     auto gear_suggestion = gear_suggestion_calc->get_suggested_gear(cadence, gear);
+
+
+
 
     TRACE_DEBUG(5, TRACE_CORE_0,
         "dist=%f wheel_rpm=%f, cadence=%f, read_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
         distance, wheel_rpm, cadence, read_ratio, gear.front, gear.rear);
-
-
     // update data in sensor
     sensors_data.velocity = velocity;
     sensors_data.cadence = cadence;
-    sensors_data.accel = accel;
+    // sensors_data.accel = accel;
     sensors_data.gear = gear;
 
-    sensors_data.gear_suggestions.cadence_min = gear_suggestion.cadence_min;
-    sensors_data.gear_suggestions.cadence_max = gear_suggestion.cadence_max;
+    // sensors_data.gear_suggestions.cadence_min = gear_suggestion.cadence_min;
+    // sensors_data.gear_suggestions.cadence_max = gear_suggestion.cadence_max;
 
     switch (gear_suggestion.suggestion)
     {
@@ -431,6 +426,12 @@ int Data_Actor::loop_frame_update()
         sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
         break;
     }
+
+    // calc delta
+    const absolute_time_t time_update_current = get_absolute_time();
+    static absolute_time_t time_update_prev;
+    const auto delta_ms = us_to_ms(absolute_time_diff_us(time_update_prev, time_update_current));
+    time_update_prev = time_update_current;
 
     // update if running
     if(session_p != nullptr && session_p->has_started())
@@ -496,6 +497,28 @@ int Data_Actor::loop_frame_update()
         pc_queue->push_blocking(new_packet);
     }
     return 0;
+}
+
+static float calc_slope(const float distance, const float altitude)
+{
+    static float last_distance = 0.0f;
+    static float last_altitude = 0.0f;
+    static float slope;
+    // check if last_distance is no bigger than current distance
+    // if(last_distance > distance){last_distance = distance;}
+    // if(std::abs(altitude - last_altitude) >= 1.0f)
+    {
+
+        const float current_alt = altitude;
+        const float d_alt = current_alt - last_altitude;
+        const float d_dis = distance - last_distance;
+        const float tg = d_alt / d_dis;
+        slope = tg * 100.0f;
+
+        last_distance = distance;
+        last_altitude = current_alt;
+    }
+    return slope;
 }
 
 static bool load_config_from_file(const char* config_str, const char* file_name)
@@ -568,10 +591,10 @@ static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const 
     std::stringstream ss;
     ss << "gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
     payload->file_name = ss.str();
-    payload->header = "time;latitude;longitude;velocity_gps;velocity_gpio;altitude_gps;altitude_press\n";
+    payload->header = "time;latitude;longitude;velocity_gps;velocity_gpio;altitude_gps;altitude_press;slope\n";
 
     char buffer[64] = {0};
-    sprintf(buffer, "%s;%f;%f;%f;%f;%f;%f\n", time_to_str(time).c_str(), gps.lat, gps.lon, gps.speed, sensor_data.velocity, gps.msl, sensor_data.altitude);
+    sprintf(buffer, "%s;%f;%f;%f;%f;%f;%f;%f\n", time_to_str(time).c_str(), gps.lat, gps.lon, gps.speed, sensor_data.velocity, gps.msl, sensor_data.altitude, sensor_data.slope);
     payload->line = buffer;
 
     Signal sig(actors_common::SIG_DISPLAY_ACTOR_LOG, payload);
@@ -583,9 +606,7 @@ static void cycle_log_data()
     CYCLE_UPDATE_SIMPLE(true, LOG_DATA_CYCLE_MS,
         {
 
-            if(sensors_data.gps_data.lat != 0 &&
-                sensors_data.gps_data.lon != 0 &&
-                session_p->is_running() &&
+            if(session_p->is_running() &&
                 session_p->get_start_time().is_valid())
             {
                 // send log to core1
@@ -730,6 +751,7 @@ static void cycle_get_weather_data()
                      sensors_data.weather.temperature = (float)temp / 100.0f;
                      sensors_data.weather.pressure = press;
                      sensors_data.altitude = altitude;
+                     sensors_data.slope = calc_slope(speed::get_distance_m(), altitude);
                      TRACE_DEBUG(4, TRACE_CORE_0,
                                  "Current weather temp:%" PRId32 "C press:%" PRId32 "Pa altitude:%.2fm\n",
                                  temp, press, altitude);

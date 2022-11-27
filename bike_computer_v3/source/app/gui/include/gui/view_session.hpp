@@ -39,6 +39,9 @@ public:
     void action(void);
     // end session
     void action_long(void);
+
+    // end session no save
+    void action_second_long(void);
 };
 
 // #-------------------------------#

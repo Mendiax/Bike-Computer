@@ -225,66 +225,62 @@ void Display_Actor::handle_sig_start_pause_btn(const Signal &sig)
 
 void Display_Actor::handle_sig_end_btn(const Signal &sig)
 {
-    display::clear();
-    Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
-    const sFONT *font = 0;
-    uint8_t scale;
-    auto label = "SAVING";
-    auto width_char = pause_label.width / strlen(label);
-    getFontSize(width_char, pause_label.height, &font, &scale);
-    Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
-    display::display();
-
     Signal sig_stop(actors_common::SIG_DATA_ACTOR_STOP);
     Data_Actor::get_instance().send_signal(sig_stop);
+}
 
+void Display_Actor::handle_sig_save_session(const Signal &sig)
+{
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_End_Sesion*>();
 
-    sessionDataDisplay.end(sensors_data_display.current_time);
-
-    Sd_File last_save(Display_Actor::get_session_log_file_name());
-    if (last_save.is_empty())
+    if(payload->save)
     {
-        last_save.append(sessionDataDisplay.get_header());
-        sessionDataDisplay.set_id(1);
-    }
-    else
-    {
-        auto line_no = last_save.get_no_of_lines();
-        // PRINT("line_no:" << line_no);
-        // for(int i = 0; i < line_no; i++)
-        // {
-        //     PRINT("read line " << i << ": " << last_save.read_line(i, 100));
-        // }
-
-
-        // extract id from last
-        auto line = last_save.read_line(line_no - 2, 10); // raed only first field with id + ';'
-        PRINT("last line" << line);
-        auto end_pos = line.find_first_of(';');
-        massert(end_pos != std::string::npos, "';' not found %s\n", line.c_str());
-        auto id_str = line.substr(0, end_pos).c_str();
-        uint16_t id = std::atoi(id_str) + 1;
-        // massert(id != 0, "id == 0 id_str:%s\n", id_str);
-        PRINT("id:" << id);
-        sessionDataDisplay.set_id(id);
-    }
-    last_save.append(sessionDataDisplay.get_line().c_str());
-
-    {
-        // PRINTF("STOPPED\n");
         display::clear();
         Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
         const sFONT *font = 0;
         uint8_t scale;
-        auto label = "SAVED";
+        auto label = "SAVING";
         auto width_char = pause_label.width / strlen(label);
         getFontSize(width_char, pause_label.height, &font, &scale);
         Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
         display::display();
-        sleep_ms(1000);
+
+        Sd_File last_save(Display_Actor::get_session_log_file_name());
+        if (last_save.is_empty())
+        {
+            last_save.append(sessionDataDisplay.get_header());
+            sessionDataDisplay.set_id(1);
+        }
+        else
+        {
+            auto line_no = last_save.get_no_of_lines();
+            // extract id from last
+            auto line = last_save.read_line(line_no - 2, 10); // raed only first field with id + ';'
+            auto end_pos = line.find_first_of(';');
+            massert(end_pos != std::string::npos, "';' not found %s\n", line.c_str());
+            auto id_str = line.substr(0, end_pos).c_str();
+            uint16_t id = std::atoi(id_str) + 1;
+
+            sessionDataDisplay.set_id(id);
+        }
+        last_save.append(sessionDataDisplay.get_line().c_str());
+
+        {
+            // PRINTF("STOPPED\n");
+            display::clear();
+            Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
+            const sFONT *font = 0;
+            uint8_t scale;
+            auto label = "SAVED";
+            auto width_char = pause_label.width / strlen(label);
+            getFontSize(width_char, pause_label.height, &font, &scale);
+            Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
+            display::display();
+            sleep_ms(1000);
+        }
     }
-    // retunrn to main menu
-    // this->gui->go_back();
+
+    delete payload;
 }
 
 void Display_Actor::handle_sig_load_session(const Signal &sig)

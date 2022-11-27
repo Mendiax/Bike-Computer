@@ -36,7 +36,7 @@
 // #------------------------------#
 // | global function definitions  |
 // #------------------------------#
-Main_History::Main_History(gui::view_list_p p)
+Main_History::Main_History(gui::View_List* p)
     :gui::View(p)
 {
     // sessions = new Sd_File(Display_Actor::get_session_log_file_name());
@@ -154,6 +154,20 @@ void Main_History::action()
     else
     {
         this->current_log_idx = 1;
+    }
+
+    insert_files_into_display();
+}
+
+void  Main_History::action_second(void)
+{
+    if(this->current_log_idx > 1)
+    {
+        this->current_log_idx--;
+    }
+    else
+    {
+        this->current_log_idx = no_sessions;
     }
 
     insert_files_into_display();

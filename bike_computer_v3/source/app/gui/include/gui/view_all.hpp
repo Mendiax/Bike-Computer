@@ -14,7 +14,6 @@
 #include "view_last_date.hpp"
 
 #include "main/main_new_session.hpp"
-#include "main/main_load_config.hpp"
 #include "main/main_history.hpp"
 
 

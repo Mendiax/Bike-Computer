@@ -39,7 +39,7 @@
 
 using namespace gui;
 
-View::View(view_list_p next)
+View::View(View_List* next)
 {
     this->next = next;
 }
@@ -48,7 +48,7 @@ View::~View()
 
 }
 
-view_list_p View::get_next_view_list()
+View_List* View::get_next_view_list()
 {
     return next;
 }
@@ -60,6 +60,15 @@ void View::action(void)
 void View::action_long(void)
 {
     // empty handler
+}
+
+void View::action_second(void)
+{
+
+}
+void View::action_second_long(void)
+{
+
 }
 
 

@@ -96,8 +96,8 @@ void Gui::create()
     // -----------------------------
     //      main menu
     // -----------------------------
-    main_menu->add_view(new Main_New_Session((gui::view_list_p)session_menu));
-    main_menu->add_view(new Main_History((gui::view_list_p)history_session_menu));
+    main_menu->add_view(new Main_New_Session((gui::View_List*)session_menu));
+    main_menu->add_view(new Main_History((gui::View_List*)history_session_menu));
 
 
 
@@ -136,25 +136,10 @@ void Gui::handle_buttons()
                this->get_current()->action(),
                this->get_current()->action_long());
 
-    // if(BTN_NAVIGATE.pop_was_pressed())
-    // {
-    //     this->go_next();
-    // }
-    // if(BTN_NAVIGATE.pop_was_pressed_long())
-    // {
-    //     this->go_prev();
-    //     // this->current_view_list = this->current_view_list->get_back();
-    // }
+    BTN_HANDLE(BTN_ACTION_SECOND,
+               this->get_current()->action_second(),
+               this->get_current()->action_second_long());
 
-    // // enter
-    // if(BTN_ACTION.pop_was_pressed())
-    // {
-    //     this->get_current()->action();
-    // }
-    // if(BTN_ACTION.pop_was_pressed_long())
-    // {
-    //     this->get_current()->action_long();
-    // }
     #undef BTN_HANDLE
 }
 

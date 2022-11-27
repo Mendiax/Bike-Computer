@@ -156,10 +156,11 @@ float speed::get_time_total()
     return time_s / 3600.0f;
 }
 
-float speed::get_distance_total()
+float speed::get_distance_total(bool reset)
 {
     float dist = (float)speed_wheelCounter_total * wheel_size;
-    speed_wheelCounter_total = 0;
+    if(reset)
+        speed_wheelCounter_total = 0;
     return dist / 1000.0f;
 }
 

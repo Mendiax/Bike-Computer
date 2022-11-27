@@ -42,7 +42,18 @@ void View_Session::action(void)
 // end session
 void View_Session::action_long(void)
 {
-    Signal sig(actors_common::SIG_DISPLAY_ACTOR_END_BTN);
+    auto payload = new Display_Actor::Sig_Display_Actor_End_Sesion();
+    payload->save = true;
+    Signal sig(actors_common::SIG_DISPLAY_ACTOR_END_BTN, payload);
+    Display_Actor::get_instance().send_signal(sig);
+    Gui::get_gui()->go_back();
+}
+
+void  View_Session::action_second_long(void)
+{
+    auto payload = new Display_Actor::Sig_Display_Actor_End_Sesion();
+    payload->save = false;
+    Signal sig(actors_common::SIG_DISPLAY_ACTOR_END_BTN, payload);
     Display_Actor::get_instance().send_signal(sig);
     Gui::get_gui()->go_back();
 }

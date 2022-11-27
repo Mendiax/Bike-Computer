@@ -31,7 +31,7 @@ void View_Gps::render(void)
     auto [gps_lat, gps_long] = View_Creator::split_vertical(gps_pos);
     auto [signal, bmp] = View_Creator::split_vertical(gsm);
     auto [sat, sat2] = View_Creator::split_horizontal(signal);
-    auto [temp, press] = View_Creator::split_horizontal(bmp);
+    auto [temp, slope] = View_Creator::split_horizontal(bmp);
 
 
 
@@ -52,6 +52,7 @@ void View_Gps::render(void)
     creator->add_value("s2:%2" PRIu8,5,&this->data.gps_data.sat2, sat2, Align::LEFT);
 
     creator->add_value("% 3.0fC",4,&this->data.weather.temperature, temp, Align::CENTER);
+    creator->add_value("% 3.0fp",4,&this->data.slope, slope, Align::CENTER); // TODO fix for %
     //add_value("%4f",4,&this->data.gps_data.sat2, sat2, Align::CENTER);
 }
 // #------------------------------#

@@ -38,7 +38,7 @@ private:
 
 public:
     // using View::View;
-    Main_History(gui::view_list_p p);
+    Main_History(gui::View_List* p);
     // Main_New_Sesion() = default;
     /**
      * @brief render function that renders current view
@@ -57,6 +57,8 @@ public:
      *
      */
     void action_long(void);
+
+    void action_second(void);
 };
 // #-------------------------------#
 // | global variables declarations |

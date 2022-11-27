@@ -31,6 +31,14 @@ public:
     //     std::string file_name;
     // };
 
+    struct Sig_Display_Actor_End_Sesion {
+        bool save;
+    };
+
+    struct Sig_Display_Actor_Save_Sesion {
+        Session_Data session;
+    };
+
     struct Sig_Display_Actor_Load_Session {
         uint16_t session_id;
     };
@@ -49,6 +57,8 @@ private:
     static void handle_sig_start_pause_btn(const Signal &sig);
     static void handle_sig_end_btn(const Signal &sig);
     static void handle_sig_load_session(const Signal &sig);
+    static void handle_sig_save_session(const Signal &sig);
+
     // static void handle_sig_log_gps(const Signal &sig);
     static void handle_sig_log(const Signal &sig);
     static void handle_sig_show_msg(const Signal &sig);
@@ -61,6 +71,9 @@ private:
         this->handler_add(handle_sig_start_pause_btn, actors_common::SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
         this->handler_add(handle_sig_end_btn, actors_common::SIG_DISPLAY_ACTOR_END_BTN);
         this->handler_add(handle_sig_load_session, actors_common::SIG_DISPLAY_ACTOR_LOAD_SESSION);
+        this->handler_add(handle_sig_save_session, actors_common::SIG_DISPLAY_ACTOR_SAVE_SESSION);
+
+
         // this->handler_add(handle_sig_log_gps, actors_common::SIG_DISPLAY_ACTOR_LOG_GPS);
         this->handler_add(handle_sig_log, actors_common::SIG_DISPLAY_ACTOR_LOG);
         this->handler_add(handle_sig_show_msg, actors_common::SIG_DISPLAY_ACTOR_SHOW_MSG);
