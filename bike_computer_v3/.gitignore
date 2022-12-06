@@ -9,6 +9,8 @@ lib/Parser/src/parser_bison.cpp
 lib/Parser/src/lexer.cpp
 .idea
 
+data/
+
 lib/Parser/test_data.json
 drivers/DOF/Mag/
 

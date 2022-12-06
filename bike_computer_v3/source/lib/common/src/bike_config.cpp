@@ -200,8 +200,6 @@ bool Bike_Config::from_string(const char* str)
     {
         float gear_ratio = iter.get_next();
         gear_ratios[i++] = gear_ratio;
-        // gear_diff = std::min(std::abs(last_gear_ratio - gear_ratio), gear_diff);
-        // last_gear_ratio = gear_ratio;
     }
 
     auto get_diff = [&](size_t k)
@@ -291,46 +289,3 @@ static inline bool check_floats_prec(float f1, float f2, float prec)
     return ((f1 - prec <= f2) &&
             (f1 + prec >= f2));
 }
-
-#define VAL(str) #str
-#define TOSTRING(str) VAL(str)
-
-std::string Gear_Usage::to_string()
-{
-    std::string header = "[" TOSTRING(MAX_NO_OF_GEARS) "|" TOSTRING(CADENCE_DATA_MIN) "|" TOSTRING(CADENCE_DATA_MAX) "|" TOSTRING(CADENCE_DATA_DELTA) "]";
-    for(int i = 0; i < MAX_NO_OF_GEARS; i++)
-    {
-        for (int j = 0; j < CADENCE_DATA_LEN; j++)
-        {
-            header += ",";
-            header += std::to_string(usage[i][j]);
-        }
-    }
-    return header;
-}
-
-void Gear_Usage::from_string(const std::string& str)
-{
-    // auto fp = str.find_first_of('[');
-    // auto lp = str.find_first_of(']');
-
-    // auto len = fp - lp + 1;
-    // auto header_str = str.substr(lp, len);
-
-
-    auto start_pos = str.find_first_of(']') + 1;
-
-    auto data_arr = split_string(str.substr(start_pos),',');
-
-    for(int i = 0; i < MAX_NO_OF_GEARS; i++)
-    {
-        for (int j = 0; j < CADENCE_DATA_LEN; j++)
-        {
-            const size_t idx = i * CADENCE_DATA_LEN + j;
-            massert(idx < data_arr.size(), "gear usage from str failed: %zu\n", idx);
-            this->usage[i][j] = std::atof(data_arr[idx].c_str());
-        }
-    }
-
-}
-

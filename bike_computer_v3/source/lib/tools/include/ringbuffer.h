@@ -52,6 +52,7 @@ int ring_buffer_pop(Ring_Buffer *ring_buffer, char *new_element);
 
 int ring_buffer_push(Ring_Buffer *ring_buffer, const char *element);
 
+int ring_buffer_push_overwrite(Ring_Buffer *ring_buffer, const char *element);
 
 #ifdef __cplusplus
 }

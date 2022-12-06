@@ -53,13 +53,13 @@ public:
     };
 
 private:
-    Data_Queue<actors_common::Packet>* pc_queue;
     Gui* gui;
+    actors_common::Packet local_data;
 
     // definde in core1.cpp
     static void handle_sig_total_update(const Signal &sig);
-    static void handle_sig_start_pause_btn(const Signal &sig);
-    static void handle_sig_end_btn(const Signal &sig);
+    // static void handle_sig_start_pause_btn(const Signal &sig);
+    // static void handle_sig_end_btn(const Signal &sig);
     static void handle_sig_load_session(const Signal &sig);
     static void handle_sig_save_session(const Signal &sig);
 
@@ -73,8 +73,8 @@ private:
     void handler_setup()
     {
         this->handler_add(handle_sig_total_update, actors_common::SIG_DISPLAY_ACTOR_TOTAL_UPDATE);
-        this->handler_add(handle_sig_start_pause_btn, actors_common::SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
-        this->handler_add(handle_sig_end_btn, actors_common::SIG_DISPLAY_ACTOR_END_BTN);
+        // this->handler_add(handle_sig_start_pause_btn, actors_common::SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
+        // this->handler_add(handle_sig_end_btn, actors_common::SIG_DISPLAY_ACTOR_END_BTN);
         this->handler_add(handle_sig_load_session, actors_common::SIG_DISPLAY_ACTOR_LOAD_SESSION);
         this->handler_add(handle_sig_save_session, actors_common::SIG_DISPLAY_ACTOR_SAVE_SESSION);
 
@@ -88,10 +88,6 @@ private:
         // this->handler_add(handle_sig_get_file, actors_common::SIG_DISPLAY_ACTOR_GET_FILE);
     }
 
-    inline void set_pc_queue(Data_Queue<actors_common::Packet>* pc_queue)
-    {
-        this->pc_queue = pc_queue;
-    }
     void setup();
     int loop();
 
@@ -100,9 +96,15 @@ private:
     Display_Actor()
     {
         handler_setup();
+        local_data = {0};
     }
     friend void core1LaunchThread(void);
 public:
+    inline actors_common::Packet& get_local_data() {return local_data;}
+    inline void set_local_data(const actors_common::Packet& data) {
+        this->local_data = data;
+    }
+
     static inline const char* get_session_log_file_name(){
         return "session_log.csv";
     }

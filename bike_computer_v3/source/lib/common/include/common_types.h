@@ -12,14 +12,14 @@
 #include <array>
 #include <vector>
 
-enum class SystemState
-{
-    TURNED_ON,
-    AUTOSTART,
-    RUNNING,
-    PAUSED,
-    ENDED,
-};
+// enum class SystemState
+// {
+//     TURNED_ON,
+//     AUTOSTART,
+//     RUNNING,
+//     PAUSED,
+//     ENDED,
+// };
 
 struct SpeedData
 {
@@ -156,7 +156,7 @@ typedef struct Sensor_Data
     GpsDataS gps_data;
     Battery lipo; // battery info
     Gear_S gear;  // gear {front, rear}
-    SystemState current_state;
+    // SystemState current_state;
     // gear suggestions
     Gear_Suggestions gear_suggestions;
     float altitude; // height in m
@@ -166,6 +166,8 @@ typedef struct Sensor_Data
     float slope; // slope in %
     float total_time_ridden; // in h
     float total_distance_ridden; // in km
+
+    float velocity_raw;
 
 } Sensor_Data;
 

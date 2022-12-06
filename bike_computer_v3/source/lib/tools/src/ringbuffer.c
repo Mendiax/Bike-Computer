@@ -1,4 +1,5 @@
 #include "ringbuffer.h"
+// #include <cstdint>
 #include <string.h>
 
 
@@ -70,7 +71,7 @@ uint8_t ring_buffer_get_last_element(Ring_Buffer *ring_buffer)
     {
         return 0;
     }
-    return ring_buffer_get_element_at_byte(ring_buffer, ring_buffer->current_queue_length - 1);
+    return ring_buffer_get_element_at(ring_buffer, ring_buffer->current_queue_length - 1, uint8_t);
 }
 
 char *ring_buffer_get_last_element_pointer(Ring_Buffer *ring_buffer)
@@ -114,16 +115,28 @@ int ring_buffer_push(Ring_Buffer *ring_buffer, const char *element)
     return 0;
 }
 
+int ring_buffer_push_overwrite(Ring_Buffer *ring_buffer, const char *element)
+{
+    if (!ring_buffer->current_queue_length)
+    {
+        memcpy(ring_buffer_get_element_pointer(ring_buffer, ring_buffer->current_index), element, ring_buffer->size_of_element);
+    }
+    else
+    {
+        size_t nextFree = (ring_buffer->current_index + ring_buffer->current_queue_length) % ring_buffer->max_queue_length;
+        memcpy(ring_buffer_get_element_pointer(ring_buffer, nextFree), element, ring_buffer->size_of_element);
+    }
+    if (ring_buffer_is_full(ring_buffer))
+    {
+        ring_buffer_inc_index(ring_buffer);
+    }
+    else
+    {
+        ring_buffer->current_queue_length++;
+    }
 
-
-
-
-
-
-
-
-
-
+    return 0;
+}
 
 static void ring_buffer_inc_index(Ring_Buffer *queue)
 {

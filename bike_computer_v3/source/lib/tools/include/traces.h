@@ -86,7 +86,7 @@ static inline void tracesSetup()
     // all 0 ids are for abnormal traces and tunrd on on default
     for(size_t i = 0; i < NO_TRACES; i++)
     {
-        TRACES_ON(0, i);
+        // TRACES_ON(0, i);
     }
     TRACES_ON(0, TRACE_MAIN);
     TRACES_ON_ALL(TRACE_SPEED);
@@ -121,8 +121,9 @@ static inline void tracesSetup()
     // ==================================================
     //                   CORE 1 TRACES
     // ==================================================
-    TRACES_ON(1,TRACE_CORE_1); // render time for scree
-    //TRACES_ON(2,TRACE_CORE_1); // pause btn
+    // TRACES_ON(1,TRACE_CORE_1); // render time for scree
+    TRACES_ON(2,TRACE_CORE_1); // pause btn
+
 
 
     // ==================================================
@@ -167,7 +168,7 @@ static inline void tracesSetup()
     //                   CADENCE TRACES
     // ==================================================
     TRACES_ON(1, TRACE_BIKE_CONFIG); // to str
-    TRACES_ON(2, TRACE_BIKE_CONFIG); // min diff gear ratio
+    // TRACES_ON(2, TRACE_BIKE_CONFIG); // min diff gear ratio
     // TRACES_ON(3, TRACE_BIKE_CONFIG); // add gear usage
 
 

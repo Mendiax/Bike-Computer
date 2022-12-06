@@ -44,8 +44,12 @@ public:
     void on_call_release(void) override;
     Button(int pin);
     void reset_callback();
+
+    // unused
     void set_callback(btn_call callback);
+    // unused
     void set_callback_long(btn_call callback);
+
     bool is_pressed();
     bool is_pressed_long();
     /**

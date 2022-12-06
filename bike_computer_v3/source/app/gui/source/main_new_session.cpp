@@ -8,6 +8,7 @@
 
 // my includes
 #include "gui/main/main_new_session.hpp"
+#include "data_actor.hpp"
 #include "gui/structure.hpp"
 #include "views/view.hpp"
 #include "traces.h"
@@ -55,6 +56,7 @@ void Main_New_Session::action()
     // PRINTF("main manu new session btn pressed next list:%p\n", this->get_next_view_list());
     auto gui = Gui::get_gui();
     gui->enter();
+    Data_Actor::get_instance().send_signal(Signal(actors_common::SIG_DATA_ACTOR_SESSION_START));
 }
 
 // #------------------------------#

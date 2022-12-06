@@ -7,7 +7,11 @@
 
 bool TimeS::is_valid() const
 {
-    return this->year >= 2022;
+    return  this->year >= 2022
+            && this->month <= 12
+            && this->month >= 1
+            && this->day <= 31
+            && this->day >= 1;
 }
 
 datetime_t TimeS::to_date_time() const

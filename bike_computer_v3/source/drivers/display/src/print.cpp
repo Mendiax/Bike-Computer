@@ -37,14 +37,14 @@ void Paint_SetPixel(uint16_t x, uint16_t y, display::DisplayColor color)
 {
     /*            width
     #---------------------------->x
-    |                               
-    |                               
-    |                               
-    | height                        
-    |                               
-    |                               
-    |                               
-   \/                               
+    |
+    |
+    |
+    | height
+    |
+    |
+    |
+   \/
     y
     */
     if(x >= DISPLAY_WIDTH || y >= DISPLAY_HEIGHT)
@@ -155,7 +155,7 @@ void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void 
     uint_fast8_t sy = y0 < y1 ? 1 : -1;
 
     int_fast32_t error = dx + dy;
-    
+
     while(true)
     {
         draw_func(x0, y0, color);

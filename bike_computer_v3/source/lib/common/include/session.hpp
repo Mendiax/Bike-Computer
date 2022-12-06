@@ -17,7 +17,6 @@ public:
     TimeS time_start;
     TimeS time_end;
     SpeedData speed;
-    Gear_Usage gear_usage;
 
     enum class Status {
         NOT_STARTED, PAUSED, RUNNING, ENDED
@@ -31,7 +30,6 @@ private:
     inline void reset()
     {
         this->speed = {0};
-        this->gear_usage = {0};
         this->status = Status::NOT_STARTED;
         this->time_start = {0};
         this->time_end = {0};
@@ -43,7 +41,9 @@ public:
      *
      * @param csv_line
      */
-    Session_Data(const char* csv_line, bool load_gear=true);
+    Session_Data(const char* csv_line);
+
+    inline Status get_status() const {return this->status;}
 
     inline void set_id(uint16_t id){this->id = id;}
     inline bool is_running(){
@@ -89,7 +89,6 @@ public:
      * @param cadence
      * @param millis
      */
-    void add_gear_time(uint8_t gear, float cadence, uint64_t millis);
     int16_t* get_distance_var();
     void update(float speed_kph, float distance_m);
 

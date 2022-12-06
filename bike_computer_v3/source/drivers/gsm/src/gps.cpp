@@ -148,7 +148,7 @@ bool sim868::gps::fetch_data()
                 gps_current_state = GpsState::NO_SIGNAL;
                 //PRINTF("respond OK\n");
             }
-            if(gsm_data.utc_date_time.year > 2000)
+            if(gsm_data.utc_date_time.is_valid())
             {
                 gps_current_state = GpsState::DATA_AVAIBLE;
                 gps_last_data = gsm_data;

@@ -8,6 +8,7 @@
 #include "pico/binary_info.h"
 #include "pico/stdlib.h"
 #include "traces.h"
+#include "ringbuffer.h"
 
  /* Example code to talk to a BMP280 temperature and pressure sensor
     NOTE: Ensure the device is capable of being driven at 3.3v NOT 5v. The Pico
@@ -217,6 +218,9 @@ void bmp280_get_calib_params(struct BMP280_Calib* params) {
 
 struct BMP280_Calib params;
 
+#define BUFFER_LEN 4
+static Ring_Buffer* press_buffer = 0;
+
 std::tuple<int32_t, int32_t> bmp280::get_temp_press()
 {
     bmp280_get_calib_params(&params);
@@ -225,11 +229,28 @@ std::tuple<int32_t, int32_t> bmp280::get_temp_press()
     bmp280_read_raw(&raw_temperature, &raw_pressure);
     int32_t temperature = bmp280_convert_temp(raw_temperature, &params);
     int32_t pressure = bmp280_convert_pressure(raw_pressure, raw_temperature, &params);
-    return std::make_tuple(temperature, pressure);
+
+    ring_buffer_push_overwrite(press_buffer, (char*)&pressure);
+
+    int32_t* buffer_arr = (int32_t*)press_buffer->data_pointer;
+    int64_t press_avg = 0;
+    for(int i = 0; i < press_buffer->current_queue_length; i++)
+    {
+        press_avg += buffer_arr[i];
+    }
+    press_avg /= press_buffer->current_queue_length;
+
+
+    return std::make_tuple(temperature, press_avg);
 }
 
 void bmp280::init()
 {
+    if(press_buffer)
+    {
+        ring_buffer_destroy(press_buffer);
+    }
+    press_buffer = ring_buffer_create(sizeof(int32_t), BUFFER_LEN);
     bmp280_init();
     // retrieve fixed compensation params
     bmp280_get_calib_params(&params);

@@ -74,7 +74,7 @@ def analyze_db(file_name : str, id : str, gear_range : tuple = None):
     print(gear_range)
     index = 1
     for gear_data in data_analyze.get_gear_all():
-        if gear_range[0] <= index and index <= gear_range[1]:
+        if gear_range is None or gear_range[0] <= index and index <= gear_range[1]:
             label = f"gear{index}"
             yAxis = gear_data
             plt.plot(xAxis, yAxis, color=colors[index], marker='.', label=label)
@@ -106,7 +106,7 @@ def get_sys_arg(param, default=None):
     return get_arg(sys.argv, param, default)
 
 def main():
-    file_name = get_sys_arg("file", "log/last_track.csv")
+    file_name = get_sys_arg("file", "log/session_log.csv")
     analyze = get_sys_arg("analyze")
     if analyze is not None:
         gear_range = get_sys_arg("gears")

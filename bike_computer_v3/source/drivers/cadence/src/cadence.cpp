@@ -20,7 +20,7 @@ static volatile absolute_time_t speed_lastupdate;
 
 //[m/s]
 static volatile float current_cadence = 0.0f;
-// check if last value was read by speed_getSpeed() function
+// check if last value was read by cadence_update() function
 static volatile bool dataReady = false;
 
 // static declarations
@@ -63,11 +63,6 @@ float cadence::get_cadence()
     dataReady = false;
     current_cadence = current_cadence >= MIN_CADENCE ? current_cadence : 0.0f;
 
-    // if (us_to_ms(absolute_time_diff_us(last_update_us, update_us)) > MAX_TIME)
-    // {
-    //     return 0.0;
-    // }
-    //DEBUG_SPEED("getSpeed : %ul cadence : %f\n", to_ms_since_boot(update_us), current_cadence);
     TRACE_DEBUG(3, TRACE_CADENCE, "current_cadence: %f\n", current_cadence);
 
     return current_cadence;
@@ -77,12 +72,8 @@ void cadence::emulate(float cadence)
 {
     TRACE_DEBUG(1, TRACE_CADENCE, "Speed emulate add timer\n");
     static struct repeating_timer timer;
+    cancel_repeating_timer(&timer);
     add_repeating_timer_ms(-cadence_to_ms(cadence), repeating_timer_callback, NULL, &timer);
-}
-
-void cadence::speedData_update(SpeedData& speed_data)
-{
-
 }
 
 

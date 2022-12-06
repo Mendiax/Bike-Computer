@@ -9,7 +9,14 @@
 
 Session_Data::Session_Data()
 {
+    memset(&this->time_start, 0, sizeof(this->time_start));
+    memset(&this->time_end, 0, sizeof(this->time_end));
     memset(&this->speed, 0, sizeof(this->speed));
+
+    memset(&this->absolute_time_start, 0, sizeof(this->absolute_time_start));
+    memset(&this->absolute_time_last_stop, 0, sizeof(this->absolute_time_last_stop));
+
+
     this->status = Session_Data::Status::NOT_STARTED;
 }
 void Session_Data::start(TimeS time)
@@ -69,14 +76,6 @@ void Session_Data::end(TimeS time)
     this->time_end = time;
 }
 
-void Session_Data::add_gear_time(uint8_t gear, float cadence, uint64_t millis)
-{
-    if(this->status == Session_Data::Status::RUNNING)
-    {
-        add_gear_usage(this->gear_usage, gear, cadence, (float)millis / 1000.0);
-    }
-}
-
 void Session_Data::update(float speed_kph, float distance_m)
 {
     uint32_t stop_time = this->speed.stop_time;
@@ -119,15 +118,14 @@ void Session_Data::update(float speed_kph, float distance_m)
 const char *Session_Data::get_header()
 {
     return "id;time_start;time_end;"
-            "velocityMax;avg;avg_global;distance;drive_time;" // speed
-            "gears" // gear usage
+            "velocityMax;avg;avg_global;distance;drive_time" // speed
             "\n";
 }
 
-Session_Data::Session_Data(const char* csv_line, bool load_gear)
+Session_Data::Session_Data(const char* csv_line)
 {
     const auto data = split_string(csv_line, ';');
-    massert(data.size() >= (7 + load_gear), "wrong read session from line:'%s', data size:%zu", csv_line, data.size());
+    massert(data.size() >= (8), "wrong read session from line:'%s', data size:%zu", csv_line, data.size());
     this->id = std::atoi(data.at(0).c_str());
     this->time_start = time_from_str(data.at(1).c_str());
     this->time_end = time_from_str(data.at(2).c_str());
@@ -138,8 +136,6 @@ Session_Data::Session_Data(const char* csv_line, bool load_gear)
     this->speed.distance = dist / 1000;
     this->speed.distanceDec = (dist - speed.distance) / 10;
     this->speed.drive_time = std::atoll(data.at(7).c_str());
-    if(load_gear)
-        this->gear_usage.from_string(data.at(8).c_str());
 }
 
 std::string Session_Data::get_line()
@@ -149,8 +145,7 @@ std::string Session_Data::get_line()
     csv_line << id << ";"
              << time_to_str(time_start) << ";" << time_to_str(time_end) << ";"
              << speed.velocityMax << ";" << speed.avg << ";" << speed.avg_global << ";"
-             << (speed.distance * 1000 + speed.distanceDec * 10) << ";" << speed.drive_time << ";"
-             << gear_usage.to_string() << "\n";
+             << (speed.distance * 1000 + speed.distanceDec * 10) << ";" << speed.drive_time << ";\n";
 
     return csv_line.str();
 }

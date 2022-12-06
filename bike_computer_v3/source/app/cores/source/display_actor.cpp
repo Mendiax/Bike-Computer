@@ -44,9 +44,9 @@
 // #------------------------------#
 // | static variables definitions |
 // #------------------------------#
-static actors_common::Packet local_packet = {0};
-static Sensor_Data& sensors_data_display = local_packet.sensors;
-static Session_Data& sessionDataDisplay = local_packet.session;
+// static actors_common::Packet local_packet = {0};
+// static Sensor_Data& sensors_data_display = local_packet.sensors;
+// static Session_Data& sessionDataDisplay = local_packet.session;
 
 
 
@@ -77,7 +77,9 @@ void Display_Actor::run_thread(void)
 void Display_Actor::handle_sig_get_packet(const Signal &sig)
 {
     auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Get_Packet*>();
-    local_packet = *payload->packet_p;
+
+    //  Display_Actor::get_instance().get_local_data() = *payload->packet_p;
+    Display_Actor::get_instance().set_local_data(*payload->packet_p);
     {
         Signal sig(actors_common::SIG_DATA_ACTOR_REQ_PACKET, payload);
         Data_Actor::get_instance().send_signal(sig);
@@ -122,21 +124,6 @@ void Display_Actor::handle_sig_log(const Signal &sig)
 }
 
 
-// void Display_Actor::handle_sig_log_gps(const Signal &sig)
-// {
-//     auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Log_Gps*>();
-//     Sd_File config_file(payload->file_name);
-//     if(config_file.is_empty())
-//     {
-//         config_file.append("time;latitude;longitude\n");
-//     }
-//     char buffer[64] = {0};
-//     sprintf(buffer, "%s;%f;%f\n", time_to_str(payload->time).c_str(), payload->data.lat, payload->data.lon);
-//     config_file.append(buffer);
-
-//     delete payload;
-// }
-
 void Display_Actor::handle_sig_total_update(const Signal &sig)
 {
     float dist, time;
@@ -169,7 +156,10 @@ void Display_Actor::setup(void)
 {
     interruptSetupCore1();
     // setup
-    this->gui = Gui::get_gui(&sensors_data_display, &sessionDataDisplay);
+    Sensor_Data* sensor_data_p = &Display_Actor::get_instance().get_local_data().sensors;
+    Session_Data* session_data_p = &Display_Actor::get_instance().get_local_data().session;
+
+    this->gui = Gui::get_gui(sensor_data_p, session_data_p);
     this->gui->render();
     this->gui->refresh();
 
@@ -206,96 +196,55 @@ void Display_Actor::setup(void)
 
 }
 
-void Display_Actor::handle_sig_start_pause_btn(const Signal &sig)
-{
-    TRACE_DEBUG(2, TRACE_CORE_1, "pause btn pressed \n");
-    switch(sensors_data_display.current_state)
-    {
-        case SystemState::PAUSED:
-            {
-                Signal sig(actors_common::SIG_DATA_ACTOR_CONTINUE);
-                Data_Actor::get_instance().send_signal(sig);
-                TRACE_DEBUG(2, TRACE_CORE_1, "sending signal continue %d\n", (int) sig.get_sig_id());
-
-            }
-            break;
-        case SystemState::AUTOSTART:
-        case SystemState::RUNNING:
-            {
-                Signal sig(actors_common::SIG_DATA_ACTOR_PAUSE);
-                Data_Actor::get_instance().send_signal(sig);
-                TRACE_DEBUG(2, TRACE_CORE_1, "sending signal pause %d\n", (int) sig.get_sig_id());
-
-            }
-            break;
-        case SystemState::TURNED_ON:
-            {
-                Signal sig(actors_common::SIG_DATA_ACTOR_SESSION_START);
-                Data_Actor::get_instance().send_signal(sig);
-                TRACE_DEBUG(2, TRACE_CORE_1, "sending signal start %d\n", (int) sig.get_sig_id());
-            }
-            break;
-        default:
-            TRACE_ABNORMAL(TRACE_CORE_1, "pause has no effect %d\n", (int) sensors_data_display.current_state);
-            break;
-    }
-}
-
-void Display_Actor::handle_sig_end_btn(const Signal &sig)
-{
-    Signal sig_stop(actors_common::SIG_DATA_ACTOR_STOP);
-    Data_Actor::get_instance().send_signal(sig_stop);
-}
 
 void Display_Actor::handle_sig_save_session(const Signal &sig)
 {
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_End_Sesion*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Save_Sesion*>();
+    auto& session_to_save = payload->session;
 
-    if(payload->save)
+    display::clear();
+    Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
+    const sFONT *font = 0;
+    uint8_t scale;
+    auto label = "SAVING";
+    auto width_char = pause_label.width / strlen(label);
+    getFontSize(width_char, pause_label.height, &font, &scale);
+    Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
+    display::display();
+    sleep_ms(1000);
+
+    Sd_File last_save(Display_Actor::get_session_log_file_name());
+    if (last_save.is_empty())
     {
+        last_save.append(session_to_save.get_header());
+        session_to_save.set_id(1);
+    }
+    else
+    {
+        auto line_no = last_save.get_no_of_lines();
+        // extract id from last
+        auto line = last_save.read_line(line_no - 2, 10); // raed only first field with id + ';'
+        auto end_pos = line.find_first_of(';');
+        massert(end_pos != std::string::npos, "';' not found %s\n", line.c_str());
+        auto id_str = line.substr(0, end_pos).c_str();
+        uint16_t id = std::atoi(id_str) + 1;
+
+        session_to_save.set_id(id);
+    }
+    last_save.append(session_to_save.get_line().c_str());
+
+    {
+        // PRINTF("STOPPED\n");
         display::clear();
         Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
         const sFONT *font = 0;
         uint8_t scale;
-        auto label = "SAVING";
+        auto label = "SAVED";
         auto width_char = pause_label.width / strlen(label);
         getFontSize(width_char, pause_label.height, &font, &scale);
         Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
         display::display();
-
-        Sd_File last_save(Display_Actor::get_session_log_file_name());
-        if (last_save.is_empty())
-        {
-            last_save.append(sessionDataDisplay.get_header());
-            sessionDataDisplay.set_id(1);
-        }
-        else
-        {
-            auto line_no = last_save.get_no_of_lines();
-            // extract id from last
-            auto line = last_save.read_line(line_no - 2, 10); // raed only first field with id + ';'
-            auto end_pos = line.find_first_of(';');
-            massert(end_pos != std::string::npos, "';' not found %s\n", line.c_str());
-            auto id_str = line.substr(0, end_pos).c_str();
-            uint16_t id = std::atoi(id_str) + 1;
-
-            sessionDataDisplay.set_id(id);
-        }
-        last_save.append(sessionDataDisplay.get_line().c_str());
-
-        {
-            // PRINTF("STOPPED\n");
-            display::clear();
-            Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
-            const sFONT *font = 0;
-            uint8_t scale;
-            auto label = "SAVED";
-            auto width_char = pause_label.width / strlen(label);
-            getFontSize(width_char, pause_label.height, &font, &scale);
-            Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
-            display::display();
-            sleep_ms(1000);
-        }
+        sleep_ms(1000);
     }
 
     delete payload;
@@ -335,25 +284,10 @@ int Display_Actor::loop(void)
     {
         this->gui->handle_buttons();
 
-        auto system_sate = sensors_data_display.current_state;
-
         // render
         this->gui->refresh();
 
-        if(system_sate == SystemState::AUTOSTART)
-        {
-            TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label\n");
-            Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
-            const sFONT* font = 0;
-            uint8_t scale;
-            auto label = "waiting for start";
-            auto width_char = pause_label.width / strlen(label);
-            getFontSize(width_char, pause_label.height, &font, &scale);
-            Paint_Println(pause_label.x, pause_label.y, label, font, {0x0,0xf,0x1}, scale);
-        }
-
-
-        if(system_sate == SystemState::PAUSED)
+        if(Display_Actor::get_instance().get_local_data().session.get_status() == Session_Data::Status::PAUSED)
         {
             TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label\n");
             Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
@@ -365,9 +299,6 @@ int Display_Actor::loop(void)
             Paint_Println(pause_label.x, pause_label.y, label, font, {0xf,0x0,0x0}, scale);
         }
         display::display();
-
-        // send packet
-        // pc_queue->pop_blocking(local_packet);
     }
 
     absolute_time_t frameEnd = get_absolute_time();

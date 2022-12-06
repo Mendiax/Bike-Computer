@@ -15,7 +15,6 @@ namespace cadence
 {
     float get_cadence();
     void emulate(float cadence=80.0);
-    void speedData_update(SpeedData& speedData);
 };
 
 

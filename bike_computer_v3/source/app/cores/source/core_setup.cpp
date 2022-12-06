@@ -35,7 +35,7 @@ void core_setup(void)
 void core1LaunchThread(void)
 {
     auto display_actor = Display_Actor::get_instance();
-    display_actor.set_pc_queue(pc_queue);
+    // display_actor.set_pc_queue(pc_queue);
     display_actor.run_thread();
 }
 

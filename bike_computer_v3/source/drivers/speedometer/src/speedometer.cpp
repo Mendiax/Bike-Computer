@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <cstdint>
 #include <speedometer/speedometer.hpp>
 #include <interrupts/interrupts.hpp>
 #include "utils.hpp"
@@ -6,6 +8,7 @@
 #include <pico/time.h>
 #include <hardware/gpio.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "traces.h"
@@ -43,6 +46,9 @@ static void speed_update();
 //static absolute_time_t absolute_time_copy_volatile(volatile absolute_time_t* time);
 static bool repeating_timer_callback(struct repeating_timer *t);
 static uint16_t speed_to_ms(float speed_kph);
+
+/*returns last read speed [m/s]*/
+static float speed_getSpeed(float speed);
 /**
  * @brief calc speed from wheel rotation time
  *
@@ -68,8 +74,15 @@ float speed_getDistance()
     return (float)speed_wheelCounter * wheel_size;
 }
 
+float speed::get_velocity_kph_raw()
+{
+    // PRINT("[RAW] data ready! " << speed_velocity);
+
+    return speed_mps_to_kmph(speed_velocity);
+}
+
 /*returns last read speed [m/s]*/
-float speed_getSpeed()
+static float speed_getSpeed(float last_speed)
 {
     // if speed is not updated between 2 reads and speed is lower than last speed return
     // speed that it would read if next update occured at time of read
@@ -78,31 +91,81 @@ float speed_getSpeed()
     absolute_time_t update_us = get_absolute_time();
     absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
 
+    int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
+    float current_speed = 0;
+
     if(!dataReady) // data is not updated
     {
-        int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
         auto speed = speed_velocity_from_delta(delta_time);
-        if(speed < speed_velocity)
+        if(speed < last_speed)
         {
-            speed_velocity = speed;
+            last_speed = speed;
         }
-        speed_velocity = speed_velocity >= speed_kph_to_mps(MIN_SPEED) ? speed_velocity : 0.0;
-        return speed_velocity;
     }
-
     dataReady = false;
-    if (us_to_ms(absolute_time_diff_us(last_update_us, update_us)) > MAX_TIME)
+    DEBUG_SPEED("getSpeed : %ul speed : %f\n", to_ms_since_boot(update_us), current_speed);
+    current_speed = last_speed >= speed_kph_to_mps(MIN_SPEED) ? last_speed : 0.0;
+    return current_speed;
+
+}
+
+struct de_accel{
+    float speed;
+    float accel;
+};
+
+int64_t alarm_callback(alarm_id_t id, void* data)
+{
+    speed_update();
+    de_accel* data_ = (de_accel*)data;
+    data_->speed += data_->accel * ((float)speed_to_ms(data_->speed) / 1000.0);
+
+    // TRACE_DEBUG(0, TRACE_SPEED, "adding timer in %" PRIu16 " for %f\n",  speed_to_ms(data_->speed), data_->speed);
+    // PRINT("adding timer in " << << " for " << );
+    if(data_->speed <= 0 || data_->speed >= 99)
     {
-        return 0.0;
+        return 0;
     }
-    DEBUG_SPEED("getSpeed : %ul speed : %f\n", to_ms_since_boot(update_us), speed_velocity);
-    return speed_velocity;
+    return -speed_to_ms(data_->speed) * 1000;
+}
+
+
+void speed_emulate_slowing(float speed, float accel)
+{
+    // TRACE_DEBUG(0, TRACE_SPEED, "Speed emulate add timer\n");
+    // static struct repeating_timer timer;
+    auto data = new de_accel();
+    *data = {speed, accel};
+
+    PRINT("adding timer in " << speed_to_ms(speed) << " for " << speed << " w " << accel << "a");
+    add_alarm_in_ms(speed_to_ms(speed), alarm_callback, (void*)data, false);
+
+    // cancel_repeating_timer(&timer);
+    // add_repeating_timer_ms(-speed_to_ms(speed), repeating_timer_callback, NULL, &timer);
 }
 void speed_emulate(float speed)
 {
     TRACE_DEBUG(0, TRACE_SPEED, "Speed emulate add timer\n");
     static struct repeating_timer timer;
+    cancel_repeating_timer(&timer);
     add_repeating_timer_ms(-speed_to_ms(speed), repeating_timer_callback, NULL, &timer);
+
+    // sleep_ms(10);
+    // static struct repeating_timer* timer;
+    // if(timer != NULL)
+    // {
+    //     auto d = cancel_repeating_timer(timer);
+    //     PRINT(d);
+    //     sleep_ms(100);
+    //     free(timer);
+    //     timer = 0;
+    //     return;
+    // }
+    // else
+    // {
+    //     timer = (struct repeating_timer*)malloc(sizeof(struct repeating_timer));
+    //     add_repeating_timer_ms(-speed_to_ms(speed), repeating_timer_callback, NULL, timer);
+    // }
 }
 // static definitions
 
@@ -126,27 +189,24 @@ static float speed_velocity_from_delta(int64_t delta_time)
 }
 static void speed_update()
 {
-        absolute_time_t update_us = get_absolute_time();
-        absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
+    absolute_time_t update_us = get_absolute_time();
+    absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
 
-        int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
-        if (delta_time < speed_to_ms(99.0)) // less than 10 ms so max speed is not bigger than 787km/h with 27.5 // 100 >
-        {
-            //TRACE_ABNORMAL(TRACE_SPEED, "too fast speed updates delta time = %lld\n", delta_time);
-            return;
-        }
-        //PRINTF("speed delta %" PRId64 "\n", delta_time);
-        speed_wheelCounter += (increment_wheelCounter == 1);
-        speed_wheelCounter_total++;
-        speed_velocity = speed_velocity_from_delta(delta_time);
-        // if speed > MIN add time to counter
-        if(speed_velocity >= speed_kph_to_mps(MIN_SPEED))
-        {
-            speed_total_time += delta_time;
-        }
-        //DEBUG_SPEED("interrupt : %lu speed : %f delta : %lld last : %lu\n", to_ms_since_boot(update_us), speed_velocity, delta_time,  to_ms_since_boot(last_update_us));
-        absolute_time_copy_to_volatile(speed_lastupdate, update_us);
-        dataReady = true;
+    int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
+    if (delta_time < speed_to_ms(99.0)) // max speed is not bigger than 99km/h
+    {
+        return;
+    }
+    speed_wheelCounter += (increment_wheelCounter == 1);
+    speed_wheelCounter_total++;
+    speed_velocity = speed_velocity_from_delta(delta_time);
+    // if speed > MIN add time to counter
+    if(speed_velocity >= speed_kph_to_mps(MIN_SPEED))
+    {
+        speed_total_time += delta_time;
+    }
+    absolute_time_copy_to_volatile(speed_lastupdate, update_us);
+    dataReady = true;
 }
 
 float speed::get_time_total()
@@ -171,7 +231,7 @@ void speed::set_wheel(float wheel_diameter)
 
 float speed::get_velocity_kph()
 {
-    return speed_mps_to_kmph(speed_getSpeed());
+    return speed_mps_to_kmph(speed_getSpeed(speed_velocity));
 }
 
 float speed::get_distance_m()
