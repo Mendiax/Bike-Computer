@@ -40,10 +40,9 @@ void View_Last_Avg::render(void)
 
     // frame.height = DISPLAY_HEIGHT;
 
-    auto frames = View_Creator::split_horizontal_arr(frame, 3);
+    auto frames = View_Creator::split_horizontal_arr(frame, 2);
     creator->add_value("max  :%4.2f", 10, &this->session.speed.velocityMax, frames[0], Align::LEFT);
     creator->add_value("avg  :%4.2f",10,&this->session.speed.avg, frames[1], Align::LEFT);
-    creator->add_value("avg_g:%4.2f",10,&this->session.speed.avg_global, frames[2], Align::LEFT);
 
     TRACE_DEBUG(4, TRACE_VIEWS, "View_Last_Avg render \n");
 }

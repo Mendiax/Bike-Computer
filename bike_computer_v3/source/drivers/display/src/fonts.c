@@ -1,5 +1,4 @@
 #include "display/fonts.h"
-//#include "display/debug.h"
 #include "massert.hpp"
 #include "inttypes.h"
 
@@ -71,7 +70,6 @@ void getFontSizePreferBiggerFonts(uint16_t width, uint16_t height, const sFONT**
   *font = fonts[font_id];
   while ((*font)->width > width && (*font)->height > height)
   {
-    // DEBUG_OLED_ASSERT(font_id > 0, "Couldnt find proper font %" PRIu16 " %" PRIu16 "\n", width, height);
     font_id--;
     *font = fonts[font_id];
   }
@@ -85,6 +83,4 @@ void getFontSizePreferBiggerFonts(uint16_t width, uint16_t height, const sFONT**
     fontHeight = (*font)->height * *scale;
   }
   *scale -= 1;
-
-  // DEBUG_OLED_ASSERT((*font)->width * *scale <= width && (*font)->height * *scale <= height, "getFontSizeFailed %s\n", "");
 }

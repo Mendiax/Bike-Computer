@@ -1,3 +1,26 @@
+/*
+Copyright 2020 (c) 2020 Raspberry Pi (Trading) Ltd.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+   disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+   disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 #include "bmp280.hpp"
 
 #include <stdint.h>
@@ -9,6 +32,7 @@
 #include "pico/stdlib.h"
 #include "traces.h"
 #include "ringbuffer.h"
+#include "i2c.h"
 
  /* Example code to talk to a BMP280 temperature and pressure sensor
     NOTE: Ensure the device is capable of being driven at 3.3v NOT 5v. The Pico
@@ -26,19 +50,6 @@
 
  // device has default bus address of 0x76
 #define ADDR _u(0x77)
-/*
- I2C Bus Scan
-    0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
- 00 R  R  R  R  R  R  R  R  .  .  .  .  .  .  .  .
- 10 .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
- 20 .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
- 30 .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
- 40 .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
- 50 .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
- 60 .  .  .  .  .  .  .  .  @  .  .  .  .  .  .  .
- 70 .  .  .  .  .  .  .  @  R  R  R  R  R  R  R  R
-
-*/
 
 // hardware registers
 #define REG_CONFIG _u(0xF5)
@@ -240,26 +251,27 @@ std::tuple<int32_t, int32_t> bmp280::get_temp_press()
     }
     press_avg /= press_buffer->current_queue_length;
 
-
     return std::make_tuple(temperature, press_avg);
 }
 
 void bmp280::init()
 {
-    if(press_buffer)
-    {
-        ring_buffer_destroy(press_buffer);
-    }
+    I2C_Init();
     press_buffer = ring_buffer_create(sizeof(int32_t), BUFFER_LEN);
     bmp280_init();
     // retrieve fixed compensation params
     bmp280_get_calib_params(&params);
+
+    // get some init data
+    for(int i = 0; i < 4; i++)
+    {
+        bmp280::get_temp_press();
+        sleep_ms(10);
+    }
 }
 
 float bmp280::get_height(float pressure_msl, float pressure_cl, float temp)
 {
-    // https://keisan.casio.com/exec/system/1224585971
-
     float h = (
             (std::pow(((double)pressure_msl/(double)pressure_cl), (1.0/5.257)) - 1.0) *
              (temp + 273.15)
@@ -268,12 +280,8 @@ float bmp280::get_height(float pressure_msl, float pressure_cl, float temp)
 }
 
 int bmp_test() {
-
-
     // configure BMP280
     bmp280_init();
-
-
 
     int32_t raw_temperature;
     int32_t raw_pressure;

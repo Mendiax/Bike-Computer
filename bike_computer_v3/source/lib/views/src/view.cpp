@@ -48,11 +48,11 @@ void View_Creator::reset()
 
 void View_Creator::draw()
 {
+    display::clear();
     for (uint_fast8_t i = 0; i < this->currnetNumberOfWindows; i++)
     {
         TRACE_DEBUG(5, TRACE_VIEWS, "Drawing window %" PRIuFAST8 "\n", i);
         this->windows[i].update();
-        // Window_update(&this->windows[i]);
         TRACE_DEBUG(6, TRACE_VIEWS, "window drawed %" PRIuFAST8 "\n", i);
     }
 }
@@ -196,17 +196,6 @@ std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame, uint8_
     return std::make_tuple(f1,f2);
 }
 
-// std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame, float ratio)
-// {
-//     const uint16_t f1_w = frame.width * ratio;
-//     const uint16_t f2_w = frame.width - f1_w;
-
-//     const uint16_t next_x = frame.x + f1_w;
-
-//     const Frame f1 = {frame.x, frame.y, f1_w, frame.height};
-//     const Frame f2 = {next_x, frame.y, f2_w, frame.height};
-//     return std::make_tuple(f1,f2);
-// }
 /**
  * @brief splits frame into 2 frames with half of height
  *
@@ -259,18 +248,6 @@ Frame View_Creator::setup_bar(const Time_HourS* hours, const Battery* lipo)
     top_bar(hours, lipo);
     return get_frame_bar();
 }
-
-// static inline uint16_t View_Creator::get_frame_top_y(const Frame frame)
-// {
-//     massert(DISPLAY_HEIGHT >= frame.y + frame.height, "no space left Y:%" PRIu16  " H:%" PRIu16 "\n", frame.y, frame.height);
-//     return frame.y + frame.height;
-// }
-
-// static inline uint16_t View_Creator::get_height_left(const Frame frame)
-// {
-//     massert(DISPLAY_HEIGHT >= get_frame_top_y(frame), "no space left\n");
-//     return DISPLAY_HEIGHT - get_frame_top_y(frame);
-// }
 
 
 // #------------------------------#

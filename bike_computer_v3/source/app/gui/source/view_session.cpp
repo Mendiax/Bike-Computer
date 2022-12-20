@@ -36,8 +36,6 @@ View_Session::~View_Session()
 // start/pause
 void View_Session::action(void)
 {
-    // Signal sig(actors_common::SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
-    // Display_Actor::get_instance().send_signal(sig);
     TRACE_DEBUG(2, TRACE_CORE_1, "pause btn pressed \n");
 
     const auto& sessionDataDisplay = Display_Actor::get_instance().get_local_data().session;

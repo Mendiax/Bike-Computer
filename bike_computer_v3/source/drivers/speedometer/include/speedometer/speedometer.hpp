@@ -53,10 +53,10 @@ namespace speed
 
     float get_velocity_kph();
     float get_velocity_kph_raw();
-    float get_distance_m();
 
     float kph_to_rpm(float kph);
 
+    float get_distance_m();
     void start();
     void stop();
     void reset();

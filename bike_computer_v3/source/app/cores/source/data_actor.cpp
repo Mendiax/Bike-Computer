@@ -27,11 +27,11 @@
 #include "signals.hpp"
 #include "traces.h"
 #include "common_types.h"
-#include "common_data.hpp"
+
 #include "speedometer/speedometer.hpp"
 #include "cadence/cadence.hpp"
 #include "interrupts/interrupts.hpp"
-#include "parser.hpp"
+
 #include "common_actors.hpp"
 #include "display_actor.hpp"
 #include "data_actor.hpp"
@@ -39,9 +39,7 @@
 // SIM868
 #include "sim868/interface.hpp"
 #include "sim868/gps.hpp"
-#include "sim868/gsm.hpp"
 // BMP
-//#include "IMU.h"
 #include "i2c.h"
 
 #include "hardware/rtc.h"
@@ -99,11 +97,7 @@ static void cycle_log_data();
 static void cycle_print_heart_beat();
 static void cycle_get_battery_status();
 static void cycle_get_gps_data();
-static void cycle_get_forecast_data();
 static void cycle_get_weather_data();
-
-template<size_t N>
-static inline void move_forecasts_to_forecastplots(ForecastS* raw_data, ForecastArrS<N>* forecast, uint8_t current_hour=0);
 
 // #------------------------------#
 // | global function definitions  |
@@ -111,11 +105,16 @@ static inline void move_forecasts_to_forecastplots(ForecastS* raw_data, Forecast
 void Data_Actor::run_thread(void)
 {
     setup();
+    PRINT("SETUP DONE");
     while (loop())
     {
         tight_loop_contents();
     }
 }
+
+static void gear_update(Gear_Suggestion_Calculator* gear_suggestion_calc);
+static float speed_cadence_update();
+
 
 static void set_speed_gear(float emulated_speed, uint8_t gear);
 
@@ -176,62 +175,43 @@ void Data_Actor::setup(void)
     };
     rtc_set_datetime(&t);
 
-// TODO remove
-// #if PREDEFINED_BIKE_SETUP == 1
-//     config.from_string(
-//         "GF:32\n"
-//         "GR:51,45,39,33,28,24,21,18,15,13,11\n"
-//         "WS:2.186484\n"
-//     );
-// #else
-
     // wait for config
     while(!config_received)
     {
         Data_Actor::get_instance().handle_all();
         sleep_ms(10);
     }
+    PRINT("CONFIG RECIVED");
     config.to_string();
-// #endif
 
     // for testing purpose
-    if(true)
-    {
-        set_speed_gear(20, 8);
-    }
-    gear_suggestion_calc = new Gear_Suggestion_Calculator(config);
+    #ifdef SIM_SPEED
+    PRINT("EMULATING SPEED");
+    set_speed_gear(20, 8);
+    #endif
 
-    // sensors_data.forecast.windgusts_10m.array[0] = 1.8;
-    // sensors_data.forecast.windgusts_10m.array[1] = 5.9;
-    // sensors_data.forecast.windgusts_10m.array[2] = 10.0;
-    // sensors_data.forecast.windgusts_10m.array[3] = 15.0;
-    // sensors_data.forecast.windgusts_10m.array[4] = 20.0;
-    // sensors_data.forecast.windgusts_10m.array[5] = 10.0;
+    gear_suggestion_calc = new Gear_Suggestion_Calculator(config);
 
     //turn of power led
     gpio_init(25); //power led
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 0);
 
+    PRINT("INIT SIM868");
     // setup sim868
    sim868::init();
    sim868::turnOn();
 
-
     session_p = new Session_Data();
-
-    // sensors_data.current_state = SystemState::TURNED_ON;
-
-    I2C_Init();
+    PRINT("INIT BMP280");
     bmp280::init();
-    for(int i = 0; i < 4; i++)
-    {
-        bmp280::get_temp_press();
-        sleep_ms(10);
-    }
+
+    PRINT("WAITING FOR SIM868");
+
     while (sim868::check_for_boot_long() == false) {
         sleep_ms(1000);
     }
+    PRINT("WAITING FOR TIME");
     while (sensors_data.current_time.is_valid() == false) {
         cycle_get_gps_data();
     }
@@ -307,21 +287,14 @@ void Data_Actor::handle_sig_req_packet(const Signal &sig)
 
 
 
-
-
-
 void Data_Actor::handle_sig_pause(const Signal &sig)
 {
     speed::stop();
-
-    // sensors_data.current_state = SystemState::PAUSED;
     session_p->pause();
 }
 void Data_Actor::handle_sig_continue(const Signal &sig)
 {
     speed::start();
-
-    // sensors_data.current_state = SystemState::RUNNING;
     session_p->cont();
 }
 
@@ -331,23 +304,19 @@ void Data_Actor::handle_sig_session_start(const Signal &sig)
     speed::stop();
     speed::reset();
     {
-        // sensors_data.current_state = SystemState::AUTOSTART;
         if(session_p != nullptr)
             delete session_p;
         session_p = new Session_Data();
         session_p->start(sensors_data.current_time);
         session_p->pause();
     }
-    // speed::start();
 }
 
 void Data_Actor::handle_sig_start(const Signal &sig)
 {
 
     session_p->pause();
-    // sensors_data.current_state = SystemState::AUTOSTART;
     speed::start();
-    // session_p->start(sensors_data.current_time);
 
 }
 void Data_Actor::handle_sig_stop(const Signal &sig)
@@ -380,20 +349,10 @@ void Data_Actor::handle_sig_stop(const Signal &sig)
 }
 
 
-static void on_stop();
-static void on_stop()
-{
-    update_total_stats();
-}
-
-
 int Data_Actor::loop_frame_update()
 {
-    // update_total_stats();
-
     Data_Actor::get_instance().handle_all();
     {
-
         datetime_t t;
         rtc_get_datetime(&t);
         sensors_data.current_time.from_date_time(t);
@@ -401,186 +360,60 @@ int Data_Actor::loop_frame_update()
     cycle_print_heart_beat();
 
     if(sim868::is_booted())
-    { // sim usage
+    {
         cycle_get_gps_data();
-
-        // battery
         cycle_get_battery_status();
-        // cycle_get_forecast_data();
     }
     else
     {
-        PRINT("Booting sim868");
         //boot sim
         if(sim868::check_for_boot() && !sim868::is_booted())
         {
-            // not booted
             PRINT("waiting for boot");
         }
-        else
-        {
-            PRINT("Booting done");
-        }
+        PRINT("Booting done");
     }
     cycle_log_data();
     cycle_get_weather_data();
-
-
-    // static uin8_t last_gear;
-    // static float last_speed;
-    // CYCLE_UPDATE_SIMPLE(true, 10000,
-    //     {
-    //         set_speed_gear((float)(rand() % 25) + 5.0f, (rand() % 11) + 1);
-    //     });
-
     cycle_get_slope();
 
 
 
-    // read data first
-    // static float last_velocity;
-    const float velocity = speed::get_velocity_kph();
-    const float cadence = cadence::get_cadence();
-    // this gets distance without paused fragments
-    const float distance = speed::get_distance_m();
-    // sensors_data.slope = calc_slope(distance, sensors_data.altitude);
-
-    float velocity_raw = speed::get_velocity_kph_raw();
 
 
-    // CYCLE_UPDATE_SIMPLE(true, 500,
-    // {
-    //     PRINT(velocity_raw);
-    // });
+    // read data
+    const float distance = speed_cadence_update();
+    gear_update(gear_suggestion_calc);
 
 
-
-    // symulacja zwalaniania
-    // if(sensors_data.current_state == SystemState::RUNNING || sensors_data.current_state == SystemState::AUTOSTART)
-    // {
-    //     static int single_trig = 0;
-    //     if(single_trig == 0)
-    //     {
-    //         PRINT("trigger set");
-    //         single_trig++;
-    //         speed_emulate_slowing(20, -3.0);
-    //     }
-
-    //     CYCLE_UPDATE_SIMPLE(true, 300,
-    //     {
-    //         send_speed_comp(velocity_raw, velocity);
-    //     });
-    // }
-
-
-
-    // get gear
-    const float wheel_rpm = speed::kph_to_rpm(velocity);
-    const float read_ratio = wheel_rpm / cadence;
-    const Gear_S gear = config.get_current_gear(read_ratio);
-
-    // const float accel = (velocity - last_velocity)/((double)delta_ms / 1000.0);
-    // last_velocity = velocity;
-
-    // calc gear suggestion
-    auto gear_suggestion = gear_suggestion_calc->get_suggested_gear(cadence, gear);
-
-
-
-
-    TRACE_DEBUG(5, TRACE_CORE_0,
-        "dist=%f wheel_rpm=%f, cadence=%f, read_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
-        distance, wheel_rpm, cadence, read_ratio, gear.front, gear.rear);
-    // update data in sensor
-    sensors_data.velocity = velocity;
-    sensors_data.cadence = cadence;
-    // sensors_data.accel = accel;
-    sensors_data.gear = gear;
-
-    // sensors_data.gear_suggestions.cadence_min = gear_suggestion.cadence_min;
-    // sensors_data.gear_suggestions.cadence_max = gear_suggestion.cadence_max;
-
-    switch (gear_suggestion.suggestion)
+    // simulate slowing down
+    #ifdef SIM_SLOW_DOWN
+    if(sensors_data.current_state == SystemState::RUNNING)
     {
-    case Gear_Suggestion::UP_SHIFT:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "/\\", GEAR_SUGGESTION_LEN);
-        sensors_data.gear_suggestions.gear_suggestion_color = {0x0,0xf,0x0};
-        break;
-    case Gear_Suggestion::DOWN_SHIFT:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "\\/", GEAR_SUGGESTION_LEN);
-        sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0x0,0x1};
-        break;
-    case Gear_Suggestion::NO_SHIFT:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "--", GEAR_SUGGESTION_LEN);
-        sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
-        break;
-    default:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "  ", GEAR_SUGGESTION_LEN);
-        sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
-        break;
+        static int single_trig = 0;
+        if(single_trig == 0)
+        {
+            single_trig++;
+            speed_emulate_slowing(20, -3.0);
+        }
+        CYCLE_UPDATE_SIMPLE(true, 300,
+        {
+            send_speed_comp(speed::get_velocity_kph_raw(), velocity);
+        });
     }
-
-    // calc delta
-    const absolute_time_t time_update_current = get_absolute_time();
-    static absolute_time_t time_update_prev;
-    const auto delta_ms = us_to_ms(absolute_time_diff_us(time_update_prev, time_update_current));
-    time_update_prev = time_update_current;
+    #endif
 
     // update if running
     if(session_p != nullptr && session_p->has_started())
     {
-        // check if session has valid start time
-        auto time_start = session_p->get_start_time();
-        if(!time_start.is_valid() && sensors_data.current_time.is_valid())
-        {
-            const auto current_absolute_time = get_absolute_time();
-            const auto start_absolute_time = session_p->get_start_absolute_time();
-            const auto diff_ms = us_to_ms(absolute_time_diff_us(start_absolute_time, current_absolute_time));
-
-            // calc how many hours to remove
-            time_start = sensors_data.current_time;
-
-            time_start.substract_ms(diff_ms);
-            session_p->set_start_time(time_start);
-        }
-
-        // update if running
-        session_p->update(velocity, distance);
+        session_p->update(sensors_data.velocity, distance);
     }
 
-    // handle autostart and auto stop
-    // const auto state = sensors_data.current_state;
-    // switch (state)
-    // {
-    //     case SystemState::AUTOSTART:
-    //         if(velocity > 0.0)
-    //         {
-    //             // PRINTF("AUTOSTART\n");
-    //             // Data_Actor::get_instance().send_signal(actors_common::SIG_DATA_ACTOR_CONTINUE);
-    //             Data_Actor::handle_sig_continue(Signal(actors_common::SIG_DATA_ACTOR_CONTINUE));
-    //         }
-    //         break;
-    //     // TODO should this be ended and pused ?
-    //     case SystemState::ENDED:
-    //     case SystemState::PAUSED:
-    //     case SystemState::RUNNING:
-    //         if(velocity == 0.0)
-    //         {
-    //             // Data_Actor::get_instance().send_signal(actors_common::SIG_DATA_ACTOR_START);
-    //             Data_Actor::handle_sig_start(Signal(actors_common::SIG_DATA_ACTOR_START));
-    //             on_stop();
-    //         }
-    //         break;
-    //     case SystemState::TURNED_ON:
-    //     default:
-    //         break;
-    // }
+    if(sensors_data.velocity == 0.0)
+    {
+        update_total_stats();
+    }
 
-    // // send packet
-    // {
-    //     actors_common::Packet new_packet{sensors_data, *session_p};
-    //     pc_queue->push_blocking(new_packet);
-    // }
     return 0;
 }
 
@@ -596,8 +429,8 @@ static float calc_slope(const float distance, const float altitude)
         const float current_alt = altitude;
         const float d_alt = current_alt - last_altitude;
         const float d_dis = distance - last_distance;
-        const float tg = d_alt / d_dis;
-        slope = tg * 100.0f;
+        const float sin = d_alt / d_dis;
+        slope = sin * 100.0f;
 
         last_distance = distance;
         last_altitude = current_alt;
@@ -638,6 +471,45 @@ static void update_total_stats()
         Display_Actor::get_instance().send_signal(sig);
 
         ridden_dist = 0.0;
+    }
+}
+
+static float speed_cadence_update()
+{
+    sensors_data.velocity = speed::get_velocity_kph();
+    sensors_data.cadence = cadence::get_cadence();
+    return speed::get_distance_m();
+}
+
+static void gear_update(Gear_Suggestion_Calculator* gear_suggestion_calc)
+{
+    // get gear
+    const float wheel_rpm = speed::kph_to_rpm(sensors_data.velocity);
+    const float read_ratio = wheel_rpm / sensors_data.cadence;
+    sensors_data.gear = config.get_current_gear(read_ratio);
+
+    // calc gear suggestion
+    auto gear_suggestion = gear_suggestion_calc->get_suggested_gear(sensors_data.cadence, sensors_data.gear);
+
+
+    switch (gear_suggestion.suggestion)
+    {
+    case Gear_Suggestion::UP_SHIFT:
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "/\\", GEAR_SUGGESTION_LEN);
+        sensors_data.gear_suggestions.gear_suggestion_color = {0x0,0xf,0x0};
+        break;
+    case Gear_Suggestion::DOWN_SHIFT:
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "\\/", GEAR_SUGGESTION_LEN);
+        sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0x0,0x1};
+        break;
+    case Gear_Suggestion::NO_SHIFT:
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "--", GEAR_SUGGESTION_LEN);
+        sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
+        break;
+    default:
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "  ", GEAR_SUGGESTION_LEN);
+        sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
+        break;
     }
 }
 
@@ -741,104 +613,27 @@ static void cycle_get_gps_data()
             });
 }
 
-static void cycle_get_forecast_data()
-{
-    // http req
-    static std::string forecast_json;
-    static std::string http_req_addr;
-    static bool success;
-
-
-    TimeS current_time = sensors_data.current_time;
-    TimeS next = current_time;
-    if(next.hour + FORECAST_SENSOR_DATA_LEN > 23)
-    {
-        change_time_by_hour(&next, FORECAST_SENSOR_DATA_LEN);
-    }
-    float latitude = sensors_data.gps_data.lat;
-    float longitude = sensors_data.gps_data.lon;
-    if(current_time.is_valid() && (latitude > 0.0 && longitude > 0.0) )
-    {
-
-        CYCLE_UPDATE(sim868::gsm::get_http_req(success,http_req_addr.c_str(),forecast_json),
-            !success,
-            GSM_FETCH_CYCLE_MS,
-            {
-                if (current_time.is_valid() )
-                {
-                    http_req_addr = sim868::gsm::construct_http_request_url(latitude,
-                                                                            longitude,
-                                                                            current_time.date,
-                                                                            next.date);
-                }
-                else
-                {
-                    http_req_addr = sim868::gsm::construct_http_request_url_no_date(latitude, longitude);
-                }
-            },
-            {
-                {
-                    if(success)
-                    {
-                        // PRINT("forecast: '" << forecast_json << "'");
-                        auto daycnt = 1;
-                        if(current_time.year == 0)
-                            daycnt = 7;
-                        auto forecast_raw = parse_json(forecast_json, daycnt);
-                        if(forecast_raw != nullptr)
-                        {
-
-                            move_forecasts_to_forecastplots(forecast_raw, &sensors_data.forecast, current_time.hour);
-                        }
-                        else
-                        {
-                            TRACE_ABNORMAL(TRACE_CORE_0, "parser returned null ptr\n");
-                        }
-                    }
-                    else
-                    {
-                        TRACE_ABNORMAL(TRACE_CORE_0, "forecast failed\n");
-                    }
-                }
-            });
-    }
-}
-
 static void cycle_get_weather_data()
 {
     int32_t temp, press;
     float altitude;
-    TimeS current_time{0, 0, 0, 0, 0, 0.0f}; // fix xd
 
     CYCLE_UPDATE_SIMPLE(true, WEATHER_CYCLE_MS,
                  {
-                     std::tie(temp, press) = bmp280::get_temp_press();
-
-                     if (sensors_data.forecast.pressure_msl.array[current_time.hour] != 0)
-                     {
-                         altitude = bmp280::get_height(sensors_data.forecast.pressure_msl.array[current_time.hour] * 1000.0f,
-                                                       (float)press,
-                                                       (float)temp / 100.0);
-                     }
-                     else
-                     {
-                        // set as base third read from sensor
-                         static float start_press = 0.0;
-                        //  static uint8_t req_id = 0;
-                         if (start_press == 0.0)
-                         {
-                             start_press = (float)press;
-                            //  req_id++;
-                         }
-                         altitude = bmp280::get_height(start_press,
-                                                       (float)press,
-                                                       (float)temp / 100.0);
-                     }
-                     // temp = (temp % 100) < 50 ? (temp / 100) : ((temp / 100) + 1);
+                    std::tie(temp, press) = bmp280::get_temp_press();
+                    // set as base third read from sensor
+                    static float start_press = 0.0;
+                    //  static uint8_t req_id = 0;
+                    if (start_press == 0.0)
+                    {
+                        start_press = (float)press;
+                    }
+                    altitude = bmp280::get_height(start_press,
+                                                (float)press,
+                                                (float)temp / 100.0);
                      sensors_data.weather.temperature = (float)temp / 100.0f;
                      sensors_data.weather.pressure = press;
                      sensors_data.altitude = altitude;
-                    //  sensors_data.slope = calc_slope(speed::get_distance_m(), altitude);
                      TRACE_DEBUG(4, TRACE_CORE_0,
                                  "Current weather temp:%" PRId32 "C press:%" PRId32 "Pa altitude:%.2fm\n",
                                  temp, press, altitude);
@@ -852,39 +647,4 @@ static void cycle_get_slope()
         {
             sensors_data.slope = calc_slope(speed::get_distance_m(), sensors_data.altitude);
         });
-}
-
-
-template<size_t N>
-static inline void move_forecasts_to_forecastplots(ForecastS* raw_data, ForecastArrS<N>* forecast, uint8_t current_hour)
-{
-    if(current_hour + N > raw_data->data_len)
-    {
-        current_hour = raw_data->data_len - N;
-    }
-    auto hour = current_hour;
-    for(size_t i = 0; i < N; i++)
-    {
-        forecast->time_h.array[i] = hour++;
-    }
-    memcpy(&forecast->temperature_2m.array[0], &raw_data->temperature_2m[current_hour], sizeof(*raw_data->temperature_2m) * FORECAST_SENSOR_DATA_LEN);
-    memcpy(&forecast->pressure_msl.array[0], &raw_data->pressure_msl[current_hour], sizeof(*raw_data->pressure_msl) * FORECAST_SENSOR_DATA_LEN);
-    memcpy(&forecast->precipitation.array[0], &raw_data->precipitation[current_hour], sizeof(*raw_data->precipitation) * FORECAST_SENSOR_DATA_LEN);
-    memcpy(&forecast->windspeed_10m.array[0], &raw_data->windspeed_10m[current_hour], sizeof(*raw_data->windspeed_10m) * FORECAST_SENSOR_DATA_LEN);
-    memcpy(&forecast->winddirection_10m.array[0], &raw_data->winddirection_10m[current_hour], sizeof(*raw_data->winddirection_10m) * FORECAST_SENSOR_DATA_LEN);
-    memcpy(&forecast->windgusts_10m.array[0], &raw_data->windgusts_10m[current_hour], sizeof(*raw_data->windgusts_10m) * FORECAST_SENSOR_DATA_LEN);
-
-    forecast->sunrise.hour = raw_data->sunrise[0].hour;
-    forecast->sunrise.minutes = raw_data->sunrise[0].minutes;
-    forecast->sunrise.seconds = 0;
-
-    forecast->sunset.hour = raw_data->sunset[0].hour;
-    forecast->sunset.minutes = raw_data->sunset[0].minutes;
-    forecast->sunset.seconds = 0;
-
-    forecast->winddirection_10m_dominant = raw_data->winddirection_10m_dominant[0];
-    forecast->current_windspeed = raw_data->current_weather.windspeed;
-    forecast->current_winddirection = raw_data->current_weather.winddirection;
-
-    delete raw_data;
 }

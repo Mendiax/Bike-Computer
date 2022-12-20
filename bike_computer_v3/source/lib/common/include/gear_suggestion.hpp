@@ -40,9 +40,6 @@ struct Gear_Suggestion_Data
     float cadence_max;
 };
 
-void calc_gear(const float& speed, const float& cadence, const Bike_Config& gears);
-
-
 class Gear_Suggestion_Calculator
 {
     const Bike_Config& gears;

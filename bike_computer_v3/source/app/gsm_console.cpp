@@ -10,7 +10,7 @@
 #include "hardware/uart.h"
 
 // #define ROTATE
-//#include "display/print.h"
+//#include "display/driver.hpp"
 // #include "console/console.h"
 #include "sim868/interface.hpp"
 #include "sim868/gsm.hpp"
@@ -68,26 +68,26 @@ static void gps_test_loop()
         static float msl;
         static TimeS current_time;
         static uint8_t sat, sat2;
-        CYCLE_UPDATE(sim868::gps::fetch_data(), false, 500,
-        {
-            //TRACE_DEBUG(3,TRACE_CORE_0,
-            //            "entering fetch_data\n");
-        },
-        {
-            sim868::gps::get_speed(speed);
-            sim868::gps::get_position(latitude, longitude);
-            sim868::gps::get_msl(msl);
+        // CYCLE_UPDATE(sim868::gps::fetch_data(), false, 500,
+        // {
+        //     //TRACE_DEBUG(3,TRACE_CORE_0,
+        //     //            "entering fetch_data\n");
+        // },
+        // {
+        //     sim868::gps::get_speed(speed);
+        //     sim868::gps::get_position(latitude, longitude);
+        //     sim868::gps::get_msl(msl);
 
-            time_print(current_time);
+        //     time_print(current_time);
 
-            sim868::gps::get_signal(sat,
-                                    sat2);
+        //     sim868::gps::get_signal(sat,
+        //                             sat2);
 
-            printf("gps speed %.1f, pos [%.5f,%.5f] date year = %" PRIu16 " signal = [%" PRIu8 ",%" PRIu8 "]\n",
-                        speed, latitude, longitude, current_time.year,
-                        sat,
-                        sat2);
-        });
+        //     printf("gps speed %.1f, pos [%.5f,%.5f] date year = %" PRIu16 " signal = [%" PRIu8 ",%" PRIu8 "]\n",
+        //                 speed, latitude, longitude, current_time.year,
+        //                 sat,
+        //                 sat2);
+        // });
     }
 }
 

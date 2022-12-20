@@ -38,13 +38,15 @@ private:
     mutex mutex_queue;
 protected:
     std::vector<Handler> handlers;
+    /**
+     * @brief adds sig handler to actor
+     */
     inline void handler_add(sig_handler handler, sig_id id)
     {
         this->handlers.emplace_back(handler, id);
     }
     /**
-     * @brief adds sig handlers to actor
-     *
+     * @brief adds all signal handlers to actor
      */
     virtual void handler_setup() = 0;
 
@@ -57,8 +59,10 @@ protected:
     bool is_queue_empty();
 
 public:
+    /**
+     * @brief constructor
+     */
     Actor();
-    ~Actor();
 
     /**
      * @brief sends signal to this actor
@@ -67,7 +71,6 @@ public:
      * @param sig
      */
     void send_signal(const Signal& sig);
-    // void send_signal(Signal& sig, Actor* from);
 
 
     /**

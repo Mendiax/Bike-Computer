@@ -16,7 +16,7 @@
 #include "common_types.h"
 #include "signals.hpp"
 #include "utils.hpp"
-#include "common_data.hpp"
+
 #include "common_actors.hpp"
 #include "display_actor.hpp"
 #include "data_actor.hpp"
@@ -27,10 +27,10 @@
 
 
 // display
-#include "display/print.h"
+#include "display/driver.hpp"
 #include "gui/structure.hpp"
 #include "views/view.hpp"
-#include "common_data.hpp"
+
 
 
 // #-------------------------------#
@@ -38,15 +38,11 @@
 // #-------------------------------#
 
 #define FRAME_PER_SECOND 25
-#define MINIMAL_TIME_BTN 300
 
 
 // #------------------------------#
 // | static variables definitions |
 // #------------------------------#
-// static actors_common::Packet local_packet = {0};
-// static Sensor_Data& sensors_data_display = local_packet.sensors;
-// static Session_Data& sessionDataDisplay = local_packet.session;
 
 
 
@@ -78,7 +74,6 @@ void Display_Actor::handle_sig_get_packet(const Signal &sig)
 {
     auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Get_Packet*>();
 
-    //  Display_Actor::get_instance().get_local_data() = *payload->packet_p;
     Display_Actor::get_instance().set_local_data(*payload->packet_p);
     {
         Signal sig(actors_common::SIG_DATA_ACTOR_REQ_PACKET, payload);
@@ -97,7 +92,7 @@ void Display_Actor::handle_sig_show_msg(const Signal &sig)
     auto label = payload->msg.c_str();
     auto width_char = pause_label.width / strlen(label);
     getFontSize(width_char, pause_label.height, &font, &scale);
-    Paint_Println(pause_label.x, pause_label.y, label, font, payload->color, scale);
+    display::println(pause_label.x, pause_label.y, label, font, payload->color, scale);
     display::display();
     sleep_ms(payload->time_ms);
     if(payload->time_ms == 0)
@@ -209,7 +204,7 @@ void Display_Actor::handle_sig_save_session(const Signal &sig)
     auto label = "SAVING";
     auto width_char = pause_label.width / strlen(label);
     getFontSize(width_char, pause_label.height, &font, &scale);
-    Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
+    display::println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
     display::display();
     sleep_ms(1000);
 
@@ -225,7 +220,6 @@ void Display_Actor::handle_sig_save_session(const Signal &sig)
         // extract id from last
         auto line = last_save.read_line(line_no - 2, 10); // raed only first field with id + ';'
         auto end_pos = line.find_first_of(';');
-        massert(end_pos != std::string::npos, "';' not found %s\n", line.c_str());
         auto id_str = line.substr(0, end_pos).c_str();
         uint16_t id = std::atoi(id_str) + 1;
 
@@ -242,7 +236,7 @@ void Display_Actor::handle_sig_save_session(const Signal &sig)
         auto label = "SAVED";
         auto width_char = pause_label.width / strlen(label);
         getFontSize(width_char, pause_label.height, &font, &scale);
-        Paint_Println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
+        display::println(pause_label.x, pause_label.y, label, font, {0x0, 0xf, 0x0}, scale);
         display::display();
         sleep_ms(1000);
     }
@@ -264,7 +258,7 @@ void Display_Actor::handle_sig_load_session(const Signal &sig)
         {
             return;
         }
-        content = last_save.read_line(id, SESION_DATA_CSV_LEN_NO_GEARS);
+        content = last_save.read_line(id, SESION_DATA_CSV_LEN);
     }
 
     {
@@ -296,7 +290,7 @@ int Display_Actor::loop(void)
             auto label = "PAUSED";
             auto width_char = pause_label.width / strlen(label);
             getFontSize(width_char, pause_label.height, &font, &scale);
-            Paint_Println(pause_label.x, pause_label.y, label, font, {0xf,0x0,0x0}, scale);
+            display::println(pause_label.x, pause_label.y, label, font, {0xf,0x0,0x0}, scale);
         }
         display::display();
     }

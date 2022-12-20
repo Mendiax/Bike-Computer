@@ -58,7 +58,7 @@ static float speed_getSpeed(float speed);
 static float speed_velocity_from_delta(int64_t delta_time);
 
 // global definitions
-interrupt interruptSpeed = {PIN_SPEED, speed_update, GPIO_IRQ_EDGE_RISE}; // GPIO_IRQ_EDGE_FALL
+Interrupt interruptSpeed = {PIN_SPEED, speed_update, GPIO_IRQ_EDGE_RISE}; // GPIO_IRQ_EDGE_FALL
 
 float speed_kph_to_mps(float speed_kph)
 {
@@ -76,18 +76,12 @@ float speed_getDistance()
 
 float speed::get_velocity_kph_raw()
 {
-    // PRINT("[RAW] data ready! " << speed_velocity);
-
     return speed_mps_to_kmph(speed_velocity);
 }
 
 /*returns last read speed [m/s]*/
 static float speed_getSpeed(float last_speed)
 {
-    // if speed is not updated between 2 reads and speed is lower than last speed return
-    // speed that it would read if next update occured at time of read
-    // (smoother transition into lower speeds)
-    // i.e. 20 -> 10 should looks like 20 19 28 ... 10 not 20 10
     absolute_time_t update_us = get_absolute_time();
     absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
 
@@ -106,7 +100,6 @@ static float speed_getSpeed(float last_speed)
     DEBUG_SPEED("getSpeed : %ul speed : %f\n", to_ms_since_boot(update_us), current_speed);
     current_speed = last_speed >= speed_kph_to_mps(MIN_SPEED) ? last_speed : 0.0;
     return current_speed;
-
 }
 
 struct de_accel{
@@ -120,8 +113,6 @@ int64_t alarm_callback(alarm_id_t id, void* data)
     de_accel* data_ = (de_accel*)data;
     data_->speed += data_->accel * ((float)speed_to_ms(data_->speed) / 1000.0);
 
-    // TRACE_DEBUG(0, TRACE_SPEED, "adding timer in %" PRIu16 " for %f\n",  speed_to_ms(data_->speed), data_->speed);
-    // PRINT("adding timer in " << << " for " << );
     if(data_->speed <= 0 || data_->speed >= 99)
     {
         return 0;
@@ -132,16 +123,11 @@ int64_t alarm_callback(alarm_id_t id, void* data)
 
 void speed_emulate_slowing(float speed, float accel)
 {
-    // TRACE_DEBUG(0, TRACE_SPEED, "Speed emulate add timer\n");
-    // static struct repeating_timer timer;
     auto data = new de_accel();
     *data = {speed, accel};
 
     PRINT("adding timer in " << speed_to_ms(speed) << " for " << speed << " w " << accel << "a");
     add_alarm_in_ms(speed_to_ms(speed), alarm_callback, (void*)data, false);
-
-    // cancel_repeating_timer(&timer);
-    // add_repeating_timer_ms(-speed_to_ms(speed), repeating_timer_callback, NULL, &timer);
 }
 void speed_emulate(float speed)
 {
@@ -149,23 +135,6 @@ void speed_emulate(float speed)
     static struct repeating_timer timer;
     cancel_repeating_timer(&timer);
     add_repeating_timer_ms(-speed_to_ms(speed), repeating_timer_callback, NULL, &timer);
-
-    // sleep_ms(10);
-    // static struct repeating_timer* timer;
-    // if(timer != NULL)
-    // {
-    //     auto d = cancel_repeating_timer(timer);
-    //     PRINT(d);
-    //     sleep_ms(100);
-    //     free(timer);
-    //     timer = 0;
-    //     return;
-    // }
-    // else
-    // {
-    //     timer = (struct repeating_timer*)malloc(sizeof(struct repeating_timer));
-    //     add_repeating_timer_ms(-speed_to_ms(speed), repeating_timer_callback, NULL, timer);
-    // }
 }
 // static definitions
 

@@ -6,6 +6,9 @@
 #include "pico/stdlib.h"
 #include <string.h>
 
+#include "display/fonts.h"
+
+
 #define LOW 0
 #define HIGH 1
 
@@ -27,23 +30,23 @@
     #define DISPLAY_WIDTH  320
 #endif
 
-// SETUP
-#ifdef ROTATE
-    // VERITCAL
-    #define MY 1
-    #define MX 1
-    #define MV 0
-#else
-    // HORIZONTAL
-    #define MY 0
-    #define MX 1
-    #define MV 1
-#endif
-    #define ML 0
-    #define RGB 0
-    #define MH 1
-
 #define DISPLAY_PIXEL_COUNT (DISPLAY_HEIGHT * DISPLAY_WIDTH)
+
+/* colors ------------------------------------------------------------------*/
+#define COLOR_WHITE          (display::DisplayColor){0xF, 0xF, 0xF}
+#define COLOR_BLACK          (display::DisplayColor){0x00, 0x0, 0x0}
+#define COLOR_GRAY           (display::DisplayColor){0X03, 0x3, 0x3}
+
+#define IMAGE_BACKGROUND    COLOR_BLACK
+#define FONT_FOREGROUND     COLOR_WHITE
+#define FONT_BACKGROUND     COLOR_BLACK
+
+/* Fonts ------------------------------------------------------------------*/
+
+
+
+/* Print function ------------------------------------------------------------------*/
+
 
 namespace display
 {
@@ -58,10 +61,22 @@ namespace display
 
     void init(void);
     void clear(void);
-    void fill(const DisplayColor color);
-    void fill(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const DisplayColor color);
     void setPixel(const size_t idx, const DisplayColor color);
     void set_pixel_row(const uint_fast32_t idx, const uint_fast32_t width, const display::DisplayColor color);
     void display();
+
+    void draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, display::DisplayColor color = FONT_FOREGROUND, uint8_t scale = 1);
+
+    void set_pixel(uint16_t x, uint16_t y, display::DisplayColor color);
+
+    void draw_char(uint16_t x, uint16_t y, const char character,
+                   const sFONT* font,
+                   display::DisplayColor colorForeground = FONT_FOREGROUND,
+                   uint8_t scale = 1);
+
+    void println(uint16_t x, uint16_t y, const char* str,
+                 const sFONT* font,
+                 display::DisplayColor colorForeground = FONT_FOREGROUND,
+                 uint8_t scale = 1);
 }
 #endif

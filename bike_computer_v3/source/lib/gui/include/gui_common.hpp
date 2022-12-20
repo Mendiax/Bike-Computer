@@ -46,6 +46,7 @@ namespace gui
          */
         virtual void render(void) = 0;
 
+        void refresh(void);
         /**
          * @brief special function that executes when special button is pressed
          * Mainly used to go to the next view
@@ -81,18 +82,6 @@ namespace gui
     };
 
 };
-
-// void create_emnu()
-// {
-//     using namespace gui;
-
-//     View main_menu_new_session;
-//     View main_menu_session_history;
-//     View_List main_menu;
-//     main_menu.add_view(&main_menu_new_session);
-//     main_menu.add_view(&main_menu_session_history);
-
-// };
 
 
 // #-------------------------------#

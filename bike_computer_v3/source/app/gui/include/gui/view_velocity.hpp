@@ -25,19 +25,11 @@ private:
 
 public:
     using View_Session::View_Session;
-    // ~View_Velocity();
-
     /**
      * @brief render function that renders current view
      *
      */
     void render(void);
-    // /**
-    //  * @brief special function that executes when special button is pressed
-    //  * Mainly used to go to the next view
-    //  *
-    //  */
-    // void action(void);
 };
 
 // #-------------------------------#

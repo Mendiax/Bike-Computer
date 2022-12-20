@@ -6,7 +6,7 @@
 
 typedef void (*interr)(void);
 
-struct interrupt
+struct Interrupt
 {
     int pin;
     interr callbackFunc;
@@ -19,13 +19,13 @@ void interruptSetupCore1(void);
 class Button_Interface
 {
 protected:
-    interrupt interrupt_pressed;
-    interrupt interrupt_released;
+    Interrupt interrupt_pressed;
+    Interrupt interrupt_released;
 public:
     virtual void on_call_press(void);
     virtual void on_call_release(void);
-    const interrupt& get_interrupt_pressed() const;
-    const interrupt& get_interrupt_released() const;
+    const Interrupt& get_interrupt_pressed() const;
+    const Interrupt& get_interrupt_released() const;
 };
 
 #endif

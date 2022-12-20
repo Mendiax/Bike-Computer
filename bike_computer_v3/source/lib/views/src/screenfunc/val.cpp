@@ -2,7 +2,7 @@
 #include <display/fonts.h>
 #include "views/frame.h"
 #include <stdio.h>
-#include <display/print.h>
+#include <display/driver.hpp>
 #include "views/screenfunc/common.h"
 #include <stdint.h>
 
@@ -122,7 +122,7 @@ void drawFormatVariable(const void *settings)
 
     //PRINTF("[DRAW] %" PRIu16 ",%" PRIu16 "\n", valSettings->text.offsetX,valSettings->text.offsetY);
 
-    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    display::println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
 void drawFormat_char_p(const void *settings)
@@ -141,14 +141,14 @@ void drawFormat_char_p(const void *settings)
         return;
     }
 
-    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    display::println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
 void drawFormatVariableVoid(const void *settings)
 {
     ValSettings *valSettings = (ValSettings *)settings;
 
-    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, valSettings->text.string, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    display::println(valSettings->text.offsetX,valSettings->text.offsetY, valSettings->text.string, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
 void ValDrawTime(const void *settings)
@@ -170,7 +170,7 @@ void ValDrawTime(const void *settings)
         return;
     }
 
-    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    display::println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
 void draw_battery_level(const void *settings)
@@ -197,7 +197,7 @@ void draw_battery_level(const void *settings)
         last_bat = bat.level;
     }
 
-    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    display::println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
 void drawFormat_Time_DateS(const void *settings)
@@ -211,7 +211,7 @@ void drawFormat_Time_DateS(const void *settings)
     if(snprintf(&buffer[0], max_str_len, "%s%02" PRIu8 ".""%02" PRIu8 ".""%02" PRIu16, valSettings->text.string, time.day, time.month, time.year % 100 ) < 0){
         return;
     }
-    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    display::println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
 void drawFormat_Time_HourS(const void *settings)
@@ -225,7 +225,7 @@ void drawFormat_Time_HourS(const void *settings)
     if(snprintf(&buffer[0], max_str_len,  "%s%02" PRIu8 ":""%02" PRIu8 ":""%02.0f",valSettings->text.string, time.hour, time.minutes, time.seconds) < 0){
         return;
     }
-    Paint_Println(valSettings->text.offsetX, valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    display::println(valSettings->text.offsetX, valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 }
 
 
@@ -240,13 +240,13 @@ void drawFormat_TimeS(const void *settings)
     if(snprintf(&buffer[0], max_str_len, "%02" PRIu8 ".""%02" PRIu8 ".""%02" PRIu16, time.day, time.month, time.year ) < 0){
         return;
     }
-    Paint_Println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    display::println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 
     const uint_fast16_t y_offset = valSettings->text.font->height * valSettings->text.scale;
     if(snprintf(&buffer[0], max_str_len,  "%02" PRIu8 ":""%02" PRIu8 ":""%02" PRIu8, time.hour, time.minutes, time.seconds) < 0){
         return;
     }
-    Paint_Println(valSettings->text.offsetX, valSettings->text.offsetY + y_offset, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
+    display::println(valSettings->text.offsetX, valSettings->text.offsetY + y_offset, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 
     /*
     13.08.22

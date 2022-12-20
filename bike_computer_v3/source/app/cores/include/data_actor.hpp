@@ -1,7 +1,7 @@
 #ifndef CORE0_H
 #define CORE0_H
 #include "common_actors.hpp"
-#include "common_data.hpp"
+
 
 class Data_Actor : public Actor
 {
@@ -26,7 +26,6 @@ public:
     };
 
 private:
-    Data_Queue<actors_common::Packet>* pc_queue;
     Gear_Suggestion_Calculator* gear_suggestion_calc;
 
     static void handle_sig_session_load(const Signal &sig);
@@ -55,10 +54,6 @@ private:
     }
 
 
-    inline void set_pc_queue(Data_Queue<actors_common::Packet>* pc_queue)
-    {
-        this->pc_queue = pc_queue;
-    }
     void run_thread(void);
     void setup(void);
     int loop(void);

@@ -55,7 +55,7 @@ def plot_const_gears(file_name, output = None):
 
     ax3.spines.right.set_position(("axes", 1.2))
 
-    ax1.set_ylim(1, 12)
+    ax1.set_ylim(0, 12)
     ax2.set_ylim(0, 120);
     ax3.set_ylim(0, 30);
 
@@ -92,6 +92,7 @@ def plot_gps_vs_bar(file_name, output):
 
     altitude_press = file['altitude_press']
     altitude_gps = file['altitude_gps']
+    altitude_map = file['height']
 
     time_stamps = file['time']
     xAxis = [i for i in range(len(altitude_gps))]
@@ -104,6 +105,8 @@ def plot_gps_vs_bar(file_name, output):
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(xAxis, altitude_press, color=colors[0], marker='.', label="wysokość na podstawie ciśnienia")
     ax.plot(xAxis, altitude_gps, color=colors[1], marker='.', label="wysokość pobrana z gps")
+    ax.plot(xAxis, altitude_map, color=colors[2], marker='o', ls=' ', markersize=12, label="wysokość z mapy hipsometrycznej")
+
 
     ax.set_xlabel('czas [s]')
     ax.set_ylabel("wysokość [m]")
@@ -235,9 +238,9 @@ def main():
     # plot_gears(file_name)
     # plot_gps_vs_gpio(file_name)
     # plot_diff(file_name)
-    # plot_gps_vs_bar(file_name, "h_gps_bar")
+    plot_gps_vs_bar(sys.argv[1], "h_gps_bar")
 
-    plot_const_gears("log/gps_log_accel_upshift.csv", "accel")
+    # plot_const_gears("log/gps_log_accel_upshift.csv", "accel")
     # plot_const_gears("log/gps_log_const_speed.csv", "const_gear")
 
 

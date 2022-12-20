@@ -79,46 +79,35 @@ void Session_Data::end(TimeS time)
 void Session_Data::update(float speed_kph, float distance_m)
 {
     uint32_t stop_time = this->speed.stop_time;
-    //PRINTF("stop time %" PRIu32 "\n", stop_time);
     switch (this->status)
     {
-    case Session_Data::Status::PAUSED:
-        stop_time += us_to_ms(absolute_time_diff_us(this->absolute_time_last_stop, get_absolute_time()));
-        break;
     case Session_Data::Status::NOT_STARTED:
     case Session_Data::Status::ENDED:
         return;
+    case Session_Data::Status::PAUSED:
+        stop_time += us_to_ms(absolute_time_diff_us(this->absolute_time_last_stop, get_absolute_time()));
+        break;
     case Session_Data::Status::RUNNING:
+        this->speed.velocity = speed_kph;
+        this->speed.distance = distance_m / 1000.0;
+        this->speed.distanceDec = (uint64_t)(distance_m / 10.0) % 100;
+        this->speed.velocityMax = std::fmax(this->speed.velocityMax, this->speed.velocity);
         break;
     }
     auto time_ms = to_ms_since_boot(get_absolute_time());
 
-    double drive_time_s = ((time_ms - to_ms_since_boot(this->absolute_time_start)) - stop_time) / 1000.0;
+    const double drive_time_s = ((time_ms - to_ms_since_boot(this->absolute_time_start)) - stop_time) / 1000.0;
     this->speed.drive_time = drive_time_s;
-    // auto distance_m = this->distance_m;
-    // get data for speed and distance
-    this->speed.velocity = speed_kph;
-    this->speed.distance = distance_m / 1000.0;
-    this->speed.distanceDec = (uint64_t)(distance_m / 10.0) % 100;
-
-    // do some calculations
-    this->speed.velocityMax = std::fmax(this->speed.velocityMax, this->speed.velocity);
-
     if (drive_time_s > 0.0)
     {
         this->speed.avg = speed_mps_to_kmph((double)distance_m / drive_time_s);
-    }
-    double drive_global_time_s = ((double)(time_ms - to_ms_since_boot(this->absolute_time_start)) / 1000.0);
-    if (drive_global_time_s > 0.0)
-    {
-        this->speed.avg_global = speed_mps_to_kmph((double)distance_m / drive_global_time_s);
     }
 }
 
 const char *Session_Data::get_header()
 {
     return "id;time_start;time_end;"
-            "velocityMax;avg;avg_global;distance;drive_time" // speed
+            "velocityMax;avg;distance;drive_time" // speed
             "\n";
 }
 
@@ -131,11 +120,10 @@ Session_Data::Session_Data(const char* csv_line)
     this->time_end = time_from_str(data.at(2).c_str());
     this->speed.velocityMax = std::atof(data.at(3).c_str());
     this->speed.avg = std::atof(data.at(4).c_str());
-    this->speed.avg_global = std::atof(data.at(5).c_str());
-    uint64_t dist = std::atoll(data.at(6).c_str());
+    uint64_t dist = std::atoll(data.at(5).c_str());
     this->speed.distance = dist / 1000;
     this->speed.distanceDec = (dist - speed.distance) / 10;
-    this->speed.drive_time = std::atoll(data.at(7).c_str());
+    this->speed.drive_time = std::atoll(data.at(6).c_str());
 }
 
 std::string Session_Data::get_line()
@@ -144,7 +132,7 @@ std::string Session_Data::get_line()
     std::stringstream csv_line;
     csv_line << id << ";"
              << time_to_str(time_start) << ";" << time_to_str(time_end) << ";"
-             << speed.velocityMax << ";" << speed.avg << ";" << speed.avg_global << ";"
+             << speed.velocityMax << ";" << speed.avg << ";"
              << (speed.distance * 1000 + speed.distanceDec * 10) << ";" << speed.drive_time << ";\n";
 
     return csv_line.str();

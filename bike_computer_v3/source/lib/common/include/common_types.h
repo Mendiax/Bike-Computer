@@ -12,25 +12,14 @@
 #include <array>
 #include <vector>
 
-// enum class SystemState
-// {
-//     TURNED_ON,
-//     AUTOSTART,
-//     RUNNING,
-//     PAUSED,
-//     ENDED,
-// };
-
 struct SpeedData
 {
-    //RingBuffer* speedBuffer;
     uint64_t drive_time; // in s
     uint64_t stop_time; // in ms
     int16_t distance;
     float velocity;
     float velocityMax;
     float avg;
-    float avg_global;
     int8_t distanceDec;
 };
 
@@ -78,7 +67,6 @@ struct TimeS
 
 
 
-
 // for special prints we need seperate types in structs
 struct mtime_t
 {
@@ -109,27 +97,6 @@ struct ArrayMinMaxS
     T max;
 };
 
-#define FORECAST_SENSOR_DATA_LEN 6
-
-template<size_t N>
-struct ForecastArrS
-{
-    ArrayMinMaxS<short, N> time_h;
-    ArrayMinMaxS<float, N> temperature_2m;
-    ArrayMinMaxS<float, N> pressure_msl;
-    ArrayMinMaxS<float, N> precipitation;
-    ArrayMinMaxS<float, N> windspeed_10m;
-    ArrayMinMaxS<float, N> winddirection_10m;
-    ArrayMinMaxS<float, N> windgusts_10m;
-
-    Time_HourS sunrise;
-    Time_HourS sunset;
-    float winddirection_10m_dominant;
-
-    float current_windspeed;
-    float current_winddirection;
-};
-
 struct Weather_BMP280_S
 {
     int32_t pressure;
@@ -150,7 +117,6 @@ struct Gear_Suggestions
  */
 typedef struct Sensor_Data
 {
-    ForecastArrS<FORECAST_SENSOR_DATA_LEN> forecast;
     TimeS current_time;
     Weather_BMP280_S weather;
     GpsDataS gps_data;

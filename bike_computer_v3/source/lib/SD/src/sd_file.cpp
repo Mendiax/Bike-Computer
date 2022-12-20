@@ -190,6 +190,10 @@ FILE_OPEN:
 
 size_t Sd_File::get_no_of_lines()
 {
+    if(correct_lines_pos == true)
+    {
+        return lines_pos.size();
+    }
     FIL file_p;
     FRESULT res;
 FILE_OPEN:
@@ -261,11 +265,7 @@ std::string Sd_File::read_last_line(size_t max_len)
 std::vector<std::string> Sd_File::read_all_lines(size_t max_len)
 {
     std::vector<std::string> all_lines;
-    size_t no_lines = lines_pos.size();
-    if(correct_lines_pos == false)
-    {
-        no_lines = get_no_of_lines();
-    }
+    size_t no_lines = get_no_of_lines();
     all_lines.reserve(no_lines);
 
     FIL file_p;
@@ -311,11 +311,7 @@ std::vector<std::string> Sd_File::read_all_lines(size_t max_len)
 
 std::string Sd_File::read_line(size_t line_no, size_t max_len)
 {
-    size_t no_lines = lines_pos.size();
-    if(correct_lines_pos == false)
-    {
-        no_lines = get_no_of_lines();
-    }
+    size_t no_lines = get_no_of_lines();
     if(line_no >= no_lines)
     {
         TRACE_ABNORMAL(TRACE_SD, "Error while reading the file:%s line:%zu no_lines:%zu\n",
@@ -344,7 +340,6 @@ std::string Sd_File::read_line(size_t line_no, size_t max_len)
     const size_t bytes_to_read = line_length < max_len ? line_length : max_len;
 
     auto buffer = new char[bytes_to_read + 1];
-    // TODO check if buffer != null
     f_lseek(&file_p, lines_pos.at(line_no));
     auto ret = f_read(&file_p, buffer, bytes_to_read, &bytes_read);
     buffer[bytes_read] = '\0';
@@ -363,5 +358,4 @@ std::string Sd_File::read_line(size_t line_no, size_t max_len)
     std::string file_content = buffer;
     delete buffer;
     return file_content;
-    return "";
 }

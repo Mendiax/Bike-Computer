@@ -2,7 +2,7 @@
 #include <views/screenfunc/label.h>
 #include "views/frame.h"
 #include <stdio.h>
-#include <display/print.h>
+#include <display/driver.hpp>
 #include "views/screenfunc/common.h"
 #include "traces.h"
 
@@ -36,14 +36,12 @@ void LabelDraw(const void *settings)
     LabelSettings *labelSettings = (LabelSettings *)settings;
 
     const display::DisplayColor& color = labelSettings->text.color == nullptr ?  labelSettings->color : *labelSettings->text.color;
-    //TRACE_DEBUG(0, TRACE_DISPLAY_PRINT, "Drawing label %s at [%d, %d]\n", labelSettings->text.string, x, y);
-    Paint_Println(labelSettings->text.offsetX,
+    display::println(labelSettings->text.offsetX,
                   labelSettings->text.offsetY,
                   labelSettings->text.string,
                   labelSettings->text.font,
                   color,
                   labelSettings->text.scale);
-    //TRACE_DEBUG(0, TRACE_DISPLAY_PRINT, "finished label %s at [%d, %d]\n", labelSettings->text.string, x, y);
 
 }
 
@@ -97,10 +95,6 @@ void labelSettingsAlign(LabelSettings& settings, const Frame& frame, Align align
 // ============= static functions ================
 static void fitToFrame(TextSettings& settings, const Frame& frame, size_t length)
 {
-    // we need to calculate
-    // font size and scale
-    //  based on frame size and text length
-    // not used // size_t length = settings.str_len;
     u_int16_t widthPerChar = frame.width / length;
     uint8_t scale = 0;
 

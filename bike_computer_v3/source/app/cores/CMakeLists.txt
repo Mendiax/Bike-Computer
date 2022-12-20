@@ -15,7 +15,7 @@ target_link_libraries(Cores PUBLIC pico_stdlib
 
     Common
     GSM
-    Parser
+    # Parser
     Tools)
 
     # Interrupts

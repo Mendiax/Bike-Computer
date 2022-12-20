@@ -16,22 +16,11 @@ int main()
     // setup console
     sleep_ms(1000);
     stdio_init_all();
-    // if(stdio_usb_connected())
-    //     tracesSetup();
-
-    // wait for serial console
-    // coment out for normal use
-    //  while (!stdio_usb_connected()){sleep_ms(100);}
+    sleep_ms(2000);
     TRACE_DEBUG(0, TRACE_MAIN, "Main start\n");
+    PRINT("SYSTEM START");
 
     core_setup();
-
-    // here we should only get if any error happens in core 0
-    while(1)
-    {
-        sleep_ms(1000);
-        TRACE_ABNORMAL(TRACE_MAIN, "core 0 failed \n%s", "");
-    }
 }
 
 // DO NOT REMOVE !!!
@@ -56,7 +45,7 @@ int main()
 
 
 //     std::string log = "temp:" + std::to_string(Tc) + "C";
-//     Paint_Println(16 * Font8.width, 0, log.c_str(), &Font8);
+//     display::println(16 * Font8.width, 0, log.c_str(), &Font8);
 //     //__display->write();
 //     return voltage;
 // }

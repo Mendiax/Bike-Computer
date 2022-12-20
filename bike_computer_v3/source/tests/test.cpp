@@ -18,7 +18,7 @@
 
 #include "bmp280.hpp"
 
-#include "parser.hpp"
+
 
 #include "massert.hpp"
 #include "traces.h"
@@ -145,42 +145,42 @@ int gps_data_test(void)
     return 0;
 }
 
-// in file test_data.cpp
-extern const char* forecast;
-extern const char* day1_json;
-extern const char* test_json;
+// // in file test_data.cpp
+// extern const char* forecast;
+// extern const char* day1_json;
+// extern const char* test_json;
 
-int parser_test(void)
-{
-    auto p = parse_json(day1_json, 1);
-    if(p != NULL)
-    {
-        assert(p->current_weather.temperature == 26.5f);
-        assert(p->current_weather.windspeed == 9.8f);
-        assert(p->current_weather.winddirection == 126.0f);
-        float temp[] = {22.5, 21.9, 21.8, 21.4, 21.1, 20.8, 20.6, 21.4, 23.2, 25.3, 27.3, 28.7, 29.9, 30.8, 31.4, 31.8, 31.8, 31.6, 30.8, 29.7, 28.0, 26.5, 25.5, 24.7 };
-        assert(memcmp(temp, p->temperature_2m, sizeof(temp)) == 0);
-        float winddir[] = {115.0, 122.0, 128.0, 128.0, 127.0, 118.0, 117.0, 115.0, 115.0, 117.0, 124.0, 139.0, 139.0, 141.0, 141.0, 144.0, 144.0, 145.0, 146.0, 135.0, 124.0, 126.0, 126.0, 126.0 };
-        assert(memcmp(winddir, p->winddirection_10m, sizeof(winddir)) == 0);
-        float wind_dom[] = {132.33426};
-        assert(memcmp(wind_dom, p->winddirection_10m_dominant, sizeof(wind_dom)) == 0);
+// int parser_test(void)
+// {
+//     auto p = parse_json(day1_json, 1);
+//     if(p != NULL)
+//     {
+//         assert(p->current_weather.temperature == 26.5f);
+//         assert(p->current_weather.windspeed == 9.8f);
+//         assert(p->current_weather.winddirection == 126.0f);
+//         float temp[] = {22.5, 21.9, 21.8, 21.4, 21.1, 20.8, 20.6, 21.4, 23.2, 25.3, 27.3, 28.7, 29.9, 30.8, 31.4, 31.8, 31.8, 31.6, 30.8, 29.7, 28.0, 26.5, 25.5, 24.7 };
+//         assert(memcmp(temp, p->temperature_2m, sizeof(temp)) == 0);
+//         float winddir[] = {115.0, 122.0, 128.0, 128.0, 127.0, 118.0, 117.0, 115.0, 115.0, 117.0, 124.0, 139.0, 139.0, 141.0, 141.0, 144.0, 144.0, 145.0, 146.0, 135.0, 124.0, 126.0, 126.0, 126.0 };
+//         assert(memcmp(winddir, p->winddirection_10m, sizeof(winddir)) == 0);
+//         float wind_dom[] = {132.33426};
+//         assert(memcmp(wind_dom, p->winddirection_10m_dominant, sizeof(wind_dom)) == 0);
 
-        TimeIso8601S sunset{2022,8,19,19,54};
-        assert(memcmp(&sunset, &p->sunset[0], sizeof(sunset)) == 0);
-        //std::cout << "date check " << memcmp(&sunset, &p->sunset[0], sizeof(sunset)) << std::end;
+//         TimeIso8601S sunset{2022,8,19,19,54};
+//         assert(memcmp(&sunset, &p->sunset[0], sizeof(sunset)) == 0);
+//         //std::cout << "date check " << memcmp(&sunset, &p->sunset[0], sizeof(sunset)) << std::end;
 
-        delete p;
-    }
+//         delete p;
+//     }
 
-    {
-        auto p = parse_json(day1_json, 1);
-        if(p)
-        {
-            delete p;
-        }
-    }
-    return 0;
-}
+//     {
+//         auto p = parse_json(day1_json, 1);
+//         if(p)
+//         {
+//             delete p;
+//         }
+//     }
+//     return 0;
+// }
 
 int url_test(void)
 {
@@ -239,8 +239,8 @@ int sd_drive_test(void)
     // session.start(time_start);
     // session.end(time_end, data);
 
-    const char* header_line = "time_start;time_end;duration;velocity_max;velocity_avg;velocity_avg_global;distance\n";
-    const char* first_line = "16720.83.83,69:68:6.56e;2022.08.09,20:54:13.01;01:00:50.00;30.0000;20.0000;15.0000;13110\n";
+    const char* header_line = "time_start;time_end;duration;velocity_max;velocity_avg;distance\n";
+    const char* first_line = "16720.83.83,69:68:6.56e;2022.08.09,20:54:13.01;01:00:50.00;30.0000;20.0000;13110\n";
     PRINTF("header_line: %s\n", header_line);
     PRINTF("first_line: %s\n", first_line);
 

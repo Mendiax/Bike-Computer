@@ -30,8 +30,8 @@ sim:
 	$(MAKE) -C $(BUILD) -j$(NPROCS)
 
 parser:
-	bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
-	flex -Cr -o source/lib/Parser/src/lexer.cpp source/lib/Parser/lexer.l
+	# bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
+	# flex -Cr -o source/lib/Parser/src/lexer.cpp source/lib/Parser/lexer.l
 
 
 CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1
@@ -66,17 +66,9 @@ restart:
 w: write_main
 wt: write_test
 write_main:
-	#mkdir -p $(PICODIR)
-	# mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
-	# cp $(BUILD)/$(PICO_MAIN_FILE).uf2 $(PICODIR)
-
 	./boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
 
 write_test: boot
-	#mkdir -p $(PICODIR)
-	# mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
-	# cp $(BUILD)/$(PICO_TEST_FILE).uf2 $(PICODIR)
-
 	./boot/upload.sh -p '$(PICO_TEST_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
 
 write_gsm_console: boot

@@ -29,36 +29,14 @@ private:
     volatile uint32_t time_press;
     volatile uint32_t time_release;
 
-    btn_call short_call;
-    btn_call long_call;
-    btn_call on_press;
-
     volatile bool was_pressed;
     volatile bool was_pressed_long;
-
-
-
 
 public:
     void on_call_press(void) override;
     void on_call_release(void) override;
     Button(int pin);
-    void reset_callback();
 
-    // unused
-    void set_callback(btn_call callback);
-    // unused
-    void set_callback_long(btn_call callback);
-
-    bool is_pressed();
-    bool is_pressed_long();
-    /**
-     * @brief check if is pressed if so set press flag to true
-     *
-     * @return true
-     * @return false
-     */
-    bool is_pressed_execute();
     /**
      * @brief check if is pressed long if so set press flag to true
      *
@@ -66,7 +44,6 @@ public:
      * @return false
      */
     bool is_pressed_long_execute();
-    bool is_released();
     /**
      * @brief used for executing code outside of interrupt
      *
@@ -81,21 +58,13 @@ public:
      * @return false
      */
     bool pop_was_pressed_long();
-    // const interrupt& get_interrupt_pressed();
-    // const interrupt& get_interrupt_released();
 };
+
+
 
 extern Button btn0;
 extern Button btn1;
 extern Button btn2;
 extern Button btn3;
-
-static inline void buttons_clear_all()
-{
-    btn0.reset_callback();
-    btn1.reset_callback();
-    btn2.reset_callback();
-    btn3.reset_callback();
-}
 
 #endif

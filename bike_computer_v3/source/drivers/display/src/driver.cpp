@@ -4,7 +4,6 @@
 #include "hardware/pwm.h"
 
 #include "display/driver.hpp"
-#include "display/debug.h"
 #include "traces.h"
 
 
@@ -17,6 +16,22 @@
 #define CS 9
 #define CLK 10
 #define MOSI 11
+
+// SETUP
+#ifdef ROTATE
+    // VERITCAL
+    #define MY 1
+    #define MX 1
+    #define MV 0
+#else
+    // HORIZONTAL
+    #define MY 0
+    #define MX 1
+    #define MV 1
+#endif
+    #define ML 0
+    #define RGB 0
+    #define MH 1
 
 // buffer setup
 // 12bit per color so
@@ -34,7 +49,7 @@
 #endif
 
 // 240 * 320 * 12 / 8 = 115 200
-#define DISPLAY_BUFFER_SIZE (DISPLAY_HEIGHT * DISPLAY_WIDTH * PIXEL_SIZE / 8) // just for safety
+#define DISPLAY_BUFFER_SIZE (DISPLAY_HEIGHT * DISPLAY_WIDTH * PIXEL_SIZE / 8)
 uint8_t display_buffer[DISPLAY_BUFFER_SIZE] = {0};
 
 // Back light
@@ -53,7 +68,7 @@ parameter:
             (Parameter range: 0 < YS [15:0] < YE [15:0] < 319 (013fh)): MV=”0”)
             (Parameter range: 0 < YS [15:0] < YE [15:0] < 239 (00EFh)): MV=”1”)
 ********************************************************************************/
-void OLED_SetWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend);
+void lcd_SetWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend);
 void assert_loop(bool b);
 
 void assert_loop(bool b)
@@ -62,7 +77,7 @@ void assert_loop(bool b)
     {
         while (1)
         {
-            PRINTF("ASSERT failed\n");
+            TRACE_ABNORMAL(TRACE_DISPLAY_PRINT,"ASSERT failed\n");
             sleep_ms(1000);
         }
     }
@@ -76,13 +91,8 @@ namespace spi
     void writeDataBuffer(const uint8_t *Data, size_t length);
 }
 
-/*******************************************************************************
-function:
-            Hardware reset
-*******************************************************************************/
-static void OLED_Reset(void)
+static void lcd_Reset(void)
 {
-    DEBUG_OLED("reset\n");
     gpio_put(RST, 1);
     sleep_ms(100);
     gpio_put(RST, 0);
@@ -91,16 +101,12 @@ static void OLED_Reset(void)
     sleep_ms(100);
 }
 
-/*******************************************************************************
-function:
-            Write register address and data
-*******************************************************************************/
 void spi::writeRegister(uint8_t Reg)
 {
-    gpio_put(DC, 0); // OLED_DC_0;
-    gpio_put(CS, 0); // OLED_CS_0;
+    gpio_put(DC, 0);
+    gpio_put(CS, 0);
     spi_write_blocking(SPI_PORT, &Reg, 1);
-    gpio_put(CS, 1); // OLED_CS_1;
+    gpio_put(CS, 1);
 }
 
 void spi::writeData(uint8_t Data)
@@ -119,11 +125,7 @@ void spi::writeDataBuffer(const uint8_t *Data, size_t length)
     gpio_put(CS, 1);
 }
 
-/*******************************************************************************
-function:
-        Common register initialization
-*******************************************************************************/
-static void OLED_InitReg(void)
+static void lcd_InitReg(void)
 {
 
     // MY Bit D7- Page Address Order
@@ -146,33 +148,8 @@ static void OLED_InitReg(void)
     //     “0” = LCD Refresh Left to Right (When MADCTL D2=”0”)
     //     “1” = LCD Refresh Right to Left (When MADCTL D2=”1”)
 
-    DEBUG_OLED("ini reg\n");
 
-
-    // struct Setup
-    // {
-    //     union
-    //     {
-    //         uint8_t x36;
-    //         struct
-    //         {
-    //             uint8_t MY : 1;
-    //             uint8_t MX : 1;
-    //             uint8_t MV : 1;
-    //             uint8_t ML : 1;
-    //             uint8_t RGB : 1;
-    //             uint8_t MH : 1;
-    //             uint8_t pad : 2;
-    //         };
-    //     };
-    // };
-
-    // Setup MADCTL = {0};
-    // // horizonstal
-    // MADCTL
-
-    spi::writeRegister(0x36); // MY  MX  MV  ML RGB  MH  --  --
-                         //  0   0   0   0   0   0   0   0
+    spi::writeRegister(0x36);
     const uint8_t glob = 0x0
         | (MY << 7)
         | (MX << 6)
@@ -224,14 +201,14 @@ static void OLED_InitReg(void)
     spi::writeRegister(0xC4);
     spi::writeData(0x20);
 
-    spi::writeRegister(0xC6);  // Frame Rate Control in Normal Mode // coś z frame rate ale idk na razie
-    spi::writeData(0x0F); // column inversion. idk ale jest jeszcez 0x0  dot inversion.
+    spi::writeRegister(0xC6);  // Frame Rate Control in Normal Mode
+    spi::writeData(0x0F); // column inversion.
 
-    spi::writeRegister(0xD0); //  Power Control 1 ?????
+    spi::writeRegister(0xD0); //  Power Control 1
     spi::writeData(0xA4);
     spi::writeData(0xA1);
 
-    spi::writeRegister(0xE0); //  Positive Voltage Gamma Control ???????????
+    spi::writeRegister(0xE0); //  Positive Voltage Gamma Control
     spi::writeData(0xD0);
     spi::writeData(0x08);
     spi::writeData(0x11);
@@ -247,7 +224,7 @@ static void OLED_InitReg(void)
     spi::writeData(0x29);
     spi::writeData(0x2D);
 
-    spi::writeRegister(0xE1); // Negative Voltage Gamma Control  ??????
+    spi::writeRegister(0xE1); // Negative Voltage Gamma Control
     spi::writeData(0xD0);
     spi::writeData(0x08);
     spi::writeData(0x10);
@@ -273,7 +250,7 @@ void display_set_brightnes(uint8_t Value)
 {
     if (Value < 0 || Value > 100)
     {
-        PRINTF("DEV_SET_PWM Error \r\n");
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT,"DEV_SET_PWM Error \r\n");
     }
     else
     {
@@ -283,8 +260,6 @@ void display_set_brightnes(uint8_t Value)
 
 uint8_t spi::init(void)
 {
-    DEBUG_OLED("system init\n");
-
     // set pin
     gpio_init(CS);
     gpio_init(RST);
@@ -300,10 +275,8 @@ uint8_t spi::init(void)
     gpio_put(CS, 1);
     gpio_put(BL, 1);
 
-    // spi_init(SPI_PORT, 8000000); // SPI_CLOCK_DIV2 -> 8Mhz
-    spi_init(SPI_PORT, 60 * 1000 * 1000); // OC
+    spi_init(SPI_PORT, 60 * 1000 * 1000); // DEFAULT: 8000000
 
-    // gpio_set_function(MISO, GPIO_FUNC_SPI);
     gpio_set_function(CLK, GPIO_FUNC_SPI);
     gpio_set_function(MOSI, GPIO_FUNC_SPI);
 
@@ -318,10 +291,6 @@ uint8_t spi::init(void)
     return 0;
 }
 
-/********************************************************************************
-function:
-            initialization
-********************************************************************************/
 void display::init(void)
 {
     static bool displayInited;
@@ -330,12 +299,11 @@ void display::init(void)
         return;
     }
     displayInited = true;
-    DEBUG_OLED("1in5_Init\n");
     spi::init();
     // Hardware reset
     display_set_brightnes(50);
 
-    OLED_Reset();
+    lcd_Reset();
 
     // Set the read / write scan direction of the frame memory
     spi::writeRegister(0x36);  // MX, MY, RGB mode
@@ -346,28 +314,13 @@ void display::init(void)
 #endif
 
     // Set the initialization register
-    OLED_InitReg();
+    lcd_InitReg();
     sleep_ms(200);
-
-    // Turn on the OLED display
-    // spi::writeRegister(0xAF);
-    // display::clear();
 }
 
 
-void OLED_SetWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend)
+void lcd_SetWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend)
 {
-    // if ((Xstart > DISPLAY_WIDTH) || (Ystart > DISPLAY_HEIGHT) ||
-    //     (Xend > DISPLAY_WIDTH) || (Yend > DISPLAY_HEIGHT))
-    //     return;
-
-    // spi::writeRegister(0x15);
-    // spi::writeRegister(Xstart / 2);
-    // spi::writeRegister(Xend / 2 - 1);
-
-    // spi::writeRegister(0x75);
-    // spi::writeRegister(Ystart);
-    // spi::writeRegister(Yend - 1);
     #if MV == 0
         assert_loop(Xend <= 240);
         assert_loop(Yend <= 320);
@@ -401,12 +354,12 @@ void display::set_pixel_row(const uint_fast32_t idx, uint_fast32_t width, const 
 {
     if ((idx + width) > DISPLAY_PIXEL_COUNT)
     {
-        DEBUG_OLED("[ERROR] display::setPixel %" PRIuFAST32 " > DISPLAY_PIXEL_COUNT\n", idx);
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT,"[ERROR] display::setPixel %" PRIuFAST32 " > DISPLAY_PIXEL_COUNT\n", idx);
         return;
     }
     if (width == 0)
     {
-        DEBUG_OLED("[ERROR] display::setPixel width cannot be 0. width == %" PRIuFAST32 " \n", width);
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT,"[ERROR] display::setPixel width cannot be 0. width == %" PRIuFAST32 " \n", width);
         return;
     }
     struct pixel2
@@ -456,7 +409,7 @@ void display::setPixel(const uint_fast32_t idx, const display::DisplayColor colo
     // assert_loop((idx) < DISPLAY_PIXEL_COUNT);
     if ((idx) > DISPLAY_PIXEL_COUNT)
     {
-        DEBUG_OLED("[ERROR] display::setPixel %" PRIuFAST32 " > DISPLAY_PIXEL_COUNT\n", idx);
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "[ERROR] display::setPixel %" PRIuFAST32 " > DISPLAY_PIXEL_COUNT\n", idx);
         return;
     }
     struct pixel2
@@ -482,66 +435,230 @@ void display::setPixel(const uint_fast32_t idx, const display::DisplayColor colo
     }
 }
 
-/********************************************************************************
-function:
-            Clear screen
-********************************************************************************/
+/**
+ * @brief Clear screen
+ *
+ */
 void display::clear(void)
 {
-    DEBUG_OLED("clear\n");
-    // #if MV == 1
-    //     OLED_SetWindow(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
-    // #else
-    //     OLED_SetWindow(0, 0, DISPLAY_HEIGHT, DISPLAY_WIDTH);
-    // #endif
-
-    // display::DisplayColor clearColor(0x0,0x0,0x0);
-    // for(uint32_t i =0; i < DISPLAY_PIXEL_COUNT; i++)
-    //{
-    //     display::setPixel(i, clearColor);
-    // }
     memset(::display_buffer, 0x0, DISPLAY_BUFFER_SIZE);
-    //display::display();
-}
-
-void display::fill(const display::DisplayColor color)
-{
-    // 07:39:51.205 -> [DEBUG_OLED] : FILL 38400 sus
-    DEBUG_OLED("FILL");
-    for (uint_fast32_t i = 38000; i < DISPLAY_PIXEL_COUNT; i++)
-    {
-        display::setPixel(i, color);
-    }
-    DEBUG_OLED("FILL2\n");
-    // memset(display_buffer, 0xff, DISPLAY_BUFFER_SIZE / 2);
-
-    //display::display();
-}
-
-void display::fill(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const display::DisplayColor color)
-{
-
 }
 
 
-/********************************************************************************
-function:   Update all memory to OLED
-********************************************************************************/
+/**
+ * @brief Update all memory to OLED
+ *
+ */
 void display::display()
 {
-    OLED_SetWindow(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT); // DISPLAY_HEIGHT
+    lcd_SetWindow(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT); // DISPLAY_HEIGHT
     spi::writeRegister(0x2C); // memory write
     spi::writeDataBuffer(::display_buffer, DISPLAY_BUFFER_SIZE);
     spi::writeRegister(0x29);
-    // for(uint32_t i = 0; i < DISPLAY_BUFFER_SIZE; i += 3)
-    //{
-    //     int r,g,b,r2,g2,b2;
-    //     r   = (display_buffer[i    ] & 0x0f) >> 0;
-    //     g   = (display_buffer[i    ] & 0xf0) >> 4;
-    //     b   = (display_buffer[i + 1] & 0x0f) >> 0;
-    //     r2  = (display_buffer[i + 1] & 0xf0) >> 4;
-    //     g2  = (display_buffer[i + 2] & 0x0f) >> 0;
-    //     b2  = (display_buffer[i + 2] & 0xf0) >> 4;
-    //     //PRINTF("%d %d %d %d %d %d \n",  r,g,b,r2,g2,b2);
-    // }
+}
+
+
+// static declaration
+static void Paint_DrawCharGen(uint16_t x, uint16_t y, const char character,
+                              const sFONT *font,
+                              display::DisplayColor colorForeground = FONT_FOREGROUND,
+                              display::DisplayColor colorBackground = FONT_BACKGROUND,
+                              uint8_t scale = 1,
+                              bool overwriteBackground = false);
+
+static void Paint_PrintlnGen(uint16_t x, uint16_t y, const char *str,
+                             const sFONT *font,
+                             display::DisplayColor colorForeground = FONT_FOREGROUND,
+                             display::DisplayColor colorBackground = FONT_BACKGROUND,
+                             uint8_t scale = 1,
+                             bool overwriteBackground = false);
+
+static void Paint_Println_multilineGen(uint16_t x, uint16_t y, const char *str,
+                                       const sFONT *font,
+                                       display::DisplayColor colorForeground = FONT_FOREGROUND,
+                                       display::DisplayColor colorBackground = FONT_BACKGROUND,
+                                       uint8_t scale = 1,
+                                       bool overwriteBackground = false);
+
+void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void (*draw_func)(uint16_t x, uint16_t y, display::DisplayColor color), display::DisplayColor color, uint8_t scale);
+
+
+// global definitions
+void display::set_pixel(uint16_t x, uint16_t y, display::DisplayColor color)
+{
+    /*            width
+    #---------------------------->x
+    |
+    |
+    |
+    | height
+    |
+    |
+    |
+   \/
+    y
+    */
+    if(x >= DISPLAY_WIDTH || y >= DISPLAY_HEIGHT)
+    {
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "write outside of window x=%" PRIu16 " y=%" PRIu16 "\n", x, y);
+        //return;
+        // no return (XD) so it can be optimised out when compiling without traces and have greater performance
+    }
+    uint_fast32_t index = 0;
+    index += y * (display::width);
+    index += x;
+    display::setPixel(index, color);
+}
+
+void display::draw_char(uint16_t x, uint16_t y, const char character,
+                    const sFONT *font,
+                    display::DisplayColor colorForeground,
+                    uint8_t scale)
+{
+    Paint_DrawCharGen(x, y, character,
+                      font,
+                      colorForeground,
+                      FONT_BACKGROUND,
+                      scale,
+                      false);
+}
+
+void display::println(uint16_t x, uint16_t y, const char *str,
+                   const sFONT *font,
+                   display::DisplayColor colorForeground,
+                   uint8_t scale)
+{
+    Paint_PrintlnGen(x, y, str,
+                     font,
+                     colorForeground,
+                     FONT_BACKGROUND,
+                     scale,
+                     false);
+}
+
+void display::draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, display::DisplayColor color, uint8_t scale)
+{
+    Paint_DrawLineGen(x0,y0,x1,y1, display::set_pixel, color, scale);
+}
+
+void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void (*draw_func)(uint16_t x, uint16_t y, display::DisplayColor color), display::DisplayColor color, uint8_t scale)
+{
+    int_fast32_t dx = std::abs((int32_t)x1 - (int32_t)x0);
+    uint_fast8_t sx = x0 < x1 ? 1 : -1;
+    int_fast32_t dy = - std::abs((int32_t)y1 - (int32_t)y0);
+    uint_fast8_t sy = y0 < y1 ? 1 : -1;
+
+    int_fast32_t error = dx + dy;
+
+    while(true)
+    {
+        draw_func(x0, y0, color);
+        if(x0 == x1 && y0 == y1)
+            break;
+        auto e2 = 2 * error;
+        if (e2 >= dy)
+        {
+            if(x0 == x1)
+                break;
+            error = error + dy;
+            x0 = x0 + sx;
+        }
+
+        if (e2 <= dx)
+        {
+            if (y0 == y1)
+                break;
+            error = error + dx;
+            y0 = y0 + sy;
+        }
+    }
+}
+
+static void Paint_PrintlnGen(uint16_t x, uint16_t y, const char *str,
+                             const sFONT *font, display::DisplayColor colorForeground, display::DisplayColor colorBackground, uint8_t scale, bool overwriteBackground)
+{
+    TRACE_DEBUG(1, TRACE_DISPLAY_PRINT, "writing string \"%s\" \r\n", str);
+
+    for (int charIdx = 0; charIdx < strlen(str); charIdx++)
+    {
+        if (x > display::width - font->width)
+        {
+            TRACE_ABNORMAL(TRACE_DISPLAY_PRINT,"line too long %s at %u", str, x);
+            return;
+        }
+        Paint_DrawCharGen(x, y, str[charIdx], font, colorForeground, colorBackground, scale, overwriteBackground);
+        x += font->width * scale;
+    }
+}
+
+static void Paint_Println_multilineGen(uint16_t x, uint16_t y, const char *str,
+                                       const sFONT *font, display::DisplayColor colorForeground, display::DisplayColor colorBackground, uint8_t scale, bool overwriteBackground)
+{
+    TRACE_DEBUG(1, TRACE_DISPLAY_PRINT, "writing string \"%s\" \r\n", str);
+
+    uint16_t startX = x;
+    for (size_t charIdx = 0; charIdx < strlen(str); charIdx++)
+    {
+        if (x > display::width - font->width)
+        {
+            x = startX;
+            y += font->height;
+        }
+        Paint_DrawCharGen(x, y, str[charIdx], font, colorForeground, colorBackground, scale, overwriteBackground);
+        x += font->width;
+    }
+}
+
+static void setpixelScale(uint_fast16_t xPoint, uint_fast16_t yPoint,  uint_fast16_t page, uint_fast16_t column, display::DisplayColor color, uint_fast8_t scale)
+{
+    uint_fast16_t x = xPoint + column * scale;
+    uint_fast16_t y = yPoint + page * scale;
+
+    for (uint_fast16_t p2 = 0; p2 < scale; p2++)
+    {
+        uint_fast32_t index = 0;
+        index += (y + p2) * (display::width);
+        index += x;
+        display::set_pixel_row(index, scale, color);
+    }
+}
+
+static void Paint_DrawCharGen(uint16_t xPoint, uint16_t yPoint, const char character,
+                              const sFONT *font, display::DisplayColor colorForeground, display::DisplayColor colorBackground, uint8_t scale,
+                              bool overwriteBackground)
+{
+    if(character < 32 || character > 126)
+        return;
+
+    TRACE_DEBUG(2, TRACE_DISPLAY_PRINT, "writing char \"%c\" scale %" PRIu8 "\r\n", character, scale);
+
+    uint16_t page, column;
+    if (xPoint > display::width || yPoint > display::height)
+    {
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, " display::draw_char Input exceeds display range %" PRIu16 ",%" PRIu16 "\n", xPoint, yPoint);
+        return;
+    }
+
+    size_t charOffset = (character - ' ') * font->height * (font->width / 8 + (font->width % 8 ? 1 : 0));
+    const unsigned char *ptr = &font->table[charOffset];
+
+    for (page = 0; page < font->height; page++)
+    {
+        for (column = 0; column < font->width; column++)
+        {
+            if (*ptr & (0x80 >> (column % 8)))
+            {
+                setpixelScale(xPoint, yPoint, page, column, colorForeground, scale);
+            }
+            else if (overwriteBackground)
+            {
+                setpixelScale(xPoint, yPoint, page, column, colorBackground, scale);
+            }
+            // One pixel is 8 bits
+            if (column % 8 == 7)
+                ptr++;
+        }
+        if (font->width % 8 != 0)
+            ptr++;
+    }
 }

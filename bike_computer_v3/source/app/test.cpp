@@ -16,7 +16,7 @@
 #include "hardware/uart.h"
 
 
-#include "display/print.h"
+#include "display/driver.hpp"
 //  #include "console/console.h"
 // #include "display/driver.hpp"
 
@@ -206,7 +206,7 @@ void test_print()
     {
         for (size_t j = 0; j < DISPLAY_WIDTH / 4; j++)
         {
-            Paint_SetPixel(j, i, {0xf, 0xf, 0xf});
+            display::set_pixel(j, i, {0xf, 0xf, 0xf});
         }
     }
 
@@ -214,18 +214,18 @@ void test_print()
     {
         for (size_t j = DISPLAY_WIDTH - 10; j < DISPLAY_WIDTH; j++)
         {
-            Paint_SetPixel(j, i, {0xf, 0xf, 0xf});
+            display::set_pixel(j, i, {0xf, 0xf, 0xf});
         }
     }
     //display::clear();
     const sFONT* font = &Font16;
     printf("\n");
-    Paint_DrawChar(100, 0, 'x', font);
+    display::draw_char(100, 0, 'x', font);
     printf("\n");
-    Paint_DrawChar(240, 10, 'x', font);
+    display::draw_char(240, 10, 'x', font);
 
     printf("\n");
-    // Paint_Println(0, DISPLAY_HEIGHT - font->height, "========================================", font, FONT_FOREGROUND);
+    // display::println(0, DISPLAY_HEIGHT - font->height, "========================================", font, FONT_FOREGROUND);
 
     display::display();
 }
@@ -238,15 +238,15 @@ void test_draw_line()
 
     printf("driver inited\n");
 
-    // Paint_DrawLine(0,0,4,100);
-    // Paint_DrawLine(10,10,300,10);
-    // Paint_DrawLine(12,1,120,200);
-    // Paint_DrawLine(10,1,30,200);
+    // display::draw_line(0,0,4,100);
+    // display::draw_line(10,10,300,10);
+    // display::draw_line(12,1,120,200);
+    // display::draw_line(10,1,30,200);
 
-    Paint_DrawLine(0,0,319,239);
-    // Paint_DrawLine(10,10,30,1);
-    // Paint_DrawLine(12,1,12,20);
-    // Paint_DrawLine(10,1,3,20);
+    display::draw_line(0,0,319,239);
+    // display::draw_line(10,10,30,1);
+    // display::draw_line(12,1,12,20);
+    // display::draw_line(10,1,3,20);
 
     display::display();
 }

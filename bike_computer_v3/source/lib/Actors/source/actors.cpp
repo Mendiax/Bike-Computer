@@ -32,14 +32,7 @@
 
 Actor::Actor()
 {
-    //printf("Actor constr\n");
-
-    //handler_setup();
     mutex_init(&mutex_queue);
-}
-
-Actor::~Actor()
-{
 }
 
 /**
@@ -55,13 +48,6 @@ void Actor::send_signal(const Signal &sig)
     mutex_exit(&mutex_queue);
     TRACE_DEBUG(1, TRACE_ACTOR,"sent sig id=%" PRIu16 "\n", sig.get_sig_id());
 }
-
-// void Actor::send_signal(Signal& sig, Actor* from)
-// {
-//     sig.set_actor(from);
-//     send_signal(sig);
-// }
-
 
 /**
  * @brief pop from internal queue and execute signal
@@ -79,10 +65,8 @@ void Actor::handle_next_signal()
     sig_queue.pop();
     mutex_exit(&mutex_queue);
 
-    //printf("rec sig id=%" PRIu16 "\n", sig.get_sig_id());
 
     bool handled = false;
-    //printf("no of handlesr = %zu \n", this->handlers.size());
     for(auto& handler : this->handlers)
     {
         if(handler.id == sig.get_sig_id())

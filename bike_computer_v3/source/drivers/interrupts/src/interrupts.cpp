@@ -10,8 +10,8 @@
 #include "buttons/buttons.h"
 
 // include interrupts
-extern interrupt interruptSpeed;
-extern interrupt interrupt_cadence;
+extern Interrupt interruptSpeed;
+extern Interrupt interrupt_cadence;
 
 // buttons
 
@@ -36,7 +36,7 @@ static void interrutpCallback_core1(uint gpio, uint32_t events);
  *
  * @param inter
  */
-static inline void setup_interrupt(const interrupt& inter, bool pullup, void (*interrutp_cb)(uint, uint32_t));
+static inline void setup_interrupt(const Interrupt& inter, bool pullup, void (*interrutp_cb)(uint, uint32_t));
 
 /**
  * @brief Set the up interrupt btn object
@@ -53,7 +53,7 @@ static inline void setup_interrupt_btn(Button_Interface& btn, void (*interrutp_c
  * @param gpio
  * @param events
  */
-static inline void checkInterrupt(const interrupt& inter, const uint gpio,const uint32_t events);
+static inline void checkInterrupt(const Interrupt& inter, const uint gpio,const uint32_t events);
 static inline void check_interrupt_btn(Button_Interface& btn, const uint gpio,const uint32_t events);
 
 
@@ -90,7 +90,7 @@ static void interrutpCallback_core1(uint gpio, uint32_t events)
 }
 
 
-static inline void checkInterrupt(const interrupt& inter, const uint gpio,const uint32_t events)
+static inline void checkInterrupt(const Interrupt& inter, const uint gpio,const uint32_t events)
 {
     if (inter.pin == gpio && (events & inter.event))
     {
@@ -116,7 +116,7 @@ static inline void check_interrupt_btn(Button_Interface& btn, const uint gpio,co
     }
 }
 
-static inline void setup_interrupt(const interrupt& inter,bool pullup, void (*interrutp_cb)(uint, uint32_t))
+static inline void setup_interrupt(const Interrupt& inter,bool pullup, void (*interrutp_cb)(uint, uint32_t))
 {
     gpio_init(inter.pin);
     gpio_set_dir(inter.pin, GPIO_IN);
@@ -139,11 +139,11 @@ static inline void setup_interrupt_btn(Button_Interface& btn, void (*interrutp_c
     gpio_set_irq_enabled_with_callback(inter_pres.pin, inter_rel.event, true, interrutp_cb);
 }
 
-const interrupt& Button_Interface::get_interrupt_pressed() const
+const Interrupt& Button_Interface::get_interrupt_pressed() const
 {
     return this->interrupt_pressed;
 }
-const interrupt& Button_Interface::get_interrupt_released() const
+const Interrupt& Button_Interface::get_interrupt_released() const
 {
     return this->interrupt_released;
 }

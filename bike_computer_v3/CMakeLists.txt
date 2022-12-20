@@ -37,7 +37,7 @@ include_directories(source/lib/common/include)
 include_directories(source/lib/tools/include)
 include_directories(source/lib/views/include)
 include_directories(source/lib/SD/include)
-include_directories(source/lib/Parser/include)
+# include_directories(source/lib/Parser/include)
 include_directories(source/lib/Actors/include)
 include_directories(source/lib/gui/include)
 
@@ -46,7 +46,7 @@ include_directories(source/drivers/speedometer/include)
 include_directories(source/drivers/cadence/include)
 include_directories(source/drivers/interrupts/include)
 include_directories(source/drivers/buttons/include)
-include_directories(source/drivers/gsm/include)
+include_directories(source/drivers/sim868/include)
 # include_directories(source/drivers/EPROM/include)
 
 #DOF
@@ -73,7 +73,7 @@ include_directories(source/tests)
 add_subdirectory(source/lib/common)
 add_subdirectory(source/lib/tools)
 add_subdirectory(source/lib/views)
-add_subdirectory(source/lib/Parser)
+# add_subdirectory(source/lib/Parser)
 add_subdirectory(source/lib/SD)
 add_subdirectory(source/lib/Actors)
 add_subdirectory(source/lib/gui)
@@ -84,7 +84,7 @@ add_subdirectory(source/drivers/speedometer)
 add_subdirectory(source/drivers/cadence)
 add_subdirectory(source/drivers/interrupts)
 add_subdirectory(source/drivers/buttons)
-add_subdirectory(source/drivers/gsm)
+add_subdirectory(source/drivers/sim868)
 # add_subdirectory(source/drivers/EPROM)
 
 # DOF
@@ -176,7 +176,7 @@ target_link_libraries( ${PICO_TEST_FILE}
         IMU I2C
         FatFs_SPI
 
-        Parser
+        # Parser
 
         Actors
         EPROM

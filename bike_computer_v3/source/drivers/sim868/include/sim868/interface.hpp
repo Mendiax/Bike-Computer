@@ -5,6 +5,7 @@
 #include <vector>
 #include <stdint.h>
 #include "hardware/uart.h"
+#include "traces.h"
 #include <pico/stdlib.h>
 
 
@@ -29,29 +30,45 @@
 // #----------------------------#
 class StateStringMachine
 {
-    const std::string m_stringToFind;
-    size_t position;
+    const std::string stringToFind;
+
+    std::vector<size_t> prefix;
+    size_t m;
+    size_t q = 0;
+
+    std::vector<size_t> compute_prefix_function(const std::string pattern) {
+        size_t m = pattern.length();
+        std::vector<size_t> pi;
+        pi.resize(m);
+        pi[1] = 0;
+        size_t k = 0;
+        for(size_t q = 1; q < m; q++){
+            while (k > 0 && pattern[k] != pattern[q]){
+                k = pi[k];
+            }
+            if (pattern[k] == pattern[q])
+                k++;
+            pi[q] = k;
+        }
+        return pi;
+    }
+
 public:
-    StateStringMachine(const std::string&& string)
-    :m_stringToFind(string)
+    StateStringMachine(std::string string)
+    :stringToFind(string)
     {
-        //PRINTF("legth %s: %zu\n",string.c_str(), string.length());
-        position = 0;
+        prefix = compute_prefix_function(string);
+        m = string.length();
     }
     bool updateChar(char c)
     {
-        if(m_stringToFind[position] == c)
-        {
-            //PRINTF("__found_char__ %zu\n", position);
-            position++;
-            if(position == m_stringToFind.length())
-            {
-                return true;
-            }
-        }
-        else
-        {
-            position = 0;
+        while (q > 0 && stringToFind[q] != c)
+            q = prefix[q-1];
+        if(stringToFind[q] == c)
+            q++;
+        if(q == m){
+            q = prefix[q-1];
+            return true;
         }
         return false;
     }
@@ -63,7 +80,6 @@ enum class ResponseStatus
 {
     SENT,
     STARTED,
-    FINISH,
     TIME_OUT,
     RECEIVED
 };

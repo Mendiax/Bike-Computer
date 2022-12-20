@@ -22,10 +22,6 @@ Gear_Iterator::Gear_Iterator(const Bike_Config& config)
     :config{config},current_front{0}, current_rear{0}
 {}
 
-// Gear_Iterator::Gear_Iterator(const Bike_Config& config, Gear_S gear)
-//     :config{config},current_front{gear.front - 1}, current_rear{gear - 1}
-// {}
-
 bool Gear_Iterator::has_next()
 {
     return current_front < config.gear_front.size();
@@ -187,10 +183,8 @@ bool Bike_Config::from_string(const char* str)
         return false; // fail
     }
 
-    // setup gear diff
-    // float gear_diff = 100.0;
+
     Gear_Iterator iter(*this);
-    // float last_gear_ratio = 0.0f;
 
     const auto gear_len = gear_rear.size();
 
@@ -224,54 +218,19 @@ bool Bike_Config::from_string(const char* str)
             gear_ratios[gear_len - 1] + get_diff(gear_len-2)/2.0f,
         };
 
-
-    // TRACE_DEBUG(2, TRACE_BIKE_CONFIG, "min diff gear ratio: %f\n", gear_diff);
-    // this->min_gear_diff = gear_diff * 0.5f;
-
-    return true; // success
+    return true;
 }
 
-/**
- * @brief checks if f2 is about f1 with precision
- *
- * @param f1
- * @param f2
- * @param prec
- * @return true
- * @return false
- */
-static inline bool check_floats_prec(float f1, float f2, float prec);
 
 Gear_S Bike_Config::get_current_gear(float ratio)
 {
     for(size_t i = 0; i < gear_ranges.size(); i++)
     {
-        if(gear_ranges.at(i).min <= ratio && ratio <= gear_ranges.at(i).max)
+        if(gear_ranges.at(i).min <= ratio && ratio < gear_ranges.at(i).max)
         {
             return {1, (uint8_t) (i + 1)};
         }
     }
-    // Gear_Iterator iter(*this);
-    // while (iter.has_next())
-    // {
-    //     Gear_S gear = iter.get_gear();
-    //     float gear_ratio = iter.get_next();
-    //     /*
-    //     my gears:
-    //     [2.909090909090909, 2.4615384615384617, 2.1333333333333333,
-    //      1.7777777777777777, 1.5238095238095237, 1.3333333333333333,
-    //      1.1428571428571428, 0.9696969696969697, 0.8205128205128205,
-    //      0.7111111111111111, 0.6274509803921569]
-    //     */
-
-    //     if(check_floats_prec(gear_ratio, ratio, this->min_gear_diff))
-    //     {
-    //         return gear;
-    //     }
-    //     // TRACE_DEBUG(5, TRACE_CORE_0,
-    //     //     "ratio=%f, gear_ratio=%f, gear={%" PRIu8 ",%" PRIu8 "}\n",
-    //     //     ratio, gear_ratio, gear.front + 1, gear.rear + 1);
-    // }
     return {0,0};
 }
 
@@ -280,12 +239,3 @@ float Bike_Config::get_gear_ratio(Gear_S gear)
     return (float)this->gear_front.at(gear.front - 1) / (float) this->gear_rear.at(gear.rear - 1);
 }
 
-
-static inline bool check_floats_prec(float f1, float f2, float prec)
-{
-    // TRACE_DEBUG(5, TRACE_CORE_0,
-    //         "%d, %d\n",
-    //         (f1 - prec <= f2), (f1 + prec >= f2));
-    return ((f1 - prec <= f2) &&
-            (f1 + prec >= f2));
-}

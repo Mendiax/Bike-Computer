@@ -15,7 +15,7 @@
 #include "gui/structure.hpp"
 #include "gui_common.hpp"
 #include "gui/view_all.hpp"
-#include "display/print.h"
+#include "display/driver.hpp"
 #include "massert.hpp"
 
 // #------------------------------#
@@ -69,21 +69,16 @@ void Gui::set_data(Sensor_Data* data_p, Session_Data* session_p)
 }
 void Gui::create()
 {
-    PRINTF("Gui::create()\n");
-
     auto main_menu = new View_List();
     // -----------------------------
     //      session
     // -----------------------------
     auto session_menu = new View_List(main_menu);
     session_menu->add_view(new View_Velocity(*data, *session));
-    // session_menu->add_view(new View_Gear(*data, *session)); TODO remove files
     session_menu->add_view(new View_Max_Avg(*data, *session));
     session_menu->add_view(new View_Gps(*data, *session));
     session_menu->add_view(new View_Date(*data, *session));
-    session_menu->add_view(new View_Forecast(*data, *session));
     session_menu->add_view(new View_Total(*data, *session));
-
     // -----------------------------
     //      history
     // -----------------------------
@@ -91,19 +86,13 @@ void Gui::create()
     history_session_menu->add_view(new View_Last_Time(*data, *session));
     history_session_menu->add_view(new View_Last_Avg(*data, *session));
     history_session_menu->add_view(new View_Last_Date(*data, *session));
-
-
     // -----------------------------
     //      main menu
     // -----------------------------
     main_menu->add_view(new Main_New_Session((gui::View_List*)session_menu));
     main_menu->add_view(new Main_History((gui::View_List*)history_session_menu));
 
-
-
     this->current_view_list = main_menu;
-
-    // massert(view1 == get_current(), "current view on create failed\n");
 }
 
 static void blank(){}
@@ -175,14 +164,14 @@ View* Gui::get_current()
 
 void Gui::refresh()
 {
-    display::clear();
-    View_Creator::get_view()->draw();
-    // display::display();
+    // display::clear();
+    // View_Creator::get_view()->draw();
+    current_view_list->get_current_view()->refresh();
 }
 
 void Gui::render()
 {
-    display::clear();
+    // display::clear();
     current_view_list->get_current_view()->render();
     this->refresh();
 }

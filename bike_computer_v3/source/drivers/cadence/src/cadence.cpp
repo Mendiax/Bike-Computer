@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
-
  // static variables definitions
 static volatile absolute_time_t speed_lastupdate_prev;
 static volatile absolute_time_t speed_lastupdate;
@@ -34,16 +32,13 @@ template<typename T>
 static constexpr T rps_to_rpm(T rps);
 
 // global definitions
-interrupt interrupt_cadence = {PIN_CADENCE, cadence_update, GPIO_IRQ_EDGE_FALL}; // GPIO_IRQ_EDGE_FALL GPIO_IRQ_EDGE_RISE
+Interrupt interrupt_cadence = {PIN_CADENCE, cadence_update, GPIO_IRQ_EDGE_FALL};
 
 #define MAX_TIME (cadence_to_ms(MIN_CADENCE))
 
 /*returns last read speed [m/s]*/
 float cadence::get_cadence()
 {
-    // TRACE_DEBUG(3, TRACE_CADENCE, "current_cadence: %f\n", current_cadence);
-    // return current_cadence;
-
     absolute_time_t update_us = get_absolute_time();
     absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
 
@@ -115,13 +110,10 @@ static void cadence_update()
         int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
         if (delta_time < cadence_to_ms(200.0))
         {
-            //TRACE_ABNORMAL(TRACE_CADENCE, "too fast cadence updates delta time = %lld\n", delta_time);
             return;
         }
 
-        //TRACE_DEBUG(2, TRACE_CADENCE, "Delta %" PRId64 "\n", delta_time);
         current_cadence = cadence_from_delta(delta_time);
-        //DEBUG_SPEED("interrupt : %lu speed : %f delta : %lld last : %lu\n", to_ms_since_boot(update_us), current_cadence, delta_time,  to_ms_since_boot(last_update_us));
         absolute_time_copy_to_volatile(speed_lastupdate, update_us);
         dataReady = true;
 }

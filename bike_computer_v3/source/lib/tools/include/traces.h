@@ -38,12 +38,6 @@
 #define FORMAT_FLOAT "% 3.2f"
 #define FORMAT_FLOAT_ARR "[" FORMAT_FLOAT "," FORMAT_FLOAT "," FORMAT_FLOAT "]"
 
-// #if 1
-// 	#define DEBUG_OLED(__info,...) printf("[DEBUG_OLED] : " __info,##__VA_ARGS__)
-// #else
-// 	#define DEBUG_OLED(__info,...)
-// #endif
-
 #define TRACES_ON(id, name) \
         tracesOn[name] |= (1 << id)
 #define TRACES_ON_ALL(name) \
@@ -122,7 +116,7 @@ static inline void tracesSetup()
     //                   CORE 1 TRACES
     // ==================================================
     // TRACES_ON(1,TRACE_CORE_1); // render time for scree
-    TRACES_ON(2,TRACE_CORE_1); // pause btn
+    // TRACES_ON(2,TRACE_CORE_1); // pause btn
 
 
 

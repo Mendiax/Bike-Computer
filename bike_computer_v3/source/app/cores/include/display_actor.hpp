@@ -7,7 +7,7 @@
 
 #include "session.hpp"
 #include "common_types.h"
-#include "common_data.hpp"
+
 #include "gui/structure.hpp"
 
 class Display_Actor : public Actor
@@ -73,18 +73,11 @@ private:
     void handler_setup()
     {
         this->handler_add(handle_sig_total_update, actors_common::SIG_DISPLAY_ACTOR_TOTAL_UPDATE);
-        // this->handler_add(handle_sig_start_pause_btn, actors_common::SIG_DISPLAY_ACTOR_START_PAUSE_BTN);
-        // this->handler_add(handle_sig_end_btn, actors_common::SIG_DISPLAY_ACTOR_END_BTN);
         this->handler_add(handle_sig_load_session, actors_common::SIG_DISPLAY_ACTOR_LOAD_SESSION);
         this->handler_add(handle_sig_save_session, actors_common::SIG_DISPLAY_ACTOR_SAVE_SESSION);
-
-
-        // this->handler_add(handle_sig_log_gps, actors_common::SIG_DISPLAY_ACTOR_LOG_GPS);
         this->handler_add(handle_sig_log, actors_common::SIG_DISPLAY_ACTOR_LOG);
         this->handler_add(handle_sig_show_msg, actors_common::SIG_DISPLAY_ACTOR_SHOW_MSG);
         this->handler_add(handle_sig_get_packet, actors_common::SIG_DISPLAY_ACTOR_GET_PACKET);
-
-
         // this->handler_add(handle_sig_get_file, actors_common::SIG_DISPLAY_ACTOR_GET_FILE);
     }
 

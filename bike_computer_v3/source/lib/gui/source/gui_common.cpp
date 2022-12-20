@@ -10,6 +10,7 @@
 #include "gui_common.hpp"
 #include "buttons/buttons.h"
 #include "traces.h"
+#include "views/view.hpp"
 
 // #------------------------------#
 // |           macros             |
@@ -46,6 +47,11 @@ View::View(View_List* next)
 View::~View()
 {
 
+}
+
+void View::refresh(void)
+{
+    View_Creator::get_view()->draw();
 }
 
 View_List* View::get_next_view_list()

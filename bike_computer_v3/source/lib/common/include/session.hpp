@@ -4,7 +4,7 @@
 #include "common_types.h"
 #include "csv_interface.hpp"
 
-#define SESION_DATA_CSV_LEN_NO_GEARS 100
+#define SESION_DATA_CSV_LEN 100
 
 /**
  * @brief Contains data about current session
@@ -36,11 +36,6 @@ private:
     }
 public:
     Session_Data();
-    /**
-     * @brief Construct a new Session_Data from csv line
-     *
-     * @param csv_line
-     */
     Session_Data(const char* csv_line);
 
     inline Status get_status() const {return this->status;}
@@ -72,24 +67,11 @@ public:
     }
 
     inline TimeS get_start_time() const {return this->time_start;}
-    inline void set_start_time(TimeS time) {if(has_started() && !time_start.is_valid()) this->time_start = time;}
-
-    inline absolute_time_t get_start_absolute_time() {return this->absolute_time_start;}
-
 
     void start(TimeS time);
     void pause();
     void cont();
     void end(TimeS time);
-    // update data
-    /**
-     * @brief add millis to correct gear
-     *
-     * @param gear idx of gear
-     * @param cadence
-     * @param millis
-     */
-    int16_t* get_distance_var();
     void update(float speed_kph, float distance_m);
 
 

@@ -11,13 +11,11 @@
 
 // my includes
 #include "sim868/interface.hpp"
-// #include "console/console.h"
 #include "traces.h"
 #include "massert.hpp"
 #include "utils.hpp"
 
 // global
-volatile bool http_req_irq;
 
 // static variables
 static bool sim_booted = false;
@@ -133,54 +131,6 @@ bool sim868::check_for_boot_long(void)
     return sim868::sendRequestLong("AT", 2000).find("OK") != std::string::npos;
 }
 
-
-// std::string sim868::sendRequestGetGpsPos()
-// {
-//     /*
-//     'AT+CGNSINF
-//     +CGNSINF: 1,0,20220723071332.000,,,,0.24,0.0,0,,,,,,8,0,,,42,,
-
-//     OK
-//     '
-//     */
-//     constexpr size_t BUFFER_SIZE = 200;
-//     char inputBuffer[BUFFER_SIZE];
-//     memset(inputBuffer, 0, BUFFER_SIZE);
-//     auto cmd = "AT+CGNSINF\r\n";
-//     printf("requesting\'%s\'\n", cmd);
-//     uint64_t t = time_us_64();
-//     StateStringMachine findOk("OK\r\n");
-//     StateStringMachine findError("ERROR\r\n");
-
-//     long timeout = 2000;
-//     size_t i = 0;
-//     size_t commaCount = 0;
-//     //sleep_ms(2000);
-//     uart_puts(UART_ID0, cmd);
-//     while (time_us_64() - t < timeout * 1000)
-//     {
-//         while (uart_is_readable_within_us(UART_ID0, timeout))
-//         {
-//             const char c = uart_getc(UART_ID0);
-//             inputBuffer[i++] = c;
-//             if(findOk.updateChar(c)) {goto GPS_EXIT;}
-//             if(findError.updateChar(c)) {goto GPS_EXIT;}
-//             if(i >= BUFFER_SIZE)
-//             {
-//                 i = BUFFER_SIZE - 1;
-//                 goto GPS_EXIT;
-//             }
-//         }
-//     }
-//     inputBuffer[i] = '\0';
-// GPS_EXIT:
-//     printf("received\'%s\'\n", inputBuffer);
-//     return std::string(inputBuffer);
-// }
-
-
-
-
 void sim868::waitForBoot()
 {
     if(!sim_on)
@@ -191,7 +141,6 @@ void sim868::waitForBoot()
     int fail_counter = 0;
     while(!check_for_boot_long())
     {
-        printf("SIM868 is starting\n");
         sleep_ms(1000);
         fail_counter++;
         if(fail_counter > 5)
@@ -205,7 +154,6 @@ void sim868::waitForBoot()
             return;
         }
     }
-    printf("SIM868 is ready\n");
 }
 
 
@@ -246,15 +194,11 @@ bool sim868::get_bat_level(bool& is_charging,
     return false;
 }
 
-StateStringMachine find_ok("OK\r\n");
-StateStringMachine find_error("ERROR\r\n");
+
 void on_uart_rx(void)
 {
-    if(http_req_irq)
-    {
-        on_uart_rx_http();
-        return;
-    }
+    static StateStringMachine find_ok("\r\nOK\r\n");
+    static StateStringMachine find_error("\r\nERROR\r\n");
     switch (current_response.status)
     {
     case ResponseStatus::SENT:
@@ -269,7 +213,6 @@ void on_uart_rx(void)
         }
         break;
     // those are cases when we should not received any data so we remove from buffer
-    case ResponseStatus::FINISH:
     case ResponseStatus::TIME_OUT:
     case ResponseStatus::RECEIVED:
         // read data in buffer
@@ -281,7 +224,6 @@ void on_uart_rx(void)
     default:
         break;
     }
-
     while (uart_is_readable(UART_ID))
     {
         const char c = uart_getc(UART_ID);
@@ -289,7 +231,7 @@ void on_uart_rx(void)
         if(find_ok.updateChar(c) || find_error.updateChar(c))
         {
             // we have finished receive data
-            current_response.status = ResponseStatus::FINISH;
+            current_response.status = ResponseStatus::RECEIVED;
             return;
         }
     }
@@ -336,9 +278,6 @@ uint64_t sim868::send_request(const std::string&& cmd,
         sleep_ms(10);
     }
     #endif
-
-
-
     return id;
 }
 
@@ -350,7 +289,6 @@ std::string sim868::get_respond(uint64_t id)
         {
             TRACE_ABNORMAL(TRACE_SIM868, "received error '%s'\n", current_response.response.c_str());
         }
-        //std::cout << id << " -> " << current_response.response << std::endl;
         current_response.status = ResponseStatus::RECEIVED;
         return current_response.response;
     }
@@ -361,7 +299,8 @@ bool sim868::check_response(uint64_t id)
 {
     if(current_response.id == id && id != 0)
     {
-        if(us_to_ms(absolute_time_diff_us(current_response.time_start, get_absolute_time())) > current_response.timeout)
+        if(current_response.status != ResponseStatus::RECEIVED &&
+            us_to_ms(absolute_time_diff_us(current_response.time_start, get_absolute_time())) > current_response.timeout)
         {
             // timeout has occured
             current_response.status = ResponseStatus::TIME_OUT;
@@ -369,7 +308,6 @@ bool sim868::check_response(uint64_t id)
         switch (current_response.status)
         {
             // those are cases when we should not received any data so we remove from buffer
-            case ResponseStatus::FINISH:
             case ResponseStatus::TIME_OUT:
             case ResponseStatus::RECEIVED:
                 return true;
@@ -392,7 +330,7 @@ std::string sim868::sendRequestLong(const std::string&& cmd, long timeout, const
         sleep_ms(100);
     }
     resp = get_respond(req);
-    std::cout << resp << std::endl;
+    // std::cout << resp << std::endl;
     return resp;
 }
 
@@ -443,10 +381,6 @@ void sim868::clear_respond(std::string& respond)
         cmd_start_idx += 1;
     if(respond.at(cmd_start_idx) == ' ')
         cmd_start_idx += 1;
-    // if(isspace(respond.at(cmd_start_idx)))
-    // {
-    //     cmd_start_idx++;
-    // }
 
     auto last_char_idx = str_length - 1;
     int_fast8_t nl_cnt = 2;
@@ -480,14 +414,5 @@ void sim868::clear_respond(std::string& respond)
 
     // cut to correct len
     respond = respond.substr(cmd_start_idx, last_char_idx - cmd_start_idx);
-
-    // if(str_length > strlen("\r\nOK\r\n"))
-    // {
-    //     // check for OK
-    // }
-    // if(str_length > strlen("\r\nERROR\r\n"))
-    // {
-    //     // check for ERROR
-    // }
 }
 

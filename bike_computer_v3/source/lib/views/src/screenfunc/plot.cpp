@@ -6,7 +6,7 @@
 #include "views/frame.h"
 
 #include <display/fonts.h>
-#include <display/print.h>
+#include <display/driver.hpp>
 
 #include "massert.hpp"
 
@@ -96,7 +96,7 @@ void plot_float(const void *settings)
         massert_range(x1, plot_settings->frame.x, plot_settings->frame.x + plot_settings->frame.width - 1);
 
 
-        Paint_DrawLine(x0,y0,x1,y1, plot_settings->color);
+        display::draw_line(x0,y0,x1,y1, plot_settings->color);
         x0 = x1;
         y0 = y1;
     }

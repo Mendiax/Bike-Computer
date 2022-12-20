@@ -36,12 +36,9 @@ void View_Max_Avg::render(void)
     auto [max,avg] = View_Creator::split_vertical(max_avg_val);
     creator->add_value("%2.0f", 2, &this->session.speed.velocityMax, max, Align::CENTER);
 
-    // auto [avg_curr, avg_global] = View_Creator::split_horizontal(avg);
     creator->add_value("%4.1f",4,&this->session.speed.avg, avg, Align::LEFT);
-    // creator->add_value("%4.1f",4,&this->session.speed.avg_global, avg_global, Align::LEFT);
 
 
-    // Frame time_passed = {0, bottomLeft.y + bottomLeft.height, DISPLAY_WIDTH, DISPLAY_HEIGHT - time_passed.y};
     creator->add_value("%2d:%02d:%02d", 8, (mtime_t *)&this->session.speed.drive_time, time_passed, Align::CENTER);
 
     TRACE_DEBUG(4, TRACE_VIEWS, "view1 setup finished \n%s", "");

@@ -30,7 +30,6 @@ class View_Session : public gui::View
 protected:
     const Sensor_Data& data;
     const Session_Data& session;
-
 public:
     View_Session(const Sensor_Data& data, const Session_Data& session);
     ~View_Session();
@@ -39,7 +38,6 @@ public:
     void action(void);
     // end session
     void action_long(void);
-
     // end session no save
     void action_second_long(void);
 };
