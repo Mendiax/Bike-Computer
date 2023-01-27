@@ -199,20 +199,24 @@ pico_enable_stdio_uart(${PICO_GSM_CONSOLE_FILE} 0)
 pico_add_extra_outputs(${PICO_GSM_CONSOLE_FILE})
 
 target_link_libraries( ${PICO_GSM_CONSOLE_FILE}
+        # pico_stdlib
+        # pico_multicore
+        # hardware_spi
+        # hardware_adc
+        # hardware_uart
+
+        # Display
+        # Tools
+        # Cadence
+        # Speedometer
+
+        # Common
+
+        # GSM
         pico_stdlib
         pico_multicore
-        hardware_spi
-        hardware_adc
-        hardware_uart
-
-        Display
         Tools
-        Cadence
-        Speedometer
-
-        Common
-
-        GSM
+        Cores
 )
 
 

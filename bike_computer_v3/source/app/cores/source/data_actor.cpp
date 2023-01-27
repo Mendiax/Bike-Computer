@@ -63,7 +63,8 @@
 
 #define LOG_DATA_CYCLE_MS (1 * 1000)
 
-
+#define SIM_SPEED
+// #define SIM_SLOW_DOWN
 
 //switches
 #define SIM_WHEEL_CADENCE 1
@@ -294,8 +295,8 @@ void Data_Actor::handle_sig_pause(const Signal &sig)
 }
 void Data_Actor::handle_sig_continue(const Signal &sig)
 {
-    speed::start();
     session_p->cont();
+    speed::start();
 }
 
 
@@ -316,7 +317,7 @@ void Data_Actor::handle_sig_start(const Signal &sig)
 {
 
     session_p->pause();
-    speed::start();
+    speed::start(); // TODO popraw start
 
 }
 void Data_Actor::handle_sig_stop(const Signal &sig)
@@ -388,18 +389,19 @@ int Data_Actor::loop_frame_update()
 
     // simulate slowing down
     #ifdef SIM_SLOW_DOWN
-    if(sensors_data.current_state == SystemState::RUNNING)
+    if(session_p->is_running())
     {
+        CYCLE_UPDATE_SIMPLE(true, 200,
+        {
+            send_speed_comp(speed::get_velocity_kph_raw(), sensors_data.velocity);
+        });
         static int single_trig = 0;
         if(single_trig == 0)
         {
+            PRINT("[INFO] SIM STARTED");
             single_trig++;
             speed_emulate_slowing(20, -3.0);
         }
-        CYCLE_UPDATE_SIMPLE(true, 300,
-        {
-            send_speed_comp(speed::get_velocity_kph_raw(), velocity);
-        });
     }
     #endif
 

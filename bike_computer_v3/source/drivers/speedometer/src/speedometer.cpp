@@ -45,7 +45,7 @@ static float wheel_size = 2.0;
 static void speed_update();
 //static absolute_time_t absolute_time_copy_volatile(volatile absolute_time_t* time);
 static bool repeating_timer_callback(struct repeating_timer *t);
-static uint16_t speed_to_ms(float speed_kph);
+static uint32_t speed_to_ms(float speed_kph);
 
 /*returns last read speed [m/s]*/
 static float speed_getSpeed(float speed);
@@ -113,11 +113,12 @@ int64_t alarm_callback(alarm_id_t id, void* data)
     de_accel* data_ = (de_accel*)data;
     data_->speed += data_->accel * ((float)speed_to_ms(data_->speed) / 1000.0);
 
-    if(data_->speed <= 0 || data_->speed >= 99)
+    if(data_->speed <= 0.0 || data_->speed >= 99.0)
     {
         return 0;
     }
-    return -speed_to_ms(data_->speed) * 1000;
+    int64_t next_alarm = speed_to_ms(data_->speed) * 1000;
+    return -1 * next_alarm;
 }
 
 
@@ -126,7 +127,7 @@ void speed_emulate_slowing(float speed, float accel)
     auto data = new de_accel();
     *data = {speed, accel};
 
-    PRINT("adding timer in " << speed_to_ms(speed) << " for " << speed << " w " << accel << "a");
+    // PRINT("adding timer in " << speed_to_ms(speed) << " for " << speed << " w " << accel << "a");
     add_alarm_in_ms(speed_to_ms(speed), alarm_callback, (void*)data, false);
 }
 void speed_emulate(float speed)
@@ -139,11 +140,11 @@ void speed_emulate(float speed)
 // static definitions
 
 // speed in km/h
-static uint16_t speed_to_ms(float speed_kph)
+static uint32_t speed_to_ms(float speed_kph)
 {
     const float speed_mps = speed_kph / 3.6;
     // t = s/v
-    return wheel_size / speed_mps * 1000.0;
+    return (wheel_size / speed_mps) * 1000.0;
 }
 
 bool repeating_timer_callback(struct repeating_timer *t) {

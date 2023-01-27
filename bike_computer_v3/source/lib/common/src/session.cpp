@@ -100,7 +100,7 @@ void Session_Data::update(float speed_kph, float distance_m)
     this->speed.drive_time = drive_time_s;
     if (drive_time_s > 0.0)
     {
-        this->speed.avg = speed_mps_to_kmph((double)distance_m / drive_time_s);
+        this->speed.avg = speed_mps_to_kmph((double)distance_m / (double)drive_time_s);
     }
 }
 

@@ -124,7 +124,7 @@ START_SD:
     // Loop forever doing nothing
     printf("test_SD finished\r\n");
 }
-
+/*
 void test_DOF()
 {
     //init_i2c();
@@ -165,7 +165,7 @@ void test_DOF()
         //printf("YawPitchRoll " FORMAT_FLOAT_ARR " gyro " FORMAT_INT16_ARR "\n", INS_ARR(data), INS_ARR(gyro));
 
     }
-}
+}*/
 
 void test_driver()
 {
@@ -251,29 +251,29 @@ void test_draw_line()
     display::display();
 }
 
-void test_console()
-{
-    consoleLogInit();
-    for (int i = 0; i < 20; i++)
-    {
-        // enum
-        // {
-        //     BUFFER_SIZE = 100
-        // };
-        // char buffer[BUFFER_SIZE] = {0};
-        // snprintf(buffer, BUFFER_SIZE, "_%2d_-/-/10-/-/-/-/20-/-25/-/30", i);
-        // printf("%s",buffer);
-        //        =============================
-        printf("==================================\n");
-        sleep_ms(200);
-    }
-}
+// void test_console()
+// {
+//     consoleLogInit();
+//     for (int i = 0; i < 20; i++)
+//     {
+//         // enum
+//         // {
+//         //     BUFFER_SIZE = 100
+//         // };
+//         // char buffer[BUFFER_SIZE] = {0};
+//         // snprintf(buffer, BUFFER_SIZE, "_%2d_-/-/10-/-/-/-/20-/-25/-/30", i);
+//         // printf("%s",buffer);
+//         //        =============================
+//         printf("==================================\n");
+//         sleep_ms(200);
+//     }
+// }
 
-void test_gps()
-{
-  consoleLogInit();
-  //GPS_test();
-}
+// void test_gps()
+// {
+//   consoleLogInit();
+//   //GPS_test();
+// }
 
 void test_atInternet()
 {
