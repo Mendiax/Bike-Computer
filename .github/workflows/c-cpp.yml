@@ -1,4 +1,5 @@
 name: C/C++ CI
+# runs-on: self-hosted
 
 on:
   push:
@@ -7,16 +8,37 @@ on:
     branches: [ "main" ]
 
 jobs:
+<<<<<<< HEAD
+
+  say-hello:
+    runs-on: self-hosted
+    steps:
+      - run: echo "Hello World!"
+      - run: pwd
+
+
+  build:
+=======
+
+  say-hello:
+    runs-on: self-hosted
+    steps:
+      - run: echo "Hello World!"
+      - run: pwd
+
+
   build:
 
-    runs-on: ubuntu-latest
+>>>>>>> 58c50a2... test
+    # runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v3
-    - name: configure
-      run: ./configure
+#    - name: configure
+#    run: ./configure
     - name: make
-      run: make
+      run: cd bike_computer_v3 && make all
 #     - name: make check
 #       run: make check
 #     - name: make distcheck

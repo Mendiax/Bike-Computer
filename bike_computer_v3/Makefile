@@ -13,9 +13,9 @@ PICO_TEST_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_TEST_FILE).uf2)
 # CMAKE_BUILDER := "Ninja"
 CMAKE_BUILDER := "Unix Makefiles"
 
-all:
+all: cmaker
 	# $(MAKE) -C $(BUILD) -j$(NPROCS) && echo "BUILD FINISHED"
-	cmake --build ./build --parallel $(NPROCS)
+	cmake --build ./build --parallel $(NPROCS) && echo "BUILD FINISHED"
 
 main:
 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
