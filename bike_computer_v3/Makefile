@@ -4,14 +4,14 @@ PICO_MAIN_FILE := pico_main
 PICO_TEST_FILE := pico_test
 PICO_GSM_CONSOLE_FILE := pico_gsm_console
 
-PICO_DRIVE_LETTER := I
+PICO_DRIVE_LETTER := H
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_MAIN_FILE).uf2)
 PICO_TEST_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_TEST_FILE).uf2)
 
-CMAKE_BUILDER := "Ninja"
-# CMAKE_BUILDER := "Unix Makefiles"
+# CMAKE_BUILDER := "Ninja"
+CMAKE_BUILDER := "Unix Makefiles"
 
 all:
 	# $(MAKE) -C $(BUILD) -j$(NPROCS) && echo "BUILD FINISHED"
@@ -30,8 +30,8 @@ sim:
 	$(MAKE) -C $(BUILD) -j$(NPROCS)
 
 parser:
-	# bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
-	# flex -Cr -o source/lib/Parser/src/lexer.cpp source/lib/Parser/lexer.l
+	bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
+	flex -Cr -o source/lib/Parser/src/lexer.cpp source/lib/Parser/lexer.l
 
 
 CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1
@@ -52,8 +52,7 @@ cw_all:
 	./boot/boot.sh -o b && $(MAKE) main && $(MAKE) write_main && sleep 2 && ./serial.bat
 
 cwt_all:
-	./boot/boot.sh -o b && $(MAKE) test
-	# && $(MAKE) write_test && sleep 3 && ./serial.bat
+	./boot/boot.sh -o b && $(MAKE) test && $(MAKE) write_test && sleep 2 && ./serial.bat
 
 .PHONY: boot
 boot:

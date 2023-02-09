@@ -19,6 +19,7 @@ void drawFormatVariableVoid(const void *settings);
     } \
     drawFunc_p getDrawFunc(const type* var) \
     { \
+        (void) var; \
         return drawFormat_##type; \
     }
 
@@ -40,32 +41,38 @@ CREATE_FUNC(double)
 // }
 drawFunc_p getDrawFunc(const mtime_t* var)
 {
+    (void) var;
     return ValDrawTime;
 }
 
 drawFunc_p getDrawFunc(const TimeS* var)
 {
+    (void) var;
     return drawFormat_TimeS;
 }
 
 
 drawFunc_p getDrawFunc(const char* var)
 {
+    (void) var;
     return drawFormat_char_p;
 }
 
 drawFunc_p getDrawFunc(const Time_HourS* var)
 {
+    (void) var;
     return drawFormat_Time_HourS;
 }
 
 drawFunc_p getDrawFunc(const Time_DateS* var)
 {
+    (void) var;
     return drawFormat_Time_DateS;
 }
 
 drawFunc_p getDrawFunc(const Battery* var)
 {
+    (void) var;
     return draw_battery_level;
 }
 
@@ -75,6 +82,7 @@ void drawFormat_void(const void *settings)
 }
 drawFunc_p getDrawFunc(const void* var)
 {
+    (void) var;
     return drawFormat_void;
 }
 
@@ -181,7 +189,7 @@ void draw_battery_level(const void *settings)
 
     const size_t max_str_len = 6;
     static char buffer[max_str_len + 1];
-    static uint_fast8_t last_bat;
+    static int_fast8_t last_bat;
 
     if(__builtin_expect(last_bat != bat.level, 0))
     {
@@ -243,7 +251,7 @@ void drawFormat_TimeS(const void *settings)
     display::println(valSettings->text.offsetX,valSettings->text.offsetY, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);
 
     const uint_fast16_t y_offset = valSettings->text.font->height * valSettings->text.scale;
-    if(snprintf(&buffer[0], max_str_len,  "%02" PRIu8 ":""%02" PRIu8 ":""%02" PRIu8, time.hour, time.minutes, time.seconds) < 0){
+    if(snprintf(&buffer[0], max_str_len,  "%02" PRIu8 ":""%02" PRIu8 ":""%02" PRIu8, time.hour, time.minutes, (uint8_t)time.seconds) < 0){
         return;
     }
     display::println(valSettings->text.offsetX, valSettings->text.offsetY + y_offset, buffer, valSettings->text.font, COLOR_WHITE, valSettings->text.scale);

@@ -50,6 +50,8 @@ protected:
      */
     virtual void handler_setup() = 0;
 
+
+public:
     /**
      * @brief checks if there is no signals in queue
      *
@@ -57,8 +59,6 @@ protected:
      * @return false
      */
     bool is_queue_empty();
-
-public:
     /**
      * @brief constructor
      */
@@ -71,7 +71,7 @@ public:
      * @param sig
      */
     void send_signal(const Signal& sig);
-
+    void send_signal(Signal& sig, Actor* from);
 
     /**
      * @brief pop from internal queue and execute signal

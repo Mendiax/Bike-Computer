@@ -30,6 +30,7 @@ struct Signal
 private:
     const sig_id id;
     char *payload;
+    void* actor_p;
     const size_t payload_size;
 
 public:
@@ -53,6 +54,14 @@ public:
     inline T get_payload(void) const
     {
         return (T)this->payload;
+    }
+    inline void set_actor(void* actor)
+    {
+        actor_p = actor;
+    }
+    inline void* get_actor() const
+    {
+        return actor_p;
     }
 };
 

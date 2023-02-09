@@ -6,12 +6,12 @@ target_link_libraries(test_main PUBLIC
     pico_time
     pico_stdlib
     GSM
-    # Parser
+    Parser
     Common
     bcTest
     Display
     BMP280
     SD
     Actors
-    EPROM
+    # EPROM
 )
