@@ -238,11 +238,6 @@ void View_Creator::top_bar(const Time_HourS *hours, const Battery *lipo)
     add_value("", TIMES_LABEL_LENGTH, hours, frame_hour, Align::LEFT);
 }
 
-constexpr Frame View_Creator::get_frame_bar()
-{
-    return {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT - TOP_BAR_HEIGHT};
-}
-
 Frame View_Creator::setup_bar(const Time_HourS* hours, const Battery* lipo)
 {
     top_bar(hours, lipo);

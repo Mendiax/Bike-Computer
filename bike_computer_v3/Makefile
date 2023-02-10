@@ -1,5 +1,6 @@
 PICODIR := ./pico #/mnt/h
 BUILD := build
+BUILD_LOG := $(BUILD)/build.log
 PICO_MAIN_FILE := pico_main
 PICO_TEST_FILE := pico_test
 PICO_GSM_CONSOLE_FILE := pico_gsm_console
@@ -10,12 +11,22 @@ NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_MAIN_FILE).uf2)
 PICO_TEST_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_TEST_FILE).uf2)
 
-# CMAKE_BUILDER := "Ninja"
-CMAKE_BUILDER := "Unix Makefiles"
+# can be overriden with "make BUILD_WITH=Unix\ Makefiles"
+ifdef BUILD_WITH
+  	CMAKE_BUILDER = Unix\ Makefiles
+else
+  	CMAKE_COMMAND = $(shell command -v ninja 2> /dev/null)
+	ifneq ($(CMAKE_COMMAND),)
+      	CMAKE_BUILDER = "Ninja"
+  	else
+    	CMAKE_BUILDER = "Unix Makefiles"
+  	endif
+endif
 
-all: cmaker
+all: cmake
 	# $(MAKE) -C $(BUILD) -j$(NPROCS) && echo "BUILD FINISHED"
-	cmake --build ./build --parallel $(NPROCS) && echo "BUILD FINISHED"
+	cmake --build ./build --parallel $(NPROCS) | tee $(BUILD_LOG)
+	echo "BUILD FINISHED"
 
 main:
 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
@@ -37,10 +48,10 @@ parser:
 CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
 #-DCMAKE_VERBOSE_MAKEFILE=ON
-cmake: parser
+cmake: folder parser
 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Debug
 
-cmaker: parser
+cmaker: folder parser
 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Release
 
 .PHONY: release
@@ -85,20 +96,18 @@ cwt: test write_test
 cwgsm: gsm write_gsm_console
 	echo "cw gsm console"
 
+folder:
+	mkdir -p $(BUILD)
+
 clean:
 	# $(MAKE) clean -C $(BUILD)
 	rm -rf  $(BUILD)
-	mkdir $(BUILD)
+	mkdir -p $(BUILD)
 	# find . -name "*.s" -type f -delete
 	# find . -name "*.gch" -type f -delete
 
-reset: clean cmake all
+reset: clean all
 	echo "clean make done!"
-
-
-
-getFatFSlib:
-	git clone https://github.com/carlk3/no-OS-FatFS-SD-SPI-RPi-Pico.git
 
 # test:
 # 	$(MAKE) test -C $(BUILD)
