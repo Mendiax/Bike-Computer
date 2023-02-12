@@ -139,7 +139,11 @@ public:
 
     void top_bar(const Time_HourS *hours, const Battery *lipo);
 
-    constexpr Frame get_frame_bar();
+    // static constexpr Frame get_frame_bar();
+    static inline Frame get_frame_bar()
+    {
+        return {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT - TOP_BAR_HEIGHT};
+    }
     /**
      * @brief Set the up top bar and return the rest of frame
      *

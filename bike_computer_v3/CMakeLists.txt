@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 project(pico
-        VERSION 3.0
+        VERSION 3.1
         LANGUAGES CXX ASM C)
 
 pico_sdk_init()
@@ -15,7 +15,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 set(CMAKE_C_COMPILE_OPTIONS_COLOR_DIAGNOSTICS     -DCOLOR_ON)
 
-add_compile_options(-Wfatal-errors -Werror=return-type ) # -Wall -Wextra
+add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra) # -Wall -Wextra
 
 # add_compile_options(-Wint-to-pointer-cast
 #                     -Wl,-print-memory-usage
@@ -26,6 +26,8 @@ add_compile_options(-Wfatal-errors -Werror=return-type ) # -Wall -Wextra
 #                     -Wformat=2
 #                     -Wfatal-errors
 #                     )
+
+
 
 #-----------------------------------------------------------------------------#
 #                             INCLUDE DIRECTORIES                             #
@@ -94,7 +96,6 @@ add_subdirectory(source/drivers/I2C)
 # add_subdirectory(source/drivers/DOF/MPU9250)
 
 # SD
-add_subdirectory(source/external/no-OS-FatFS/FatFs_SPI)
 
 add_subdirectory(source/app/gui)
 add_subdirectory(source/app/cores)
@@ -104,7 +105,8 @@ add_subdirectory(source/tests/bc_test)
 add_subdirectory(source/tests/tc)
 
 
-
+add_subdirectory(source/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
+set(SD_CONFIG_SRC source/external/FatFs_config/hw_config.cpp)
 
 #################################### MAIN #####################################
 
@@ -113,7 +115,7 @@ if( NOT PICO_MAIN_FILE )
         SET(PICO_MAIN_FILE pico_main)
         message("SET PICO_MAIN_FILE = ${PICO_MAIN_FILE}")
 endif()
-add_executable( ${PICO_MAIN_FILE} source/app/main.cpp)
+add_executable( ${PICO_MAIN_FILE} source/app/main.cpp ${SD_CONFIG_SRC})
 target_compile_definitions(${PICO_MAIN_FILE} PRIVATE PICO_MALLOC_PANIC=0)
 
 pico_enable_stdio_usb( ${PICO_MAIN_FILE} 1)
@@ -126,6 +128,7 @@ target_link_libraries( ${PICO_MAIN_FILE}
         pico_multicore
         Tools
         Cores
+        FatFs_SPI
 )
 
 #################################### TEST #####################################
@@ -137,7 +140,7 @@ if( NOT PICO_TEST_FILE )
         message("SET PICO_TEST_FILE = ${PICO_TEST_FILE}")
 endif()
 # add_executable(${PICO_TEST_FILE} source/app/test.cpp)
-add_executable(${PICO_TEST_FILE} source/tests/tc_basic.cpp)
+add_executable(${PICO_TEST_FILE} source/tests/tc_basic.cpp ${SD_CONFIG_SRC})
 
 pico_enable_stdio_usb(${PICO_TEST_FILE} ENABLED)
 pico_enable_stdio_uart(${PICO_TEST_FILE} 0)
@@ -159,7 +162,6 @@ target_link_libraries( ${PICO_TEST_FILE}
         GSM
 
         # IMU I2C
-        # FatFs_SPI
 
         Actors
         # EPROM
@@ -176,7 +178,7 @@ if( NOT PICO_GSM_CONSOLE_FILE )
         SET(PICO_GSM_CONSOLE_FILE pico_gsm_console)
         message("SET PICO_GSM_CONSOLE_FILE = ${PICO_GSM_CONSOLE_FILE}")
 endif()
-add_executable(${PICO_GSM_CONSOLE_FILE} source/app/gsm_console.cpp)
+add_executable(${PICO_GSM_CONSOLE_FILE} source/app/gsm_console.cpp ${SD_CONFIG_SRC})
 
 pico_enable_stdio_usb(${PICO_GSM_CONSOLE_FILE} 1)
 pico_enable_stdio_uart(${PICO_GSM_CONSOLE_FILE} 0)

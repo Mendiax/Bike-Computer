@@ -2,7 +2,7 @@ build/
 pico/
 ../bike_computer_v2/
 sim800_doc/
-external/
+source/external/no-OS-FatFS
 specification/
 source/lib/Parser/src/parser_bison.hpp
 source/lib/Parser/src/parser_bison.cpp
