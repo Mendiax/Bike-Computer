@@ -5,19 +5,13 @@ include_directories(../gui/include)
 
 
 add_library(Cores ${DIR_Cores_SRCS})
-target_link_libraries(Cores PUBLIC pico_stdlib
+target_link_libraries(Cores PUBLIC
+    pico_stdlib
     GUI_Impl
     Display
     Speedometer
     Cadence
-
     BMP280
-
     Common
     GSM
-    # Parser
     Tools)
-
-    # Interrupts
-    # Views
-    # Buttons

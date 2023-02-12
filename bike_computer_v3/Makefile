@@ -25,7 +25,7 @@ endif
 
 all: cmake
 	# $(MAKE) -C $(BUILD) -j$(NPROCS) && echo "BUILD FINISHED"
-	cmake --build ./build --parallel $(NPROCS) | tee $(BUILD_LOG)
+	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	echo "BUILD FINISHED"
 
 main:

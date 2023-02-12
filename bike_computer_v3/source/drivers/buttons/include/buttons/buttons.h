@@ -8,13 +8,6 @@
 #define BTN2 2
 #define BTN3 3
 
-// extern interrupt button0;
-// extern interrupt button1;
-// extern interrupt button1rel;
-// extern interrupt button2;
-// extern interrupt button2rel;
-// extern interrupt button3;
-
 
 #define LONG_PRESS_MS 1000
 #define PRESS_TIMEOUT 500

@@ -5,10 +5,10 @@
 class Csv_Interface
 {
 private:
-    
+
 public:
-    virtual const char* get_header();
-    virtual std::string get_line();
+    virtual const char* get_header() = 0;
+    virtual std::string get_line() = 0;
 };
 
 #endif
