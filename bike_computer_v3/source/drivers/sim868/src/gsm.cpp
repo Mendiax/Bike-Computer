@@ -519,8 +519,8 @@ bool sim868::gsm::setup_gsm(bool& success)
     return true;
 }
 
-
-bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::string& response, size_t expected_size)
+// TODO expected size
+bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::string& response, [[maybe_unused]]size_t expected_size)
 {
     // static uint8_t fails = 0;
     // const uint8_t fail_treshhold = 2;

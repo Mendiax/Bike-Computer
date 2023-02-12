@@ -23,6 +23,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "bmp280.hpp"
 
+#include <cstddef>
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
@@ -245,7 +246,7 @@ std::tuple<int32_t, int32_t> bmp280::get_temp_press()
 
     int32_t* buffer_arr = (int32_t*)press_buffer->data_pointer;
     int64_t press_avg = 0;
-    for(int i = 0; i < press_buffer->current_queue_length; i++)
+    for(size_t i = 0; i < press_buffer->current_queue_length; i++)
     {
         press_avg += buffer_arr[i];
     }

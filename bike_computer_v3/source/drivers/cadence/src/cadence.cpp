@@ -85,7 +85,7 @@ constexpr static uint16_t cadence_to_ms(float cadence)
 }
 
 
-bool repeating_timer_callback(struct repeating_timer *t) {
+bool repeating_timer_callback([[maybe_unused]] struct repeating_timer *t) {
     cadence_update();
     return true;
 }

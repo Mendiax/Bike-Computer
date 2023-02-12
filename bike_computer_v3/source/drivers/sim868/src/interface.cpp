@@ -311,6 +311,10 @@ bool sim868::check_response(uint64_t id)
             case ResponseStatus::TIME_OUT:
             case ResponseStatus::RECEIVED:
                 return true;
+            default:
+            {
+
+            }
         }
     }
     return false;

@@ -38,7 +38,7 @@ void unmount_drive()
         return;
     }
     // Mount drive
-    auto fr = f_unmount(SD_DRIVE_NAME);
+    f_unmount(SD_DRIVE_NAME);
     sd_mounted = 0;
 }
 
@@ -61,7 +61,6 @@ std::vector<std::string> dir::get_files(const char* path)
 {
     FRESULT res;
     DIR dir;
-    UINT i;
     static FILINFO fno;
 
     mount_drive();

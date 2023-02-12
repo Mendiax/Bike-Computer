@@ -64,7 +64,6 @@ void getFontSizePreferBiggerFonts(uint16_t width, uint16_t height, const sFONT**
     &Font20,
     &Font24
   };
-  uint16_t spaceLeft = UINT16_MAX;
   *scale = 1;
   size_t font_id = 4;
   *font = fonts[font_id];

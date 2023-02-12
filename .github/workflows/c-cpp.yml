@@ -9,11 +9,11 @@ on:
 
 jobs:
 
-  say-hello:
-    runs-on: self-hosted
-    steps:
-      - run: echo "Hello World!"
-      - run: pwd
+  # say-hello:
+  #   runs-on: self-hosted
+  #   steps:
+  #     - run: echo "Hello World!"
+  #     - run: pwd
 
 
   build:
@@ -26,5 +26,18 @@ jobs:
       with:
         submodules: 'true'
 
+    - name: check_evv
+      run: cd bike_computer_v3 && ls
+
+    - name: cmake
+      run: cd bike_computer_v3 && make cmake
+
     - name: make
       run: cd bike_computer_v3 && make all
+
+  warings:
+    needs: [build]
+    runs-on: self-hosted
+    steps:
+    - name: check_log
+      run: cd bike_computer_v3 && make warnings

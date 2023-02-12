@@ -89,7 +89,8 @@ private:
     Display_Actor()
     {
         handler_setup();
-        local_data = {0};
+        // local_data = {0};
+        memset((void*)&local_data, 0, sizeof(local_data));
     }
     friend void core1LaunchThread(void);
 public:

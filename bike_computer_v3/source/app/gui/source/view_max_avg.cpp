@@ -22,7 +22,7 @@ void View_Max_Avg::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data.current_time.hours, &this->data.lipo);
+    creator->setup_bar(&this->data.current_time.hours, &this->data.lipo);
 
     Frame max_avg_bar = {0, TOP_BAR_HEIGHT, DISPLAY_WIDTH, DISPLAY_HEIGHT/5};
     Frame max_avg_val = {0, View_Creator::get_frame_top_y(max_avg_bar), DISPLAY_WIDTH, 100};

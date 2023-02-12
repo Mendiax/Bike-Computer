@@ -11,11 +11,21 @@ if( NOT CMAKE_BUILD_TYPE )
         message("BUILD TYPE NOT SPECIFIED set to ${CMAKE_BUILD_TYPE} on default")
 endif()
 
+find_program(CXX_COMPILER NAMES arm-none-eabi-g++
+  PATHS /usr/bin /usr/local/bin
+  DOC "C++ compiler for target platform"
+)
+
+# Use the first compiler with -none-eabi that was found
+if (CXX_COMPILER)
+  set(CMAKE_CXX_COMPILER ${CXX_COMPILER})
+endif()
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 set(CMAKE_C_COMPILE_OPTIONS_COLOR_DIAGNOSTICS     -DCOLOR_ON)
 
-add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra) # -Wall -Wextra
+add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
 
 # add_compile_options(-Wint-to-pointer-cast
 #                     -Wl,-print-memory-usage

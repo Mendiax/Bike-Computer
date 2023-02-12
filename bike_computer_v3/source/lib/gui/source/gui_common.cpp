@@ -100,13 +100,13 @@ View_List::~View_List()
 View* View_List::get_next_view()
 {
     it++;
-    it = it == views_list.end() ? it = views_list.begin() : it;
+    it = (it == views_list.end()) ? views_list.begin() : it;
     return *it;
 }
 
 View* View_List::get_prev_view()
 {
-    it = it == views_list.begin() ? it = views_list.end() : it;
+    it = it == views_list.begin() ? views_list.end() : it;
     it--;
     return *it;
 }

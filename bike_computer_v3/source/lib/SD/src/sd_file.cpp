@@ -50,7 +50,6 @@ Sd_File::Result Sd_File::append(const char* string)
 {
     FIL file_p;
     FRESULT res;
-FILE_OPEN:
     res = f_open(&file_p, file_name,  FA_WRITE | FA_OPEN_APPEND);
     if (res != FR_OK)
     {
@@ -99,7 +98,6 @@ Sd_File::Result Sd_File::clear()
 {
     FIL file_p;
     FRESULT res;
-FILE_OPEN:
     res = f_open(&file_p, file_name,  FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
     if (res != FR_OK)
     {
@@ -113,7 +111,7 @@ FILE_OPEN:
     lines_pos.clear();
     auto ret = f_truncate(&file_p);
     f_close(&file_p);
-    if (ret < 0)
+    if (ret != FR_OK)
     {
         TRACE_ABNORMAL(TRACE_SD, "Could not truncate (%d)\n",  ret);
         return (last_result = F_ERROR);
@@ -140,20 +138,21 @@ std::string Sd_File::read_all()
         return "";
     }
     auto buffer = new char[file_size + 1];
+    memset(buffer, 0, file_size + 1);
     if(buffer == nullptr)
     {
         f_close(&file_p);
         last_result = F_ERROR;
         return "";
     }
-    auto ret = f_read(&file_p, buffer, file_size, &bytes_read);
+    f_read(&file_p, buffer, file_size, &bytes_read);
     f_close(&file_p);
     if (file_size != bytes_read)
     {
         TRACE_ABNORMAL(TRACE_SD, "Error while reading the file %s read %u/%zu\n",
                        file_name, bytes_read, file_size);
         last_result = F_ERROR;
-        memset(buffer, 0, sizeof(buffer));
+        memset(buffer, 0, file_size + 1);
     }
     last_result = F_OK;
     buffer[file_size] = '\0';
@@ -166,7 +165,6 @@ Sd_File::Result Sd_File::overwrite(const char* string, size_t pos)
 {
     FIL file_p;
     FRESULT res;
-FILE_OPEN:
     res = f_open(&file_p, file_name,  FA_WRITE);
     if (res != FR_OK)
     {
@@ -196,7 +194,6 @@ size_t Sd_File::get_no_of_lines()
     }
     FIL file_p;
     FRESULT res;
-FILE_OPEN:
     res = f_open(&file_p, file_name,  FA_READ);
     if (res != FR_OK)
     {
@@ -290,7 +287,7 @@ std::vector<std::string> Sd_File::read_all_lines(size_t max_len)
 
         // TODO check if buffer != null
         f_lseek(&file_p, lines_pos.at(line_no));
-        auto ret = f_read(&file_p, buffer, bytes_to_read, &bytes_read);
+        f_read(&file_p, buffer, bytes_to_read, &bytes_read);
         buffer[bytes_read] = '\0';
 
         if (bytes_to_read != bytes_read)
@@ -315,7 +312,7 @@ std::string Sd_File::read_line(size_t line_no, size_t max_len)
     if(line_no >= no_lines)
     {
         TRACE_ABNORMAL(TRACE_SD, "Error while reading the file:%s line:%zu no_lines:%zu\n",
-                line_no, no_lines, file_name);
+                file_name, line_no, no_lines);
         return "";
     }
     FIL file_p;
@@ -341,7 +338,7 @@ std::string Sd_File::read_line(size_t line_no, size_t max_len)
 
     auto buffer = new char[bytes_to_read + 1];
     f_lseek(&file_p, lines_pos.at(line_no));
-    auto ret = f_read(&file_p, buffer, bytes_to_read, &bytes_read);
+    f_read(&file_p, buffer, bytes_to_read, &bytes_read);
     buffer[bytes_read] = '\0';
 
     f_close(&file_p);

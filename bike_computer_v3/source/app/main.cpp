@@ -38,8 +38,7 @@ int main()
 //     const float T0 = 298.15;
 //     const float R0 = 9170;
 //     const float B = 4000;
-//     const float T = (B * T0)/\
-//                     (T0*std::log(Rt/R0) + B);
+//     const float T = (B * T0)/(T0*std::log(Rt/R0) + B);
 
 //     const int Tc = T - 273.15;
 

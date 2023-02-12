@@ -107,7 +107,7 @@ struct de_accel{
     float accel;
 };
 
-int64_t alarm_callback(alarm_id_t id, void* data)
+int64_t alarm_callback([[maybe_unused]] alarm_id_t id, void* data)
 {
     speed_update();
     de_accel* data_ = (de_accel*)data;
@@ -147,7 +147,7 @@ static uint32_t speed_to_ms(float speed_kph)
     return (wheel_size / speed_mps) * 1000.0;
 }
 
-bool repeating_timer_callback(struct repeating_timer *t) {
+bool repeating_timer_callback([[maybe_unused]] struct repeating_timer *t) {
     speed_update();
     return true;
 }

@@ -19,7 +19,7 @@ public:
 };
 
 Gear_Iterator::Gear_Iterator(const Bike_Config& config)
-    :config{config},current_front{0}, current_rear{0}
+    :current_front{0}, current_rear{0},config{config}
 {}
 
 bool Gear_Iterator::has_next()
@@ -206,7 +206,7 @@ bool Bike_Config::from_string(const char* str)
         gear_ratios[0] - get_diff(0)/2.0f,
         gear_ratios[0] + get_diff(0)/2.0f,
     };
-    for(int i = 1; i < gear_len - 1; i++)
+    for(unsigned i = 1; i < gear_len - 1; i++)
     {
         gear_ranges[i] = {
             gear_ratios[i] - get_diff(i-1)/2.0f,

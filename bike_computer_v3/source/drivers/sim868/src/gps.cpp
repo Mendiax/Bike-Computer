@@ -53,7 +53,8 @@ GpsRawData sim868::gps::get_gps_from_respond(const std::string& respond)
     #define EXTRACT_DOC_IDX(data, idx) EMPTY(data[DOC_IDX(idx)].c_str())
     auto data_arr = split_string(respond);
 
-    GpsRawData data_from_gps = {0};
+    GpsRawData data_from_gps{};
+    memset(&data_from_gps, 0, sizeof(data_from_gps));
     data_from_gps.data_time_stamp = get_absolute_time();
 
     if(data_arr.size() < 20)
