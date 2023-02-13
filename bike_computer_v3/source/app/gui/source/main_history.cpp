@@ -70,7 +70,7 @@ void Main_History::insert_files_into_display(void)
     // TODO reduce reads from file
     Sd_File sessions(Display_Actor::get_session_log_file_name());
     no_sessions = sessions.get_no_of_lines();
-    no_sessions = no_sessions <= 2 ? no_sessions = 0 : no_sessions - 2;
+    no_sessions = (no_sessions <= 2) ? (0) : (no_sessions - 2);
     TRACE_DEBUG(1, TRACE_GUI, "no_sessions = %zu\n", no_sessions);
 
     size_t data_idx = this->current_log_idx;

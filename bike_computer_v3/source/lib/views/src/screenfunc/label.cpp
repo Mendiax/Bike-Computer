@@ -96,7 +96,6 @@ void labelSettingsAlign(LabelSettings& settings, const Frame& frame, Align align
 static void fitToFrame(TextSettings& settings, const Frame& frame, size_t length)
 {
     u_int16_t widthPerChar = frame.width / length;
-    uint8_t scale = 0;
 
     getFontSizePreferBiggerFonts(widthPerChar, frame.height, &settings.font, &settings.scale);
 

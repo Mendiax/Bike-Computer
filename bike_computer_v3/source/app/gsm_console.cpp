@@ -57,17 +57,17 @@ void core1_entry()
 
 //APN = CMNET
 //AT+CGDCONT=2,"IP","internetipv6"
-
+[[maybe_unused]]
 static void gps_test_loop()
 {
     while(1)
     {
-        static float speed;
-        static float latitude;
-        static float longitude;
-        static float msl;
-        static TimeS current_time;
-        static uint8_t sat, sat2;
+        // static float speed;
+        // static float latitude;
+        // static float longitude;
+        // static float msl;
+        // static TimeS current_time;
+        // static uint8_t sat, sat2;
         // CYCLE_UPDATE(sim868::gps::fetch_data(), false, 500,
         // {
         //     //TRACE_DEBUG(3,TRACE_CORE_0,
@@ -90,7 +90,7 @@ static void gps_test_loop()
         // });
     }
 }
-
+[[maybe_unused]]
 static void http_test()
 {
     std::string forecast_json;
@@ -140,7 +140,7 @@ void consoleGSM()
     while (strcmp(buffer, "exit"))
     {
         scanf("%s", buffer);
-        int len = strlen(buffer);
+        // int len = strlen(buffer);
         //printf("len:%d\n", len);
         mutex_enter_blocking(&uart_mutex);
         printf("\nSending to GSM:\"%s\"\n", buffer);

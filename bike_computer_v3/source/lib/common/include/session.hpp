@@ -29,10 +29,14 @@ private:
 
     inline void reset()
     {
-        this->speed = {0};
+        memset(&this->speed, 0, sizeof(this->speed));
+        memset(&this->time_start, 0, sizeof(this->time_start));
+        memset(&this->time_end, 0, sizeof(this->time_end));
+
         this->status = Status::NOT_STARTED;
-        this->time_start = {0};
-        this->time_end = {0};
+        // this->speed = {0};
+        // this->time_start = {0};
+        // this->time_end = {0};
     }
 public:
     Session_Data();

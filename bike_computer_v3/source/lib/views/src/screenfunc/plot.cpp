@@ -90,10 +90,10 @@ void plot_float(const void *settings)
         x1 = x0 + dx;
         y1 = fr_max_y - map(array_p[i], min_val, max_val, map_min, map_max);
         //std::cout << "i: " << i << " " << x0 << " " << y0 << " " << x1 << " " << y1 << std::endl;
-        massert_range(y0, plot_settings->frame.y, plot_settings->frame.y + plot_settings->frame.height - 1);
-        massert_range(y1, plot_settings->frame.y, plot_settings->frame.y + plot_settings->frame.height - 1);
-        massert_range(x0, plot_settings->frame.x, plot_settings->frame.x + plot_settings->frame.width - 1);
-        massert_range(x1, plot_settings->frame.x, plot_settings->frame.x + plot_settings->frame.width - 1);
+        massert_range((uint16_t)y0, plot_settings->frame.y, plot_settings->frame.y + plot_settings->frame.height - 1);
+        massert_range((uint16_t)y1, plot_settings->frame.y, plot_settings->frame.y + plot_settings->frame.height - 1);
+        massert_range((uint16_t)x0, plot_settings->frame.x, plot_settings->frame.x + plot_settings->frame.width - 1);
+        massert_range((uint16_t)x1, plot_settings->frame.x, plot_settings->frame.x + plot_settings->frame.width - 1);
 
 
         display::draw_line(x0,y0,x1,y1, plot_settings->color);

@@ -59,7 +59,7 @@ void Button::on_call_release(void)
 }
 
 
-Button::Button(int pin)
+Button::Button(unsigned pin)
 {
     this->time_press = to_ms_since_boot(get_absolute_time());
     this->time_release = this->time_press;

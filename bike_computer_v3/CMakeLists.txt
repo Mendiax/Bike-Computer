@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.17)
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 project(pico
         VERSION 3.1
@@ -11,11 +11,37 @@ if( NOT CMAKE_BUILD_TYPE )
         message("BUILD TYPE NOT SPECIFIED set to ${CMAKE_BUILD_TYPE} on default")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+find_program(CXX_COMPILER NAMES arm-none-eabi-g++
+  PATHS /usr/bin /usr/local/bin
+  DOC "C++ compiler for target platform"
+)
+
+# Use the first compiler with -none-eabi that was found
+if (CXX_COMPILER)
+  set(CMAKE_CXX_COMPILER ${CXX_COMPILER})
+endif()
+
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set (CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_C_COMPILE_OPTIONS_COLOR_DIAGNOSTICS     -DCOLOR_ON)
 
-add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra) # -Wall -Wextra
+add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
+
+message("[INFO] [CMAKE] C++ compiler: ${CMAKE_CXX_COMPILER}")
+message("[INFO] [CMAKE] C++ Compiler: ${CMAKE_CXX_COMPILER_ID}")
+message("[INFO] [CMAKE] C++ Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
+
+message("[INFO] [CMAKE] C compiler: ${CMAKE_C_COMPILER}")
+message("[INFO] [CMAKE] C Compiler: ${CMAKE_C_COMPILER_ID}")
+message("[INFO] [CMAKE] C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
+
+
+# set_source_files_properties(
+#         "$ENV{PICO_SDK_PATH}/src/rp2_common/pico_stdio/stdio.c"
+#         "$ENV{PICO_SDK_PATH}/src/rp2_common/pico_platform/include/pico/platform.h"
+#         PROPERTIES
+#         COMPILE_FLAGS "-Wstack-usage=256")
 
 # add_compile_options(-Wint-to-pointer-cast
 #                     -Wl,-print-memory-usage
@@ -106,7 +132,7 @@ add_subdirectory(source/tests/tc)
 
 
 add_subdirectory(source/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
-set(SD_CONFIG_SRC source/external/FatFs_config/hw_config.cpp)
+set(SD_CONFIG_SRC source/external/FatFs_config/hw_config.c)
 
 #################################### MAIN #####################################
 

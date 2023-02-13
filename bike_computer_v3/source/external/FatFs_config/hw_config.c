@@ -4,10 +4,6 @@
 #include "ff.h"
 #include "diskio.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static spi_t spis[] = {
     {
         .hw_inst = spi0,
@@ -56,8 +52,4 @@ spi_t *spi_get_by_num(size_t num) {
         return NULL;
     }
 }
-
-#ifdef __cplusplus
-}
-#endif
 

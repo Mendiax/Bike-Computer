@@ -8,7 +8,7 @@ typedef void (*interr)(void);
 
 struct Interrupt
 {
-    int pin;
+    unsigned pin;
     interr callbackFunc;
     gpio_irq_level event;
 };

@@ -1,3 +1,7 @@
+################################################################################
+#                                      setup                                   #
+################################################################################
+
 PICODIR := ./pico #/mnt/h
 BUILD := build
 BUILD_LOG := $(BUILD)/build.log
@@ -5,11 +9,23 @@ PICO_MAIN_FILE := pico_main
 PICO_TEST_FILE := pico_test
 PICO_GSM_CONSOLE_FILE := pico_gsm_console
 
-PICO_DRIVE_LETTER := H
+SUPRESS_WARINGS := supress_warnings.txt
+
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
-PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_MAIN_FILE).uf2)
-PICO_TEST_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_TEST_FILE).uf2)
+
+$(info [INFO] using $(NPROCS) threads)
+
+### WSL ###
+WSL = $(grep wsl -i /proc/version)
+ifeq ($(WSL),)
+	PICO_DRIVE_LETTER := H
+	PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_MAIN_FILE).uf2)
+	PICO_TEST_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_TEST_FILE).uf2)
+$(info [INFO] Running WSL)
+$(info [INFO] [WSL] pico letter $(PICO_DRIVE_LETTER))
+endif
+### END ###
 
 # can be overriden with "make BUILD_WITH=Unix\ Makefiles"
 ifdef BUILD_WITH
@@ -23,10 +39,22 @@ else
   	endif
 endif
 
-all: cmake
+$(info [INFO] [CMAKE] Building with $(CMAKE_BUILDER))
+
+define build_info
+$(info [INFO] BUILD FINISHED)
+$(info [INFO] build output saved to $(BUILD_LOG))
+endef
+
+################################################################################
+#                                  run locally                                 #
+################################################################################
+
+
+all:
 	# $(MAKE) -C $(BUILD) -j$(NPROCS) && echo "BUILD FINISHED"
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
-	echo "BUILD FINISHED"
+	$(call build_info)
 
 main:
 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
@@ -54,10 +82,24 @@ cmake: folder parser
 cmaker: folder parser
 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Release
 
+
+
+warnings:
+	$(info [INFO] checking warings in $(BUILD_LOG))
+	./tools/warnings.sh $(BUILD_LOG)
+
+
+
+
 .PHONY: release
 release:
 	cp $(BUILD)/$(PICO_MAIN_FILE).uf2 ./release
 
+
+
+################################################################################
+#                                  run locally                                 #
+################################################################################
 
 cw_all:
 	./boot/boot.sh -o b && $(MAKE) main && $(MAKE) write_main && sleep 2 && ./serial.bat
@@ -96,6 +138,10 @@ cwt: test write_test
 cwgsm: gsm write_gsm_console
 	echo "cw gsm console"
 
+################################################################################
+#                               clean                                          #
+################################################################################
+
 folder:
 	mkdir -p $(BUILD)
 
@@ -106,7 +152,7 @@ clean:
 	# find . -name "*.s" -type f -delete
 	# find . -name "*.gch" -type f -delete
 
-reset: clean all
+reset: clean cmake all
 	echo "clean make done!"
 
 # test:

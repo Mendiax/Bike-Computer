@@ -77,11 +77,11 @@ void on_uart_rx_http(void)
                     http_respond = (char*)malloc(data_size);
                     if(http_respond == NULL)
                     {
-                        TRACE_ABNORMAL(TRACE_SIM868, "could not allocate data of size = %" PRIu32 "\n");
+                        TRACE_ABNORMAL(TRACE_SIM868, "could not allocate data of size = %" PRIu32 "\n", data_size);
                         http_state = HttpReadE::FINISHED;
                         current_response.status = ResponseStatus::TIME_OUT;
                     }
-                    TRACE_ABNORMAL(TRACE_SIM868, "allocate data of size = %" PRIu32 "\n");
+                    TRACE_ABNORMAL(TRACE_SIM868, "allocate data of size = %" PRIu32 "\n", data_size);
                     continue;
                 }
                 str_size[pos++] = c;
@@ -519,8 +519,8 @@ bool sim868::gsm::setup_gsm(bool& success)
     return true;
 }
 
-
-bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::string& response, size_t expected_size)
+// TODO expected size
+bool sim868::gsm::get_http_req(bool& success, const std::string& request, std::string& response, [[maybe_unused]]size_t expected_size)
 {
     // static uint8_t fails = 0;
     // const uint8_t fail_treshhold = 2;

@@ -253,7 +253,7 @@ void Display_Actor::handle_sig_load_session(const Signal &sig)
     {
         Sd_File last_save(Display_Actor::get_session_log_file_name());
         auto no_sessions = last_save.get_no_of_lines();
-        no_sessions = no_sessions <= 2 ? no_sessions = 0 : no_sessions - 2;
+        no_sessions = no_sessions <= 2 ? 0 : no_sessions - 2;
         if(no_sessions < id)
         {
             return;

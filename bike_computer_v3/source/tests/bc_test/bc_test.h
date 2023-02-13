@@ -55,16 +55,16 @@ extern int bc_testError;
         }                                                                                        \
     } while (0)
 
-// #define BC_CHECK(boolean)                                              \
-//     do                                                                 \
-//     {                                                                  \
-//         if (!(boolean))                                                \
-//         {                                                              \
-//             printf("\x1b[1;31m[TEST] " #boolean " failed\n\x1b[0m\n"); \
-//             return 1;                                                  \
-//         }                                                              \
-//     } while (0)
-
+/*#define BC_CHECK(boolean)                                              \
+    do                                                                 \
+    {                                                                  \
+        if (!(boolean))                                                \
+        {                                                              \
+            printf("\x1b[1;31m[TEST] " #boolean " failed\n\x1b[0m\n"); \
+            return 1;                                                  \
+        }                                                              \
+    } while (0)
+*/
 #define BC_TEST_END()                                     \
     do                                                    \
     {                                                     \

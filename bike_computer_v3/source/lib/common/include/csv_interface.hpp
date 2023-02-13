@@ -9,6 +9,7 @@ private:
 public:
     virtual const char* get_header() = 0;
     virtual std::string get_line() = 0;
+    virtual ~Csv_Interface() {}
 };
 
 #endif

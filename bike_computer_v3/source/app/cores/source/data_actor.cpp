@@ -81,7 +81,7 @@
 // #------------------------------#
 static Bike_Config config;
 static bool config_received = false;
-static Sensor_Data sensors_data = {0};
+static Sensor_Data sensors_data;
 static Session_Data *session_p = 0;
 
 
@@ -140,6 +140,7 @@ CALC_CAD:
     cadence::emulate(cadence);
 }
 
+[[maybe_unused]]
 static void send_speed_comp(float raw, float filtered)
 {
     auto payload = new Display_Actor::Sig_Display_Actor_Log();
@@ -288,19 +289,19 @@ void Data_Actor::handle_sig_req_packet(const Signal &sig)
 
 
 
-void Data_Actor::handle_sig_pause(const Signal &sig)
+void Data_Actor::handle_sig_pause([[maybe_unused]] const Signal &sig)
 {
     speed::stop();
     session_p->pause();
 }
-void Data_Actor::handle_sig_continue(const Signal &sig)
+void Data_Actor::handle_sig_continue([[maybe_unused]] const Signal &sig)
 {
     session_p->cont();
     speed::start();
 }
 
 
-void Data_Actor::handle_sig_session_start(const Signal &sig)
+void Data_Actor::handle_sig_session_start([[maybe_unused]] const Signal &sig)
 {
     speed::stop();
     speed::reset();
@@ -313,9 +314,8 @@ void Data_Actor::handle_sig_session_start(const Signal &sig)
     }
 }
 
-void Data_Actor::handle_sig_start(const Signal &sig)
+void Data_Actor::handle_sig_start([[maybe_unused]] const Signal &sig)
 {
-
     session_p->pause();
     speed::start(); // TODO popraw start
 
@@ -497,19 +497,19 @@ static void gear_update(Gear_Suggestion_Calculator* gear_suggestion_calc)
     switch (gear_suggestion.suggestion)
     {
     case Gear_Suggestion::UP_SHIFT:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "/\\", GEAR_SUGGESTION_LEN);
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "/\\", GEAR_SUGGESTION_LEN + 1);
         sensors_data.gear_suggestions.gear_suggestion_color = {0x0,0xf,0x0};
         break;
     case Gear_Suggestion::DOWN_SHIFT:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "\\/", GEAR_SUGGESTION_LEN);
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "\\/", GEAR_SUGGESTION_LEN + 1);
         sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0x0,0x1};
         break;
     case Gear_Suggestion::NO_SHIFT:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "--", GEAR_SUGGESTION_LEN);
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "--", GEAR_SUGGESTION_LEN + 1);
         sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
         break;
     default:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "  ", GEAR_SUGGESTION_LEN);
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "  ", GEAR_SUGGESTION_LEN + 1);
         sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
         break;
     }
@@ -523,7 +523,6 @@ static void gear_update(Gear_Suggestion_Calculator* gear_suggestion_calc)
 
 static void cycle_print_heart_beat()
 {
-    size_t avaible_memory;
     CYCLE_UPDATE_SIMPLE(true, HEART_BEAT_CYCLE_MS,
         {
             float memory = (float)check_free_mem()/1000.0;
@@ -644,7 +643,6 @@ static void cycle_get_weather_data()
 
 static void cycle_get_slope()
 {
-    size_t avaible_memory;
     CYCLE_UPDATE_SIMPLE(true, 2000,
         {
             sensors_data.slope = calc_slope(speed::get_distance_m(), sensors_data.altitude);

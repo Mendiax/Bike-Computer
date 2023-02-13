@@ -28,7 +28,7 @@ private:
 public:
     void on_call_press(void) override;
     void on_call_release(void) override;
-    Button(int pin);
+    Button(unsigned pin);
 
     /**
      * @brief check if is pressed long if so set press flag to true

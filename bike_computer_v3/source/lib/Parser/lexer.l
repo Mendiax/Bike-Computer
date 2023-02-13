@@ -1,6 +1,8 @@
 %{
 
 // #define YY_NO_UNPUT
+[[maybe_unused]]
+static void yyunput (int c, char * yy_bp );
 
 #include "parser_bison.hpp"
 // #include <cstdint>

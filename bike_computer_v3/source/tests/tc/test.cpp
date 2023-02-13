@@ -33,7 +33,7 @@ void print_c_str(const char* msg)
     // debuging no LCD console
     printf("number of bytes read: %zu\n", len);
     printf("=====\n");
-    for(int j = 0; j < len; j++)
+    for(unsigned j = 0; j < len; j++)
     {
         printf("\'%d\' ", (int)msg[j]);
     }
@@ -269,10 +269,8 @@ int sd_drive_test(void)
     PRINTF("Rewind ok\n");
 
     FILINFO info;
-    auto fres = f_stat(file_name, &info);
+    f_stat(file_name, &info);
     PRINTF("file size == %" PRIu64 " \n", info.fsize);
-
-
 
     {
         auto test_string = header_line;

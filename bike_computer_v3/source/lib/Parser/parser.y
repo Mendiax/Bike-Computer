@@ -386,7 +386,7 @@ time:
 
 %%
 
-static void yyerror(const char* msg)
+static void yyerror([[maybe_unused]] const char* msg)
 {
     grammarError = true;
     /* std:: cout << "!!!ERROR " << msg << std::endl; */

@@ -5,6 +5,7 @@
 
 #include "display/driver.hpp"
 #include "traces.h"
+#include <cstddef>
 
 
 // SPI setup
@@ -248,7 +249,7 @@ static void lcd_InitReg(void)
 
 void display_set_brightnes(uint8_t Value)
 {
-    if (Value < 0 || Value > 100)
+    if (Value > 100)
     {
         TRACE_ABNORMAL(TRACE_DISPLAY_PRINT,"DEV_SET_PWM Error \r\n");
     }
@@ -541,7 +542,7 @@ void display::draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, disp
     Paint_DrawLineGen(x0,y0,x1,y1, display::set_pixel, color, scale);
 }
 
-void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void (*draw_func)(uint16_t x, uint16_t y, display::DisplayColor color), display::DisplayColor color, uint8_t scale)
+void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void (*draw_func)(uint16_t x, uint16_t y, display::DisplayColor color), display::DisplayColor color, [[maybe_unused]]uint8_t scale)
 {
     int_fast32_t dx = std::abs((int32_t)x1 - (int32_t)x0);
     uint_fast8_t sx = x0 < x1 ? 1 : -1;
@@ -579,7 +580,7 @@ static void Paint_PrintlnGen(uint16_t x, uint16_t y, const char *str,
 {
     TRACE_DEBUG(1, TRACE_DISPLAY_PRINT, "writing string \"%s\" \r\n", str);
 
-    for (int charIdx = 0; charIdx < strlen(str); charIdx++)
+    for (size_t charIdx = 0; charIdx < strlen(str); charIdx++)
     {
         if (x > display::width - font->width)
         {
@@ -591,6 +592,7 @@ static void Paint_PrintlnGen(uint16_t x, uint16_t y, const char *str,
     }
 }
 
+[[maybe_unused]]
 static void Paint_Println_multilineGen(uint16_t x, uint16_t y, const char *str,
                                        const sFONT *font, display::DisplayColor colorForeground, display::DisplayColor colorBackground, uint8_t scale, bool overwriteBackground)
 {
