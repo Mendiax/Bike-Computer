@@ -1,6 +1,7 @@
 aux_source_directory(./source DIR_Actors_SRCS)
 
-include_directories(include)
+
 
 add_library(Actors ${DIR_Actors_SRCS})
-target_link_libraries(Actors PUBLIC pico_stdlib)
+target_include_directories(Actors PUBLIC include)
+target_link_libraries(Actors PUBLIC pico_stdlib Tools)

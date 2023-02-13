@@ -1,11 +1,12 @@
 aux_source_directory(./src DIR_Speedometer_SRCS)
 
-include_directories(include)
-include_directories(../interrupts/include)
+
+
 
 
 
 add_library(Speedometer ${DIR_Speedometer_SRCS})
+target_include_directories(Speedometer PUBLIC include)
 target_link_libraries(Speedometer PUBLIC pico_stdlib Interrupts Common)
 
 # if (NOT TARGET pico_stdlib_headers)

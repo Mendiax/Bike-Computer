@@ -52,7 +52,6 @@ endef
 
 
 all:
-	# $(MAKE) -C $(BUILD) -j$(NPROCS) && echo "BUILD FINISHED"
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
@@ -153,7 +152,7 @@ clean:
 	# find . -name "*.gch" -type f -delete
 
 reset: clean cmake all
-	echo "clean make done!"
+	@echo "clean make done!"
 
 # test:
 # 	$(MAKE) test -C $(BUILD)

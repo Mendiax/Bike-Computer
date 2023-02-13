@@ -36,13 +36,6 @@ message("[INFO] [CMAKE] C compiler: ${CMAKE_C_COMPILER}")
 message("[INFO] [CMAKE] C Compiler: ${CMAKE_C_COMPILER_ID}")
 message("[INFO] [CMAKE] C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
 
-
-# set_source_files_properties(
-#         "$ENV{PICO_SDK_PATH}/src/rp2_common/pico_stdio/stdio.c"
-#         "$ENV{PICO_SDK_PATH}/src/rp2_common/pico_platform/include/pico/platform.h"
-#         PROPERTIES
-#         COMPILE_FLAGS "-Wstack-usage=256")
-
 # add_compile_options(-Wint-to-pointer-cast
 #                     -Wl,-print-memory-usage
 #                     #-Wall
@@ -52,39 +45,6 @@ message("[INFO] [CMAKE] C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
 #                     -Wformat=2
 #                     -Wfatal-errors
 #                     )
-
-
-
-#-----------------------------------------------------------------------------#
-#                             INCLUDE DIRECTORIES                             #
-#-----------------------------------------------------------------------------#
-
-
-
-include_directories(source/lib/common/include)
-include_directories(source/lib/tools/include)
-include_directories(source/lib/views/include)
-include_directories(source/lib/SD/include)
-include_directories(source/lib/Parser/include)
-include_directories(source/lib/Actors/include)
-include_directories(source/lib/gui/include)
-
-include_directories(source/drivers/display/include)
-include_directories(source/drivers/speedometer/include)
-include_directories(source/drivers/cadence/include)
-include_directories(source/drivers/interrupts/include)
-include_directories(source/drivers/buttons/include)
-include_directories(source/drivers/sim868/include)
-# include_directories(source/drivers/EPROM/include)
-
-#DOF
-include_directories(source/drivers/BMP280/include)
-include_directories(source/drivers/I2C/include)
-# include_directories(source/drivers/DOF/IMU)
-# include_directories(source/drivers/DOF/MPU9250)
-
-include_directories(source/app/gui/include)
-include_directories(source/app/cores/include)
 
 #tests
 include_directories(source/tests/bc_test)
