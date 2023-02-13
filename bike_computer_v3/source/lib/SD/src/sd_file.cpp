@@ -345,7 +345,7 @@ std::string Sd_File::read_line(size_t line_no, size_t max_len)
     if (bytes_to_read != bytes_read)
     {
         TRACE_ABNORMAL(TRACE_SD, "Error while reading the file:%s line:%zu no_lines:%zu read %u/%zu\n",
-                       line_no, no_lines, file_name, bytes_read, bytes_to_read);
+                       file_name, line_no, no_lines, bytes_read, bytes_to_read);
         last_result = F_ERROR;
     }
     else

@@ -497,19 +497,19 @@ static void gear_update(Gear_Suggestion_Calculator* gear_suggestion_calc)
     switch (gear_suggestion.suggestion)
     {
     case Gear_Suggestion::UP_SHIFT:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "/\\", GEAR_SUGGESTION_LEN);
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "/\\", GEAR_SUGGESTION_LEN + 1);
         sensors_data.gear_suggestions.gear_suggestion_color = {0x0,0xf,0x0};
         break;
     case Gear_Suggestion::DOWN_SHIFT:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "\\/", GEAR_SUGGESTION_LEN);
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "\\/", GEAR_SUGGESTION_LEN + 1);
         sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0x0,0x1};
         break;
     case Gear_Suggestion::NO_SHIFT:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "--", GEAR_SUGGESTION_LEN);
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "--", GEAR_SUGGESTION_LEN + 1);
         sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
         break;
     default:
-        strncpy(sensors_data.gear_suggestions.gear_suggestion, "  ", GEAR_SUGGESTION_LEN);
+        strncpy(sensors_data.gear_suggestions.gear_suggestion, "  ", GEAR_SUGGESTION_LEN + 1);
         sensors_data.gear_suggestions.gear_suggestion_color = {0xf,0xf,0xf};
         break;
     }

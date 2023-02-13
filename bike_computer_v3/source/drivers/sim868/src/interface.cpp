@@ -1,4 +1,5 @@
 // pico includes
+#include <cstdint>
 #include <pico/stdlib.h>
 
 // c/c++ includes
@@ -300,7 +301,7 @@ bool sim868::check_response(uint64_t id)
     if(current_response.id == id && id != 0)
     {
         if(current_response.status != ResponseStatus::RECEIVED &&
-            us_to_ms(absolute_time_diff_us(current_response.time_start, get_absolute_time())) > current_response.timeout)
+            us_to_ms(absolute_time_diff_us(current_response.time_start, get_absolute_time())) > (uint64_t)current_response.timeout)
         {
             // timeout has occured
             current_response.status = ResponseStatus::TIME_OUT;

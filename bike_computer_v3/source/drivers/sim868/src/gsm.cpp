@@ -77,11 +77,11 @@ void on_uart_rx_http(void)
                     http_respond = (char*)malloc(data_size);
                     if(http_respond == NULL)
                     {
-                        TRACE_ABNORMAL(TRACE_SIM868, "could not allocate data of size = %" PRIu32 "\n");
+                        TRACE_ABNORMAL(TRACE_SIM868, "could not allocate data of size = %" PRIu32 "\n", data_size);
                         http_state = HttpReadE::FINISHED;
                         current_response.status = ResponseStatus::TIME_OUT;
                     }
-                    TRACE_ABNORMAL(TRACE_SIM868, "allocate data of size = %" PRIu32 "\n");
+                    TRACE_ABNORMAL(TRACE_SIM868, "allocate data of size = %" PRIu32 "\n", data_size);
                     continue;
                 }
                 str_size[pos++] = c;

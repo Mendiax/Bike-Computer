@@ -9,6 +9,8 @@ PICO_MAIN_FILE := pico_main
 PICO_TEST_FILE := pico_test
 PICO_GSM_CONSOLE_FILE := pico_gsm_console
 
+SUPRESS_WARINGS := supress_warnings.txt
+
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 
@@ -84,9 +86,7 @@ cmaker: folder parser
 
 warnings:
 	$(info [INFO] checking warings in $(BUILD_LOG))
-	grep -i "warning" build/build.log &&\
-	echo "There were warnings in the build.log file. Build failed." && exit 1 ||\
-	echo "Build succeeded. No warnings found."
+	./tools/warnings.sh $(BUILD_LOG)
 
 
 
