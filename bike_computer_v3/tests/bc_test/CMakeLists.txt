@@ -2,7 +2,7 @@ aux_source_directory(. DIR_bcTest_SRCS)
 include_directories(./)
 
 add_library(bcTest ${DIR_bcTest_SRCS})
-target_include_directories(bcTest PUBLIC include)
+target_include_directories(bcTest PUBLIC .)
 target_link_libraries(bcTest PUBLIC
     pico_time
     pico_stdlib

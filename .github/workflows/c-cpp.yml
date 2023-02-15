@@ -7,15 +7,11 @@ on:
   pull_request:
     branches: [ "main" ]
 
+concurrency:
+  group: tests-on-pr-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
-
-  # say-hello:
-  #   runs-on: self-hosted
-  #   steps:
-  #     - run: echo "Hello World!"
-  #     - run: pwd
-
-
   build:
     # runs-on: ubuntu-latest
     runs-on: self-hosted
@@ -41,3 +37,47 @@ jobs:
     steps:
     - name: check_log
       run: cd bike_computer_v3 && make warnings
+
+  test_target:
+    needs: [build]
+    runs-on: self-hosted
+    steps:
+    - name: run local
+      run: cd bike_computer_v3 && echo "TODO test local hw"
+
+
+  build_test_host:
+    # needs: [build]
+    # runs-on: ubuntu-latest
+    runs-on: self-hosted
+    steps:
+    # - name: download pico-sdk
+    #   uses: actions/checkout@master
+    #   with:
+    #     repository: raspberrypi/pico-sdk
+    #     path: ./pico-sdk
+    #     submodules: 'true'
+    #     # recursive
+
+    # - name: export path
+    #   run: ls /tmp && ls && pwd && export PICO_SDK_PATH=./pico-sdk $$ echo $PICO_SDK_PATH
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: build cmake for host
+      run: cd bike_computer_v3 && make cmake_host
+
+    - name: build host
+      run: cd bike_computer_v3 && make host
+
+
+  test_host:
+    needs: [build_test_host]
+    runs-on: self-hosted
+    steps:
+    - name: run tests on host
+      run: cd bike_computer_v3 && make test_host
+

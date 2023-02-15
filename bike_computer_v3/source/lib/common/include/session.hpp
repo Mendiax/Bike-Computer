@@ -3,6 +3,7 @@
 
 #include "common_types.h"
 #include "csv_interface.hpp"
+#include <string.h>
 
 #define SESION_DATA_CSV_LEN 100
 

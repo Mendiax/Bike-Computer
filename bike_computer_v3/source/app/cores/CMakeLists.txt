@@ -17,4 +17,6 @@ target_link_libraries(Cores PUBLIC
     BMP280
     Common
     GSM
-    Tools)
+    Tools
+    Actors
+    SD)

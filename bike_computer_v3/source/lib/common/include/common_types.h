@@ -2,7 +2,7 @@
 #define TYPES_H
 
 #include "bike_config.hpp"
-#include "display/driver.hpp"
+// #include "display/driver.hpp"
 #include "gear_suggestion.hpp"
 
 #include "pico/sync.h"
@@ -103,11 +103,16 @@ struct Weather_BMP280_S
     float temperature;
 };
 
+struct RGB
+{
+    int8_t r, g, b;
+};
+
 struct Gear_Suggestions
 {
     float cadence_min;
     float cadence_max;
-    display::DisplayColor gear_suggestion_color;
+    RGB gear_suggestion_color;
     char gear_suggestion[GEAR_SUGGESTION_LEN + 1];
 };
 
