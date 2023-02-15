@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: host CI
 # runs-on: self-hosted
 
 on:
@@ -8,44 +8,10 @@ on:
     branches: [ "main" ]
 
 concurrency:
-  group: tests-on-pr-${{ github.head_ref }}
+  group: tests-on-target-${{ github.head_ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    # runs-on: ubuntu-latest
-    runs-on: self-hosted
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        submodules: 'true'
-
-    - name: check_evv
-      run: cd bike_computer_v3 && ls
-
-    - name: cmake
-      run: cd bike_computer_v3 && make cmake
-
-    - name: make
-      run: cd bike_computer_v3 && make all
-
-  warings:
-    needs: [build]
-    runs-on: self-hosted
-    steps:
-    - name: check_log
-      run: cd bike_computer_v3 && make warnings
-
-  test_target:
-    needs: [build]
-    runs-on: self-hosted
-    steps:
-    - name: run local
-      run: cd bike_computer_v3 && echo "TODO test local hw"
-
-
   build_test_host:
     # needs: [build]
     # runs-on: ubuntu-latest
@@ -80,4 +46,3 @@ jobs:
     steps:
     - name: run tests on host
       run: cd bike_computer_v3 && make test_host
-

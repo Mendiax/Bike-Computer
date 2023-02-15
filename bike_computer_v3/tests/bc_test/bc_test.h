@@ -75,4 +75,9 @@ extern int bc_testError;
             printf("\x1b[1;31m[TEST] failed\x1b[0m\n"); \
     } while (0)
 
+static inline int bc_get_result()
+{
+    return bc_testError == 0;
+}
+
 #endif

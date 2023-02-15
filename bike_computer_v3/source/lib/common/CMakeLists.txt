@@ -11,13 +11,4 @@ target_include_directories(Common PUBLIC include)
 target_link_libraries(Common PUBLIC
                       pico_multicore pico_stdlib
                       Tools
-                      #Display
-                      #Buttons
-                      #Display
-                      #Views
-                      #SD
-                      #Cadence
-                      Speedometer
-                      #Actors
-                      #Gui
                       )
