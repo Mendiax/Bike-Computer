@@ -1,16 +1,16 @@
 #include <cstddef>
 #include <cstdint>
-#include <speedometer/speedometer.hpp>
-#include <interrupts/interrupts.hpp>
-#include "utils.hpp"
-
-#include <math.h>
-#include <pico/time.h>
-#include <hardware/gpio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
+#include <pico/time.h>
+#include <hardware/gpio.h>
+
+#include <speedometer/speedometer.hpp>
+#include <interrupts/interrupts.hpp>
+#include "utils.hpp"
 #include "traces.h"
 
 #if 0

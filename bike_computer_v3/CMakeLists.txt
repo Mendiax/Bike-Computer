@@ -31,8 +31,6 @@ set (CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_C_COMPILE_OPTIONS_COLOR_DIAGNOSTICS     -DCOLOR_ON)
 
-add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
-
 message("[INFO] [CMAKE] C++ compiler: ${CMAKE_CXX_COMPILER}")
 message("[INFO] [CMAKE] C++ Compiler: ${CMAKE_CXX_COMPILER_ID}")
 message("[INFO] [CMAKE] C++ Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
@@ -51,24 +49,24 @@ message("[INFO] [CMAKE] C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
 #                     -Wfatal-errors
 #                     )
 
+add_subdirectory(source/lib/common)
+add_subdirectory(source/lib/tools)
+add_subdirectory(source/lib/Parser)
+add_subdirectory(source/lib/Actors)
 
 if(PICO_PLATFORM MATCHES "rp2040")
-
+    add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
     ################################ SUBDIRECTORY #################################
 
-    add_subdirectory(source/lib/common)
-    add_subdirectory(source/lib/tools)
-    add_subdirectory(source/lib/views)
-    add_subdirectory(source/lib/Parser)
     add_subdirectory(source/lib/SD)
-    add_subdirectory(source/lib/Actors)
     add_subdirectory(source/lib/gui)
+    add_subdirectory(source/lib/views)
 
 
     add_subdirectory(source/drivers/display)
+    add_subdirectory(source/drivers/interrupts)
     add_subdirectory(source/drivers/speedometer)
     add_subdirectory(source/drivers/cadence)
-    add_subdirectory(source/drivers/interrupts)
     add_subdirectory(source/drivers/buttons)
     add_subdirectory(source/drivers/sim868)
     # add_subdirectory(source/drivers/EPROM)
@@ -174,6 +172,9 @@ if(PICO_PLATFORM MATCHES "rp2040")
     )
 
 else()
+# add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
+
+    add_compile_options(-Wno-unused-variable -Werror=return-type)
 endif()
 
 # enable testing and define tests

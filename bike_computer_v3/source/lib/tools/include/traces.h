@@ -41,7 +41,7 @@
 #define TRACES_ON(id, name) \
         tracesOn[name] |= (1 << id)
 #define TRACES_ON_ALL(name) \
-        tracesOn[name] = ~0UL
+        tracesOn[name] = ~((uint32_t)0)
 
 /**
  * @brief Traces types

@@ -63,6 +63,10 @@ all:
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
+full_build: cmake
+	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
+	$(call build_info)
+
 main:
 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
 
@@ -171,6 +175,11 @@ clean:
 
 reset: clean cmake all
 	@echo "clean make done!"
+
+reset_host: clean cmake_host host
+	@echo "clean make done!"
+
+build_test_all: reset reset_host test_host
 
 # test:
 # 	$(MAKE) test -C $(BUILD)
