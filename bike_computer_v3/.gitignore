@@ -7,6 +7,8 @@ pico/
 specification/
 sim800_doc/
 source/external/no-OS-FatFS
+source/external/pico-host-sdl
+
 
 # parser files
 source/lib/Parser/src/parser_bison.hpp

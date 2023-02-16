@@ -1,5 +1,5 @@
-#include <speedometer/speedometer.hpp>
-#include "cadence/cadence.hpp"
+// #include <speedometer/speedometer.hpp>
+// #include "cadence/cadence.hpp"
 
 #include <math.h>
 #include <pico/time.h>

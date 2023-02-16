@@ -15,8 +15,8 @@
 #include <pico/time.h>
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
-
 #include <iostream>
+
 
 #define ERROR 1
 
@@ -70,9 +70,14 @@ extern int bc_testError;
     {                                                     \
         printf("[TEST] finished\n");                      \
         if (bc_testError == 0)                            \
-            printf("\x1b[1;32m[TEST] PASSED!\n\x1b[0m");  \
+            printf("\x1b[1;32m[TEST] PASSED!\x1b[0m\n");  \
         else                                              \
-            printf("\x1b[1;31m[TEST] failed\n\x1b[0m\n"); \
+            printf("\x1b[1;31m[TEST] failed\x1b[0m\n"); \
     } while (0)
+
+static inline int bc_get_result()
+{
+    return bc_testError == 0;
+}
 
 #endif

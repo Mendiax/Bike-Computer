@@ -53,7 +53,7 @@ void View_Velocity::render(void)
     creator->add_label(this->data.gear_suggestions.gear_suggestion, frame_gear_suggestion, Align::RIGHT, (size_t)2);
 
     auto prev = creator->get_previous_window();
-    prev->settings.label.text.color = &this->data.gear_suggestions.gear_suggestion_color;
+    prev->settings.label.text.color = (display::DisplayColor*)&this->data.gear_suggestions.gear_suggestion_color;
     creator->addValueValuesVertical("%3" PRIu16, 3, &this->session.speed.distance,
                            "%02" PRIu8, 2, &this->session.speed.distanceDec,
                            "km", 2, (void *)0,

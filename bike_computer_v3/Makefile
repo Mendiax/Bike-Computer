@@ -11,6 +11,7 @@ PICO_GSM_CONSOLE_FILE := pico_gsm_console
 
 SUPRESS_WARINGS := supress_warnings.txt
 
+PROJ_DIR=$(shell pwd)
 
 NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 
@@ -39,6 +40,13 @@ else
   	endif
 endif
 
+ifneq ($(V),1)
+    CMAKE_VERBOSE_MAKEFILE =
+else
+    CMAKE_VERBOSE_MAKEFILE = 1
+$(info [INFO] [CMAKE] Veroose flag on $(CMAKE_VERBOSE_MAKEFILE))
+endif
+
 $(info [INFO] [CMAKE] Building with $(CMAKE_BUILDER))
 
 define build_info
@@ -55,6 +63,10 @@ all:
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
+full_build: cmake
+	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
+	$(call build_info)
+
 main:
 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
 
@@ -64,15 +76,22 @@ test:
 gsm:
 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_GSM_CONSOLE_FILE) && echo "BUILD FINISHED"
 
+host:
+	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
+	$(call build_info)
 sim:
 	$(MAKE) -C $(BUILD) -j$(NPROCS)
+
+
+test_host:
+	cd $(BUILD) && ctest
 
 parser:
 	bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
 	flex -Cr -o source/lib/Parser/src/lexer.cpp source/lib/Parser/lexer.l
 
 
-CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_VERBOSE_MAKEFILE=$(CMAKE_VERBOSE_MAKEFILE)
 
 #-DCMAKE_VERBOSE_MAKEFILE=ON
 cmake: folder parser
@@ -81,6 +100,9 @@ cmake: folder parser
 cmaker: folder parser
 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Release
 
+cmake_host: folder parser
+	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Debug -DPICO_PLATFORM=host
+# -DPICO_SDK_PRE_LIST_DIRS=$(PROJ_DIR)/source/external/pico-host-sdl
 
 
 warnings:
@@ -153,6 +175,11 @@ clean:
 
 reset: clean cmake all
 	@echo "clean make done!"
+
+reset_host: clean cmake_host host
+	@echo "clean make done!"
+
+build_test_all: reset reset_host test_host
 
 # test:
 # 	$(MAKE) test -C $(BUILD)

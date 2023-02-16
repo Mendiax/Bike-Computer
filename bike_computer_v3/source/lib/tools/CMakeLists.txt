@@ -14,6 +14,6 @@ if (NOT TARGET Tools)
 
     target_include_directories(Tools PUBLIC include)
 
-    target_link_libraries(Tools PUBLIC pico_stdlib Common)
+    target_link_libraries(Tools PUBLIC pico_stdlib)
 
 endif()
