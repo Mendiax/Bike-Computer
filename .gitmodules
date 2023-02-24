@@ -7,3 +7,6 @@
 [submodule "bike_computer_v3/source/external/pico-host-sdl"]
 	path = bike_computer_v3/source/external/pico-host-sdl
 	url = https://github.com/raspberrypi/pico-host-sdl
+[submodule "bike_computer_v3/tests/external/pico_tests"]
+	path = bike_computer_v3/tests/external/pico_tests
+	url = git@github.com:Mendiax/pico_tests.git

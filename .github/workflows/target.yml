@@ -22,7 +22,7 @@ jobs:
       with:
         submodules: 'true'
 
-    - name: check_evv
+    - name: check_env
       run: cd bike_computer_v3 && ls
 
     - name: cmake
@@ -43,7 +43,7 @@ jobs:
     runs-on: self-hosted
     steps:
     - name: run local
-      run: cd bike_computer_v3 && echo "TODO test local hw"
+      run: cd bike_computer_v3 && make ctest
 
 
   # build_test_host:
