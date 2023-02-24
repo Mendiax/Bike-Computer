@@ -17,6 +17,8 @@ jobs:
     # runs-on: ubuntu-latest
     runs-on: self-hosted
     steps:
+    - name: placeholder
+      run: echo "placeholder"
     # - name: download pico-sdk
     #   uses: actions/checkout@master
     #   with:
@@ -28,21 +30,24 @@ jobs:
     # - name: export path
     #   run: ls /tmp && ls && pwd && export PICO_SDK_PATH=./pico-sdk $$ echo $PICO_SDK_PATH
 
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        submodules: 'true'
+  #   - name: Checkout repository
+  #     uses: actions/checkout@v3
 
-    - name: build cmake for host
-      run: cd bike_computer_v3 && make cmake_host
+  #   - name: fetch submodules
+  #     run: |
+  #       git submodule sync
+  #       git submodule update --init --recursive
 
-    - name: build host
-      run: cd bike_computer_v3 && make host
+  #   - name: build cmake for host
+  #     run: cd bike_computer_v3 && make cmake H=1
+
+  #   - name: build host
+  #     run: cd bike_computer_v3 && make all
 
 
-  test_host:
-    needs: [build_test_host]
-    runs-on: self-hosted
-    steps:
-    - name: run tests on host
-      run: cd bike_computer_v3 && make test_host
+  # test_host:
+  #   needs: [build_test_host]
+  #   runs-on: self-hosted
+  #   steps:
+  #   - name: run tests on host
+  #     run: cd bike_computer_v3 && make ctest

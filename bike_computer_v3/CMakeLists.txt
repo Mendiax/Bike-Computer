@@ -55,7 +55,7 @@ add_subdirectory(source/lib/Parser)
 add_subdirectory(source/lib/Actors)
 
 if(PICO_PLATFORM MATCHES "rp2040")
-    add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
+    add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-truncation)
     ################################ SUBDIRECTORY #################################
 
     add_subdirectory(source/lib/SD)
