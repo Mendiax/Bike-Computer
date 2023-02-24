@@ -49,7 +49,7 @@ void plot_float(const void *settings)
 
     //auto offset = plot_settings->offset == NULL ? 0 : *plot_settings->offset;
     f_t* array_p = (f_t*)plot_settings->data;// + offset;
-    f_t min_val = 0, max_val = 0;
+    f_t min_val = 0.0, max_val = 0.0;
 
     if(plot_settings->auto_max || plot_settings->auto_min)
     {

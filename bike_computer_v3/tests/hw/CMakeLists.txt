@@ -117,10 +117,10 @@ include(FindPythonInterp)
 # set(PICO_TEST_HOST "ssh")
 message("[INFO] [CMAKE] PICO_TEST_HOST = ${PICO_TEST_HOST}")
 if(PICO_TEST_HOST MATCHES "local")
-    add_test( NAME target_test COMMAND ${PYTHON_EXECUTABLE} -u ${PICO_TEST_PATH}/run/run.py ${PICO_TEST_RUN_CONFIG_LOCAL_PATH})
+    add_test( NAME target_test COMMAND python3 -u ${PICO_TEST_PATH}/run/run.py ${PICO_TEST_RUN_CONFIG_LOCAL_PATH})
 else()
     add_test(NAME target_test
-             COMMAND ${PYTHON_EXECUTABLE} -u ${PICO_TEST_PATH}/run/run.py ${PICO_TEST_RUN_CONFIG_SSH_PATH}
+             COMMAND python3 -u ${PICO_TEST_PATH}/run/run.py ${PICO_TEST_RUN_CONFIG_SSH_PATH}
             #  WORKING_DIRECTORY ${PICO_TEST_RUN_PATH}
              )
 endif()
