@@ -85,6 +85,8 @@ TimeS time_from_str(const char* str)
 
     return time;
 }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
 
 std::string time_to_str_file_name_conv(const TimeS& time)
 {
@@ -125,6 +127,8 @@ std::string time_to_str(const TimeS& time)
             time.seconds);
     return std::string(buffer);
 }
+
+#pragma GCC diagnostic pop
 
 void time_print(const TimeS& time)
 {

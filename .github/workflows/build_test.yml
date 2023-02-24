@@ -17,21 +17,33 @@ jobs:
     runs-on: self-hosted
 
     steps:
+    - name: Clean Workspace
+      shell: bash
+      run: |
+        echo "Cleaning workspace directory..."
+        rm -rfv ${{ github.workspace }}
+        mkdir -p ${{ github.workspace }}
     - name: Checkout repository
       uses: actions/checkout@v3
-      with:
-        submodules: 'true'
 
-    - name: check_evv
+      # with:
+      #   submodules: 'true'
+
+    - name: fetch submodules
+      run: |
+        git submodule sync
+        git submodule update --init --recursive
+
+    - name: check_env
       run: cd bike_computer_v3 && ls
 
     - name: cmake
-      run: cd bike_computer_v3 && make cmake
+      run: cd bike_computer_v3 && make cmake L=1
 
     - name: make
       run: cd bike_computer_v3 && make all
 
-  warings:
+  warnings:
     needs: [build]
     runs-on: self-hosted
     steps:
@@ -43,7 +55,37 @@ jobs:
     runs-on: self-hosted
     steps:
     - name: run local
-      run: cd bike_computer_v3 && echo "TODO test local hw"
+      run: cd bike_computer_v3 && make ctest
+
+
+
+  #==========================================================================
+  #                              HOST
+  #==========================================================================
+
+
+  build_host:
+    needs: [test_target, warnings]
+    runs-on: self-hosted
+    if: success() || failure()
+    steps:
+    - name: clean
+      run: cd bike_computer_v3 && make clean
+
+    - name: build cmake for host
+      run: cd bike_computer_v3 && make cmake H=1
+
+    - name: build host
+      run: cd bike_computer_v3 && make all
+
+
+  test_host:
+    needs: [build_host]
+    runs-on: self-hosted
+    steps:
+    - name: run tests on host
+      run: cd bike_computer_v3 && make ctest
+
 
 
   # build_test_host:

@@ -9,6 +9,9 @@ sim800_doc/
 source/external/no-OS-FatFS
 source/external/pico-host-sdl
 
+# tests
+tests/hw/hw_config/config.yaml
+tests/hw/tests/test_cases.h
 
 # parser files
 source/lib/Parser/src/parser_bison.hpp

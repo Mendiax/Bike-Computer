@@ -26,8 +26,8 @@ static sd_card_t sd_cards[] = {
         .ss_gpio = 5,             // The SPI slave select GPIO for this SD card
 
         .use_card_detect = false,
-        .card_detect_gpio = 22,   // Card detect
-        .card_detected_true = 1,  // What the GPIO read returns when a card is
+        .card_detect_gpio = 0,   // Card detect
+        .card_detected_true = -1,  // What the GPIO read returns when a card is
                                   // present. Use -1 if there is no card detect.
         .set_drive_strength = true,
         .ss_gpio_drive_strength = GPIO_DRIVE_STRENGTH_2MA,

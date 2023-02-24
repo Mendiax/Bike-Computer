@@ -6,7 +6,7 @@ PICODIR := ./pico #/mnt/h
 BUILD := build
 BUILD_LOG := $(BUILD)/build.log
 PICO_MAIN_FILE := pico_main
-PICO_TEST_FILE := pico_test
+PICO_TEST_FILE := target_test
 PICO_GSM_CONSOLE_FILE := pico_gsm_console
 
 SUPRESS_WARINGS := supress_warnings.txt
@@ -47,6 +47,27 @@ else
 $(info [INFO] [CMAKE] Veroose flag on $(CMAKE_VERBOSE_MAKEFILE))
 endif
 
+ifeq ($(H),1)
+    BUILD_TARGET = host
+else
+    BUILD_TARGET = rp2040
+$(info [INFO] [CMAKE] build target = $(BUILD_TARGET))
+endif
+
+ifeq ($(D),1)
+    BUILD_TYPE = Debug
+else
+    BUILD_TYPE = Release
+$(info [INFO] [CMAKE] build type = $(BUILD_TYPE))
+endif
+
+ifeq ($(L),1)
+    PICO_TEST_HOST = local
+else
+    PICO_TEST_HOST = ssh
+$(info [INFO] [CMAKE] hw test host = $(PICO_TEST_HOST))
+endif
+
 $(info [INFO] [CMAKE] Building with $(CMAKE_BUILDER))
 
 define build_info
@@ -59,7 +80,7 @@ endef
 ################################################################################
 
 
-all:
+all: clean_tests_header
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
@@ -70,32 +91,43 @@ full_build: cmake
 main:
 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
 
-test:
-	cmake --build ./build --parallel $(NPROCS) --target $(PICO_TEST_FILE) && echo "BUILD FINISHED"
-
-gsm:
-	cmake --build ./build --parallel $(NPROCS) --target $(PICO_GSM_CONSOLE_FILE) && echo "BUILD FINISHED"
-
-host:
-	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
-	$(call build_info)
-sim:
-	$(MAKE) -C $(BUILD) -j$(NPROCS)
+help:
+	@echo "D=1 -> cmake debug build"
+	@echo "H=1 -> cmake host tests build. Run tests that do not need hw"
+	@echo "V=1 -> cmake verobse build"
+	@echo "L=1 -> cmake run test locally (pico is connected to this system) L=0 -> tests will be run over ssh"
 
 
-test_host:
-	cd $(BUILD) && ctest
+
+# test:
+# 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_TEST_FILE) && echo "BUILD FINISHED"
+
+# gsm:
+# 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_GSM_CONSOLE_FILE) && echo "BUILD FINISHED"
+
+
+# host:
+# 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
+# 	$(call build_info)
+
+
+ctest:
+	cd $(BUILD) && ctest --output-on-failure -V
+
+ctest_all: all
+	$(MAKE) ctest
 
 parser:
 	bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
 	flex -Cr -o source/lib/Parser/src/lexer.cpp source/lib/Parser/lexer.l
 
 
-CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_VERBOSE_MAKEFILE=$(CMAKE_VERBOSE_MAKEFILE)
+CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_VERBOSE_MAKEFILE=$(CMAKE_VERBOSE_MAKEFILE) \
+			  -DPICO_PLATFORM=$(BUILD_TARGET) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DPICO_TEST_HOST=$(PICO_TEST_HOST)
 
 #-DCMAKE_VERBOSE_MAKEFILE=ON
 cmake: folder parser
-	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Debug
+	cmake $(CMAKE_ARGS)
 
 cmaker: folder parser
 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Release
@@ -112,9 +144,9 @@ warnings:
 
 
 
-.PHONY: release
-release:
-	cp $(BUILD)/$(PICO_MAIN_FILE).uf2 ./release
+# .PHONY: release
+# release:
+# 	cp $(BUILD)/$(PICO_MAIN_FILE).uf2 ./release
 
 
 
@@ -166,20 +198,15 @@ cwgsm: gsm write_gsm_console
 folder:
 	mkdir -p $(BUILD)
 
-clean:
-	# $(MAKE) clean -C $(BUILD)
+clean_tests_header:
+	rm -f tests/hw/tests/test_cases.h
+
+clean: clean_tests_header
 	rm -rf  $(BUILD)
 	mkdir -p $(BUILD)
-	# find . -name "*.s" -type f -delete
-	# find . -name "*.gch" -type f -delete
 
 reset: clean cmake all
 	@echo "clean make done!"
-
-reset_host: clean cmake_host host
-	@echo "clean make done!"
-
-build_test_all: reset reset_host test_host
 
 # test:
 # 	$(MAKE) test -C $(BUILD)
