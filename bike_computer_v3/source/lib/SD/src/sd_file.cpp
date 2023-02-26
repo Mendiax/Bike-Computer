@@ -7,10 +7,8 @@
 #include "traces.h"
 
 Sd_File::Sd_File(const std::string& file_name)
-    :correct_lines_pos{false}
+    :file_name{file_name}, correct_lines_pos{false}
 {
-    this->file_name = file_name.c_str();
-
     mount_drive();
     if(!sd_mounted)
     {
@@ -41,7 +39,7 @@ Sd_File::~Sd_File()
 
 void Sd_File::remove()
 {
-    f_unlink(file_name);
+    f_unlink(file_name.c_str());
 }
 
 
@@ -50,7 +48,7 @@ Sd_File::Result Sd_File::append(const char* string)
 {
     FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name,  FA_WRITE | FA_OPEN_APPEND);
+    res = f_open(&file_p, file_name.c_str(),  FA_WRITE | FA_OPEN_APPEND);
     if (res != FR_OK)
     {
         //try to mount drive if it is not mounted
@@ -76,7 +74,7 @@ bool Sd_File::is_empty()
 size_t Sd_File::get_size()
 {
     FILINFO info;
-    auto fres = f_stat(file_name, &info);
+    auto fres = f_stat(file_name.c_str(), &info);
     if(fres == FR_NO_FILE)
     {
         TRACE_ABNORMAL(TRACE_SD, "no file \n");
@@ -98,7 +96,7 @@ Sd_File::Result Sd_File::clear()
 {
     FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name,  FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
+    res = f_open(&file_p, file_name.c_str(),  FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
     if (res != FR_OK)
     {
         // failed
@@ -124,9 +122,11 @@ std::string Sd_File::read_all()
 {
     FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name,  FA_READ);
+    res = f_open(&file_p, file_name.c_str(),  FA_READ);
     if (res != FR_OK)
     {
+        PRINT("file_name.c_str() = " << this->file_name.c_str());
+        TRACE_ABNORMAL(TRACE_SD, " %zu Read file failed (%d)\n", strlen(this->file_name.c_str()), res);
         return "";
     }
     unsigned bytes_read;
@@ -135,6 +135,7 @@ std::string Sd_File::read_all()
     {
         f_close(&file_p);
         last_result = F_ERROR;
+        TRACE_ABNORMAL(TRACE_SD, "File size 0 \n");
         return "";
     }
     auto buffer = new char[file_size + 1];
@@ -143,6 +144,7 @@ std::string Sd_File::read_all()
     {
         f_close(&file_p);
         last_result = F_ERROR;
+        TRACE_ABNORMAL(TRACE_SD, "couldnt allocate buffer \n");
         return "";
     }
     f_read(&file_p, buffer, file_size, &bytes_read);
@@ -150,7 +152,7 @@ std::string Sd_File::read_all()
     if (file_size != bytes_read)
     {
         TRACE_ABNORMAL(TRACE_SD, "Error while reading the file %s read %u/%zu\n",
-                       file_name, bytes_read, file_size);
+                       file_name.c_str(), bytes_read, file_size);
         last_result = F_ERROR;
         memset(buffer, 0, file_size + 1);
     }
@@ -165,7 +167,7 @@ Sd_File::Result Sd_File::overwrite(const char* string, size_t pos)
 {
     FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name,  FA_WRITE);
+    res = f_open(&file_p, file_name.c_str(),  FA_WRITE);
     if (res != FR_OK)
     {
         // failed
@@ -194,7 +196,7 @@ size_t Sd_File::get_no_of_lines()
     }
     FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name,  FA_READ);
+    res = f_open(&file_p, file_name.c_str(),  FA_READ);
     if (res != FR_OK)
     {
         // failed
@@ -267,7 +269,7 @@ std::vector<std::string> Sd_File::read_all_lines(size_t max_len)
 
     FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name,  FA_READ);
+    res = f_open(&file_p, file_name.c_str(),  FA_READ);
     if (res != FR_OK)
     {
         return all_lines;
@@ -293,7 +295,7 @@ std::vector<std::string> Sd_File::read_all_lines(size_t max_len)
         if (bytes_to_read != bytes_read)
         {
             TRACE_ABNORMAL(TRACE_SD, "Error while reading the file %s read %u/%zu\n",
-                        file_name, bytes_read, bytes_to_read);
+                        file_name.c_str(), bytes_read, bytes_to_read);
             last_result = F_ERROR;
         }
         last_result = F_OK;
@@ -312,12 +314,12 @@ std::string Sd_File::read_line(size_t line_no, size_t max_len)
     if(line_no >= no_lines)
     {
         TRACE_ABNORMAL(TRACE_SD, "Error while reading the file:%s line:%zu no_lines:%zu\n",
-                file_name, line_no, no_lines);
+                file_name.c_str(), line_no, no_lines);
         return "";
     }
     FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name,  FA_READ);
+    res = f_open(&file_p, file_name.c_str(),  FA_READ);
     if (res != FR_OK)
     {
         return "";
@@ -345,7 +347,7 @@ std::string Sd_File::read_line(size_t line_no, size_t max_len)
     if (bytes_to_read != bytes_read)
     {
         TRACE_ABNORMAL(TRACE_SD, "Error while reading the file:%s line:%zu no_lines:%zu read %u/%zu\n",
-                       file_name, line_no, no_lines, bytes_read, bytes_to_read);
+                       file_name.c_str(), line_no, no_lines, bytes_read, bytes_to_read);
         last_result = F_ERROR;
     }
     else

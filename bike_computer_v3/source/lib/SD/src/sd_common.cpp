@@ -11,7 +11,9 @@ void mount_drive()
 {
     if (!sd_driver_inited)
     {
+        TRACE_DEBUG(2, TRACE_SD, "Inicializing sd driver\n");
         sd_driver_inited = sd_init_driver();
+        TRACE_DEBUG(2, TRACE_SD, "Sd driver inicialized\n");
         if (!sd_driver_inited)
         {
             TRACE_ABNORMAL(TRACE_SD, "cannot init sd driver\n");
@@ -22,9 +24,12 @@ void mount_drive()
     {
         return;
     }
+    TRACE_DEBUG(2, TRACE_SD, "Mounting drive " SD_DRIVE_NAME "\n");
     // Mount drive
     auto fr = f_mount(&fs, SD_DRIVE_NAME, 1);
     sd_mounted = (fr == FR_OK);
+    TRACE_DEBUG(2, TRACE_SD, "Drive mounted " SD_DRIVE_NAME "\n");
+
     if(!sd_mounted)
     {
         TRACE_ABNORMAL(TRACE_SD, "cannot mount drive " SD_DRIVE_NAME " \n");

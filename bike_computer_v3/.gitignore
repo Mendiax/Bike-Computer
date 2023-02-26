@@ -8,6 +8,7 @@ specification/
 sim800_doc/
 source/external/no-OS-FatFS
 source/external/pico-host-sdl
+junk/
 
 # tests
 tests/hw/hw_config/config.yaml

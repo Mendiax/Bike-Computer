@@ -341,7 +341,7 @@ int main(void)
     {
         sleep_ms(100);
     }
-    tracesSetup();
+    traces_init();
 
     // IMU_Init();
     // scan();

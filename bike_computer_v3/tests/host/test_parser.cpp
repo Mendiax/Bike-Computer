@@ -61,7 +61,7 @@ int url_test(void)
 int main()
 {
     // stdio_init_all();
-    tracesSetup();
+    traces_init();
 
     BC_TEST(parser_test);
     BC_TEST(url_test);

@@ -12,7 +12,7 @@ class Sd_File
     };
 private:
     Result last_result;
-    const char* file_name;
+    const std::string file_name;
     // positions of lines after get_no_of_lines()
     std::vector<size_t> lines_pos;
     bool correct_lines_pos;
@@ -24,6 +24,7 @@ public:
     {
         return last_result;
     }
+    inline const char* get_file_name(){return this->file_name.c_str();}
     Result append(const char* string);
     bool is_empty();
     size_t get_size();

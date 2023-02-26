@@ -5,6 +5,7 @@
 #include "tests/test_cases.h"
 #include "bc_test.h"
 #include "pico_test.hpp"
+#include "traces.h"
 
 #define LED_PIN 25
 
@@ -29,9 +30,12 @@ int main()
     printf("main()\n");
 
     stdio_init_all();
+    traces_init();
 
     pico_test_start();
     tc_basic_interface();
+    tc_sd_basic();
+
 
     pico_test_end();
     while (true) {

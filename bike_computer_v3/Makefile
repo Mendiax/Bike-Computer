@@ -82,7 +82,6 @@ endef
 
 all: clean_tests_header
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
-	$(call build_info)
 
 full_build: cmake
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
@@ -104,11 +103,6 @@ help:
 
 # gsm:
 # 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_GSM_CONSOLE_FILE) && echo "BUILD FINISHED"
-
-
-# host:
-# 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
-# 	$(call build_info)
 
 
 ctest:
@@ -155,14 +149,14 @@ warnings:
 ################################################################################
 
 cw_all:
-	./boot/boot.sh -o b && $(MAKE) main && $(MAKE) write_main && sleep 2 && ./serial.bat
+	./tools/boot/boot.sh -o b && $(MAKE) all && $(MAKE) write_main && sleep 2 && ./tools/serial.bat
 
 cwt_all:
-	./boot/boot.sh -o b && $(MAKE) test && $(MAKE) write_test && sleep 2 && ./serial.bat
+	cd tools && ./boot/boot.sh -o b && $(MAKE) test && $(MAKE) write_test && sleep 2 && ./serial.bat
 
 .PHONY: boot
 boot:
-	./boot/boot.sh -o b
+	./tools/boot/boot.sh -o b
 
 .PHONY: restart
 restart:
@@ -171,7 +165,7 @@ restart:
 w: write_main
 wt: write_test
 write_main:
-	./boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
+	./tools/boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
 
 write_test: boot
 	./boot/upload.sh -p '$(PICO_TEST_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
