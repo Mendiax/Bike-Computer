@@ -12,10 +12,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    # runs-on: ubuntu-latest
-    runs-on: self-hosted
+  Tests_HOST:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        debug: [1, 0]
+    steps:
+    - name: Clean Workspace
+      shell: bash
+      run: |
+        echo "Cleaning workspace directory..."
+        rm -rfv ${{ github.workspace }}
+        mkdir -p ${{ github.workspace }}
 
+    - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
+      uses: carlosperate/arm-none-eabi-gcc-action@v1
+      with:
+        release: '10.3-2021.10' # <-- The compiler release to use
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: download pico-sdk
+      uses: actions/checkout@master
+      with:
+        repository: raspberrypi/pico-sdk
+        path: ./pico-sdk
+        # recursive
+    - name: submodules
+      run: cd pico-sdk && git submodule update --init --recursive
+
+    - name: cmake
+      run: |
+        export PICO_SDK_PATH=$(pwd)/pico-sdk && echo $PICO_SDK_PATH
+        cd bike_computer_v3 && make cmake H=1 D=${{ matrix.debug }}
+
+    - name: make
+      run: cd bike_computer_v3 && make all
+
+    - name: test
+      run: cd bike_computer_v3 && make ctest
+
+  Tests_HW:
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        debug: [1, 0]
     steps:
     - name: Clean Workspace
       shell: bash
@@ -25,7 +69,6 @@ jobs:
         mkdir -p ${{ github.workspace }}
     - name: Checkout repository
       uses: actions/checkout@v3
-
       # with:
       #   submodules: 'true'
 
@@ -38,22 +81,14 @@ jobs:
       run: cd bike_computer_v3 && ls
 
     - name: cmake
-      run: cd bike_computer_v3 && make cmake L=1
+      run: cd bike_computer_v3 && make cmake L=1 D=${{ matrix.debug }}
 
     - name: make
       run: cd bike_computer_v3 && make all
 
-  warnings:
-    needs: [build]
-    runs-on: self-hosted
-    steps:
     - name: check_log
       run: cd bike_computer_v3 && make warnings
 
-  test_target:
-    needs: [build]
-    runs-on: self-hosted
-    steps:
     - name: run local
       run: cd bike_computer_v3 && make ctest
 
@@ -64,27 +99,27 @@ jobs:
   #==========================================================================
 
 
-  build_host:
-    needs: [test_target, warnings]
-    runs-on: self-hosted
-    if: success() || failure()
-    steps:
-    - name: clean
-      run: cd bike_computer_v3 && make clean
+  # build_host:
+  #   needs: [test_target, warnings]
+  #   runs-on: self-hosted
+  #   if: success() || failure()
+  #   steps:
+  #   - name: clean
+  #     run: cd bike_computer_v3 && make clean
 
-    - name: build cmake for host
-      run: cd bike_computer_v3 && make cmake H=1
+  #   - name: build cmake for host
+  #     run: cd bike_computer_v3 && make cmake H=1
 
-    - name: build host
-      run: cd bike_computer_v3 && make all
+  #   - name: build host
+  #     run: cd bike_computer_v3 && make all
 
 
-  test_host:
-    needs: [build_host]
-    runs-on: self-hosted
-    steps:
-    - name: run tests on host
-      run: cd bike_computer_v3 && make ctest
+  # test_host:
+  #   needs: [build_host]
+  #   runs-on: self-hosted
+  #   steps:
+  #   - name: run tests on host
+  #     run: cd bike_computer_v3 && make ctest
 
 
 
