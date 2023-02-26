@@ -4,6 +4,8 @@
 #include "ff.h"
 #include "diskio.h"
 
+// void spi_dma_isr();
+
 static spi_t spis[] = {
     {
         .hw_inst = spi0,
@@ -16,6 +18,7 @@ static spi_t spis[] = {
         .set_drive_strength = true,
         .mosi_gpio_drive_strength = GPIO_DRIVE_STRENGTH_2MA,
         .sck_gpio_drive_strength = GPIO_DRIVE_STRENGTH_2MA,
+        // .dma_isr = spi_dma_isr
     }
 };
 
@@ -34,6 +37,8 @@ static sd_card_t sd_cards[] = {
         .m_Status = STA_NOINIT,
     }
 };
+
+// void spi_dma_isr() { spi_irq_handler(&spis[0]); }
 
 /* ********************************************************************** */
 size_t sd_get_num() { return count_of(sd_cards); }

@@ -74,13 +74,13 @@ enum tracesE{
 extern uint32_t tracesOn[];
 extern mutex_t tracesMutex;
 
-static inline void tracesSetup()
+static inline void traces_init()
 {
     mutex_init(&tracesMutex);
     // all 0 ids are for abnormal traces and tunrd on on default
     for(size_t i = 0; i < NO_TRACES; i++)
     {
-        // TRACES_ON(0, i);
+        TRACES_ON(0, i);
     }
     TRACES_ON(0, TRACE_MAIN);
     TRACES_ON_ALL(TRACE_SPEED);
@@ -170,7 +170,9 @@ static inline void tracesSetup()
     // ==================================================
     //                   SD TRACES
     // ==================================================
-    //TRACES_ON(1, TRACE_SD);  // read file size
+    TRACES_ON(1, TRACE_SD);  // read file size
+    TRACES_ON(2, TRACE_SD);  // SD mount
+
 
     // ==================================================
     //                   ACTORS TRACES
@@ -211,14 +213,15 @@ static inline void tracesSetup()
     if (tracesOn[name] & (1 << id))\
     {\
         float __time_since_boot = (float)to_ms_since_boot(get_absolute_time()) / 1000.0; \
-        PRINTF("[" ESC_GREEN #name ".%u" ESC_RESET "][" ESC_WHITE "%.3fs" ESC_RESET "] " ESC_WHITE __info ESC_RESET, \
-            id, \
+        PRINTF(ESC_WHITE "%8.3f: " ESC_RESET "[" ESC_GREEN #name ".%u:%d" ESC_RESET "] " ESC_WHITE __info ESC_RESET, \
             __time_since_boot, \
+            id, \
+            (int)__LINE__, \
             ##__VA_ARGS__); \
     }\
     }while(0)
 
 #define TRACE_ABNORMAL(name, __info, ...) \
-    TRACE_DEBUG(0, name, ESC_RED "ABNORMAL " __info ESC_RESET, ##__VA_ARGS__)
+    TRACE_DEBUG(0, name, ESC_RED "ABNORMAL " __info ESC_RESET,  ##__VA_ARGS__)
 
 #endif

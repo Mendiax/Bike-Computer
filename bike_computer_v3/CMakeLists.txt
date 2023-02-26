@@ -84,7 +84,7 @@ if(PICO_PLATFORM MATCHES "rp2040")
 
 
     add_subdirectory(source/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
-    set(SD_CONFIG_SRC source/external/FatFs_config/hw_config.c)
+    set(SD_CONFIG_SRC "${CMAKE_CURRENT_SOURCE_DIR}/source/external/FatFs_config/hw_config.c")
 
 
     #################################### MAIN #####################################
