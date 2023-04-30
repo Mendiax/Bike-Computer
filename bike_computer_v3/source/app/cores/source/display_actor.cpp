@@ -149,15 +149,18 @@ void Display_Actor::handle_sig_total_update(const Signal &sig)
 
 void Display_Actor::setup(void)
 {
+    TRACE_DEBUG(0, TRACE_CORE_1, "interrupt setup\n");
     interruptSetupCore1();
     // setup
     Sensor_Data* sensor_data_p = &Display_Actor::get_instance().get_local_data().sensors;
     Session_Data* session_data_p = &Display_Actor::get_instance().get_local_data().session;
 
+    TRACE_DEBUG(0, TRACE_CORE_1, "creating GUI\n");
     this->gui = Gui::get_gui(sensor_data_p, session_data_p);
     this->gui->render();
     this->gui->refresh();
 
+    TRACE_DEBUG(0, TRACE_CORE_1, "reading config file\n");
     {
         const std::string config_file_name = "bike_gears.cfg";
         Sd_File config_file(config_file_name);
@@ -170,6 +173,7 @@ void Display_Actor::setup(void)
         Data_Actor::get_instance().send_signal(sig);
     }
 
+    TRACE_DEBUG(0, TRACE_CORE_1, "send total data\n");
     // update data on start
     {
         float dist = 0.0f, time = 0.0f;
@@ -182,6 +186,7 @@ void Display_Actor::setup(void)
         Data_Actor::get_instance().send_signal(sig);
     }
 
+    TRACE_DEBUG(0, TRACE_CORE_1, "send req packet\n");
     auto payload = new Data_Actor::Sig_Display_Actor_Req_Packet();
     payload->packet_p = new actors_common::Packet();
     {
