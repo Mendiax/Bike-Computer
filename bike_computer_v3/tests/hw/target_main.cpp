@@ -7,6 +7,11 @@
 #include "pico_test.hpp"
 #include "traces.h"
 
+#include "interrupts/interrupts.hpp"
+#include "speedometer/speedometer.hpp"
+#include "cadence/cadence.hpp"
+
+
 #define LED_PIN 25
 
 
@@ -32,9 +37,13 @@ int main()
     stdio_init_all();
     traces_init();
 
+    interruptSetupCore0();
+    interruptSetupCore1();
+
     pico_test_start();
     tc_basic_interface();
     tc_sd_basic();
+    tc_sd_thp();
 
 
     pico_test_end();

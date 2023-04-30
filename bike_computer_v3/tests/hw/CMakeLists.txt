@@ -30,6 +30,9 @@ target_link_libraries(${PICO_TEST_FILE}
     SD
     Actors
     pico_test
+    Interrupts
+    Speedometer
+    Cadence
     )
 
 pico_enable_stdio_usb(${PICO_TEST_FILE} ENABLED)
