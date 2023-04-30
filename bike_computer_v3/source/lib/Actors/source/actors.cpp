@@ -51,6 +51,7 @@ void Actor::send_signal(const Signal &sig)
 
 void Actor::send_signal(Signal& sig, Actor* from)
 {
+    TRACE_DEBUG(1, TRACE_ACTOR,"sent sig id=%" PRIu16 "\n", sig.get_sig_id());
     sig.set_actor(from);
     send_signal(sig);
 }
@@ -77,6 +78,7 @@ void Actor::handle_next_signal()
     {
         if(handler.id == sig.get_sig_id())
         {
+            TRACE_DEBUG(1, TRACE_ACTOR, "Handling signal %u\n", handler.id);
             handler.handler_func(sig);
             handled = true;
             break;

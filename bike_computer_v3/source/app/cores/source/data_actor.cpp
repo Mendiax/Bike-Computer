@@ -63,7 +63,7 @@
 
 #define LOG_DATA_CYCLE_MS (1 * 1000)
 
-#define SIM_SPEED
+// #define SIM_SPEED
 // #define SIM_SLOW_DOWN
 
 //switches
@@ -116,7 +116,7 @@ void Data_Actor::run_thread(void)
 static void gear_update(Gear_Suggestion_Calculator* gear_suggestion_calc);
 static float speed_cadence_update();
 
-
+#ifdef SIM_SPEED
 static void set_speed_gear(float emulated_speed, uint8_t gear);
 
 static void set_speed_gear(float emulated_speed, uint8_t gear)
@@ -139,6 +139,7 @@ CALC_CAD:
     speed_emulate(emulated_speed);
     cadence::emulate(cadence);
 }
+#endif
 
 [[maybe_unused]]
 static void send_speed_comp(float raw, float filtered)
@@ -176,19 +177,19 @@ void Data_Actor::setup(void)
         .sec   = 00
     };
     rtc_set_datetime(&t);
-
+    TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR CONFIG\n");
     // wait for config
     while(!config_received)
     {
         Data_Actor::get_instance().handle_all();
         sleep_ms(10);
     }
-    PRINT("CONFIG RECIVED");
+    TRACE_DEBUG(0, TRACE_MAIN, "CONFIG RECIVED\n");
     config.to_string();
 
     // for testing purpose
     #ifdef SIM_SPEED
-    PRINT("EMULATING SPEED");
+    TRACE_DEBUG(0, TRACE_MAIN, "EMULATING SPEED\n");
     set_speed_gear(20, 8);
     #endif
 
@@ -199,21 +200,20 @@ void Data_Actor::setup(void)
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 0);
 
-    PRINT("INIT SIM868");
+    TRACE_DEBUG(0, TRACE_MAIN, "INIT SIM868\n");
     // setup sim868
-   sim868::init();
-   sim868::turnOn();
+    sim868::init();
+    sim868::turnOn();
 
     session_p = new Session_Data();
-    PRINT("INIT BMP280");
+    TRACE_DEBUG(0, TRACE_MAIN, "INIT BMP280\n");
     bmp280::init();
 
-    PRINT("WAITING FOR SIM868");
-
+    TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR SIM868\n");
     while (sim868::check_for_boot_long() == false) {
         sleep_ms(1000);
     }
-    PRINT("WAITING FOR TIME");
+    TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR TIME\n");
     while (sensors_data.current_time.is_valid() == false) {
         cycle_get_gps_data();
     }
@@ -585,6 +585,9 @@ static void cycle_get_gps_data()
     static float msl;
     static TimeS current_time;
     datetime_t t;
+    static int last_signal_strength = -1;
+    static int last_signal_strength2 = -1;
+
 
     CYCLE_UPDATE_SIMPLE(sim868::gps::fetch_data(), GPS_FETCH_CYCLE_MS,
         {
@@ -605,6 +608,17 @@ static void cycle_get_gps_data()
                 change_time_by_hour(&t, config.hour_offset);
                 rtc_set_datetime(&t);
                 sensors_data.current_time = current_time;
+            }
+            if(last_signal_strength != sensors_data.gps_data.sat ||
+               last_signal_strength2 != sensors_data.gps_data.sat2){
+                last_signal_strength = sensors_data.gps_data.sat;
+                last_signal_strength2 = sensors_data.gps_data.sat2;
+
+                TRACE_DEBUG(6, TRACE_CORE_0,
+                            "date = %s signal = [%" PRIu8 ",%" PRIu8 "]\n",
+                            time_to_str(current_time).c_str(),
+                            sensors_data.gps_data.sat,
+                            sensors_data.gps_data.sat2);
             }
             TRACE_DEBUG(3, TRACE_CORE_0,
                         "gps speed %.1f, pos [%.5f,%.5f] date = %s signal = [%" PRIu8 ",%" PRIu8 "]\n",
