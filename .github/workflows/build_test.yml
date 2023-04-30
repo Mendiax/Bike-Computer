@@ -43,10 +43,57 @@ jobs:
     - name: submodules
       run: cd pico-sdk && git submodule update --init --recursive
 
+    - name: Install valgrind
+      run: |
+        sudo apt update
+        sudo apt install valgrind
+
     - name: cmake
       run: |
         export PICO_SDK_PATH=$(pwd)/pico-sdk && echo $PICO_SDK_PATH
         cd bike_computer_v3 && make cmake H=1 D=${{ matrix.debug }}
+
+    - name: make
+      run: cd bike_computer_v3 && make all
+
+    - name: test
+      run: cd bike_computer_v3 && make ctest
+
+  Tests_HOST_valgrind:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        debug: [1, 0]
+    steps:
+    - name: Clean Workspace
+      shell: bash
+      run: |
+        echo "Cleaning workspace directory..."
+        rm -rfv ${{ github.workspace }}
+        mkdir -p ${{ github.workspace }}
+
+    - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
+      uses: carlosperate/arm-none-eabi-gcc-action@v1
+      with:
+        release: '10.3-2021.10' # <-- The compiler release to use
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: download pico-sdk
+      uses: actions/checkout@master
+      with:
+        repository: raspberrypi/pico-sdk
+        path: ./pico-sdk
+        # recursive
+    - name: submodules
+      run: cd pico-sdk && git submodule update --init --recursive
+
+    - name: cmake
+      run: |
+        export PICO_SDK_PATH=$(pwd)/pico-sdk && echo $PICO_SDK_PATH
+        cd bike_computer_v3 && make cmake H=1 D=${{ matrix.debug }} valgrind=1
 
     - name: make
       run: cd bike_computer_v3 && make all

@@ -51,22 +51,36 @@ ifeq ($(H),1)
     BUILD_TARGET = host
 else
     BUILD_TARGET = rp2040
-$(info [INFO] [CMAKE] build target = $(BUILD_TARGET))
 endif
 
 ifeq ($(D),1)
     BUILD_TYPE = Debug
 else
     BUILD_TYPE = Release
-$(info [INFO] [CMAKE] build type = $(BUILD_TYPE))
 endif
 
 ifeq ($(L),1)
     PICO_TEST_HOST = local
 else
     PICO_TEST_HOST = ssh
-$(info [INFO] [CMAKE] hw test host = $(PICO_TEST_HOST))
 endif
+
+ifeq ($(VALGRIND),1)
+	PICO_TEST_VALGRIND = valgrind
+	BUILD_TYPE = Debug
+	PICO_TEST_HOST = local
+	BUILD_TARGET = host
+else
+    VALGRIND = normal
+endif
+
+
+$(info [INFO] [CMAKE] build target = $(BUILD_TARGET))
+$(info [INFO] [CMAKE] build type = $(BUILD_TYPE))
+$(info [INFO] [CMAKE] hw test host = $(PICO_TEST_HOST))
+$(info [INFO] [CMAKE] valgrind = $(PICO_TEST_VALGRIND))
+
+
 
 $(info [INFO] [CMAKE] Building with $(CMAKE_BUILDER))
 
@@ -75,6 +89,8 @@ $(info [INFO] BUILD FINISHED)
 $(info [INFO] build output saved to $(BUILD_LOG))
 endef
 
+
+
 ################################################################################
 #                                  run locally                                 #
 ################################################################################
@@ -82,6 +98,7 @@ endef
 
 all: clean_tests_header
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
+	$(call build_info)
 
 full_build: cmake
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
@@ -91,10 +108,25 @@ main:
 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
 
 help:
+	@echo "\nFlags for \'make cmake\':"
 	@echo "D=1 -> cmake debug build"
 	@echo "H=1 -> cmake host tests build. Run tests that do not need hw"
 	@echo "V=1 -> cmake verobse build"
 	@echo "L=1 -> cmake run test locally (pico is connected to this system) L=0 -> tests will be run over ssh"
+	@# @echo "=================================================================================================="
+	@echo "\nBuild process:"
+	@echo "make cmake <args>              // build cmake"
+	@echo "make all                       // build program"
+	@echo "progam build in $(BUILD)/$(PICO_MAIN_FILE).uf2"
+	@echo "make write_main                // send program to device"
+
+	@echo "\nBuild test process:"
+	@echo "make cmake <args>              // build cmake"
+	@echo "make all                       // build program"
+	@echo "make ctest                     // run program"
+
+
+
 
 
 
@@ -117,16 +149,16 @@ parser:
 
 
 CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_VERBOSE_MAKEFILE=$(CMAKE_VERBOSE_MAKEFILE) \
-			  -DPICO_PLATFORM=$(BUILD_TARGET) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DPICO_TEST_HOST=$(PICO_TEST_HOST)
+			  -DPICO_PLATFORM=$(BUILD_TARGET) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DPICO_TEST_HOST=$(PICO_TEST_HOST) -DPICO_TEST_VALGRIND=$(PICO_TEST_VALGRIND)
 
 #-DCMAKE_VERBOSE_MAKEFILE=ON
-cmake: folder parser
+cmake: clean folder parser
 	cmake $(CMAKE_ARGS)
 
-cmaker: folder parser
+cmaker: clean folder parser
 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Release
 
-cmake_host: folder parser
+cmake_host: clean folder parser
 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Debug -DPICO_PLATFORM=host
 # -DPICO_SDK_PRE_LIST_DIRS=$(PROJ_DIR)/source/external/pico-host-sdl
 
@@ -148,6 +180,9 @@ warnings:
 #                                  run locally                                 #
 ################################################################################
 
+serial: restart
+	sleep 4 && ./tools/serial.bat
+
 cw_all:
 	./tools/boot/boot.sh -o b && $(MAKE) all && $(MAKE) write_main && sleep 2 && ./tools/serial.bat
 
@@ -160,7 +195,7 @@ boot:
 
 .PHONY: restart
 restart:
-	./boot/boot.sh -o r
+	./tools/boot/boot.sh -o r
 
 w: write_main
 wt: write_test
