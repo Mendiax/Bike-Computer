@@ -136,6 +136,9 @@ assign:
     }
     | string LEX_COLON time
     {
+        auto time_p = $3;
+        // printf("using and deleting time_p = %p \n", time_p);
+        delete time_p;
         // we dont need any of this
         delete $1;
     }
@@ -336,8 +339,10 @@ array_time:
         TimeArr* new_arr = $1;
 
         // update array
-        new_arr->array_p[new_arr->last_id] = *$3;
-        delete $3;
+        auto time_p = $3;
+        new_arr->array_p[new_arr->last_id] = *time_p;
+        // printf("using and del time_p = %p \n", time_p);
+        delete time_p;
         new_arr->last_id++;
 
         $$ = new_arr;
@@ -345,6 +350,9 @@ array_time:
     |
     time
     {
+        auto time_p = $1;
+        // printf("using and del time_p = %p \n", time_p);
+
         TimeArr* new_arr = new TimeArr();
         new_arr->array_p = 0;
         new_arr->last_id = 0;
@@ -366,8 +374,8 @@ array_time:
 
 
         // update array
-        new_arr->array_p[new_arr->last_id] = *$1;
-        delete $1;
+        new_arr->array_p[new_arr->last_id] = *time_p;
+        delete time_p;
         new_arr->last_id++;
 
         $$ = new_arr;
@@ -377,8 +385,10 @@ array_time:
 time:
     LEX_DATE_ISO
     {
-        auto time_p = TimeIso8601_from_string(*$1);
-        //std::cout << "read date" << *$1 << " -> " << time_p->year << std::endl;
+        auto str_p = $1;
+        auto time_p = TimeIso8601_from_string(*str_p);
+        std::cout << "read date" << *str_p << " -> " << time_p->year << std::endl;
+        // printf("%d new time_p = %p \n", __LINE__, time_p);
         $$ = time_p;
     }
 ;
@@ -402,6 +412,7 @@ int parse_string(const char* in) {
   set_input_string(in);
   int rv = yyparse();
   end_lexical_scan();
+  /* yylex_destroy(); */
   return rv;
 }
 
