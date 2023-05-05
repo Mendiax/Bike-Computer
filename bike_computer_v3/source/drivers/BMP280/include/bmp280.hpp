@@ -5,7 +5,7 @@
 
 namespace bmp280{
     void init();
-    std::tuple<int32_t ,int32_t> get_temp_press();
+    std::tuple<float ,float> get_temp_press();
     /**
      * @brief calculates height above the sea with msl pressure, current pressure and temp
      *

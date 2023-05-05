@@ -630,7 +630,7 @@ static void cycle_get_gps_data()
 
 static void cycle_get_weather_data()
 {
-    int32_t temp, press;
+    float temp, press;
     float altitude;
 
     CYCLE_UPDATE_SIMPLE(true, WEATHER_CYCLE_MS,
@@ -641,16 +641,16 @@ static void cycle_get_weather_data()
                     //  static uint8_t req_id = 0;
                     if (start_press == 0.0)
                     {
-                        start_press = (float)press;
+                        start_press = press;
                     }
                     altitude = bmp280::get_height(start_press,
                                                 (float)press,
-                                                (float)temp / 100.0);
-                     sensors_data.weather.temperature = (float)temp / 100.0f;
+                                                temp);
+                     sensors_data.weather.temperature = temp;
                      sensors_data.weather.pressure = press;
                      sensors_data.altitude = altitude;
                      TRACE_DEBUG(4, TRACE_CORE_0,
-                                 "Current weather temp:%" PRId32 "C press:%" PRId32 "Pa altitude:%.2fm\n",
+                                 "Current weather temp:%.2fC press:%.2fPa altitude:%.2fm\n",
                                  temp, press, altitude);
                  });
 }

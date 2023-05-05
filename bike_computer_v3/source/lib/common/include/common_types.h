@@ -99,7 +99,7 @@ struct ArrayMinMaxS
 
 struct Weather_BMP280_S
 {
-    int32_t pressure;
+    float pressure;
     float temperature;
 };
 
