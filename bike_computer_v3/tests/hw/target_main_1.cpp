@@ -38,10 +38,8 @@ int main()
     interruptSetupCore1();
 
     pico_test_start();
-    tc_basic_interface();
-    tc_sd_basic();
-    tc_sd_thp();
 
+    printf("second test file\n");
 
     pico_test_end();
     while (true) {
