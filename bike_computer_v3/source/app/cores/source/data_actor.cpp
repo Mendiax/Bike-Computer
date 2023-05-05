@@ -657,8 +657,11 @@ static void cycle_get_weather_data()
 
 static void cycle_get_slope()
 {
-    CYCLE_UPDATE_SIMPLE(true, 2000,
+    CYCLE_UPDATE_SIMPLE(true, 500,
         {
-            sensors_data.slope = calc_slope(speed::get_distance_m(), sensors_data.altitude);
+            if (speed::get_distance_m() > 10)
+            {
+                sensors_data.slope = calc_slope(speed::get_distance_m(), sensors_data.altitude);
+            }
         });
 }
