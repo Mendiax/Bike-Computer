@@ -243,6 +243,8 @@ std::tuple<float, float> bmp280::get_temp_press()
     float pressure = bmp280_convert_pressure(raw_pressure, raw_temperature, &params);
 
 
+    TRACE_PLOT(1, "pressure raw", pressure);
+
     ring_buffer_push_overwrite(press_buffer, (char*)&pressure);
 
     float* buffer_arr = (float*)press_buffer->data_pointer;
@@ -252,6 +254,7 @@ std::tuple<float, float> bmp280::get_temp_press()
         press_avg += buffer_arr[i];
     }
     press_avg /= press_buffer->current_queue_length;
+    TRACE_PLOT(1, "pressure avg filter", press_avg);
 
     return std::make_tuple(temperature, press_avg);
 }
