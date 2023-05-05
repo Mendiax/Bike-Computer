@@ -40,6 +40,8 @@
 
 #define TRACES_ON(id, name) \
         tracesOn[name] |= (1 << id)
+#define PLOT(id) \
+        tracesOn[TRACE_PLOTTER] |= (1 << id)
 #define TRACES_ON_ALL(name) \
         tracesOn[name] = ~((uint32_t)0)
 
@@ -67,6 +69,7 @@ enum tracesE{
     TRACE_SD,
     TRACE_ACTOR,
     TRACE_GUI,
+    TRACE_PLOTTER,
     NO_TRACES
 };
 
@@ -134,6 +137,13 @@ static inline void traces_init()
     // RACES_ON(1, TRACE_DISPLAY_PRINT); // write string msg
     // RACES_ON(2, TRACE_DISPLAY_PRINT); // wrtie char msg
     // RACES_ON(3, TRACE_DISPLAY_PRINT); // center space
+
+
+    // ==================================================
+    //                   BMP280 TRACES
+    // ==================================================
+    // TRACES_ON(1, TRACE_BMP280);
+    // PLOT(1);
 
 
     // ==================================================
@@ -209,7 +219,13 @@ static inline void traces_init()
 #define PRINT(...) \
     std::cout << __VA_ARGS__ << std::endl
 
-
+#define TRACE_PLOT(id, name, value) \
+    do{\
+    if (tracesOn[TRACE_PLOTTER] & (1 << id))\
+    {\
+        PRINT("[PLOT <" name ">] " << value); \
+    }\
+    }while(0)
 
 #define TRACE_DEBUG(id, name, __info,...) \
     do{\
