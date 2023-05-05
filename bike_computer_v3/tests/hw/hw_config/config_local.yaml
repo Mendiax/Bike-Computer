@@ -1,4 +1,4 @@
 # host data
 host: local
 # binary file that will be executed
-bin_file: ../../../build/tests/hw/target_test.uf2
+bin_file: ../../../build/tests/hw
