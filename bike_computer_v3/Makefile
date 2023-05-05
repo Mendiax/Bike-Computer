@@ -220,6 +220,9 @@ cwt: test write_test
 cwgsm: gsm write_gsm_console
 	echo "cw gsm console"
 
+plot:
+	python3 tools/plotter.py
+
 ################################################################################
 #                               clean                                          #
 ################################################################################
