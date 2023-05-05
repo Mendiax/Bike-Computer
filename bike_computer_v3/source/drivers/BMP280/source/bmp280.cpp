@@ -230,22 +230,23 @@ void bmp280_get_calib_params(struct BMP280_Calib* params) {
 
 struct BMP280_Calib params;
 
-#define BUFFER_LEN 4
+#define BUFFER_LEN 10
 static Ring_Buffer* press_buffer = 0;
 
-std::tuple<int32_t, int32_t> bmp280::get_temp_press()
+std::tuple<float, float> bmp280::get_temp_press()
 {
     bmp280_get_calib_params(&params);
     int32_t raw_temperature;
     int32_t raw_pressure;
     bmp280_read_raw(&raw_temperature, &raw_pressure);
-    int32_t temperature = bmp280_convert_temp(raw_temperature, &params);
-    int32_t pressure = bmp280_convert_pressure(raw_pressure, raw_temperature, &params);
+    float temperature = bmp280_convert_temp(raw_temperature, &params) / 100.0f;
+    float pressure = bmp280_convert_pressure(raw_pressure, raw_temperature, &params);
+
 
     ring_buffer_push_overwrite(press_buffer, (char*)&pressure);
 
-    int32_t* buffer_arr = (int32_t*)press_buffer->data_pointer;
-    int64_t press_avg = 0;
+    float* buffer_arr = (float*)press_buffer->data_pointer;
+    float press_avg = 0;
     for(size_t i = 0; i < press_buffer->current_queue_length; i++)
     {
         press_avg += buffer_arr[i];
@@ -258,7 +259,7 @@ std::tuple<int32_t, int32_t> bmp280::get_temp_press()
 void bmp280::init()
 {
     I2C_Init();
-    press_buffer = ring_buffer_create(sizeof(int32_t), BUFFER_LEN);
+    press_buffer = ring_buffer_create(sizeof(float), BUFFER_LEN);
     bmp280_init();
     // retrieve fixed compensation params
     bmp280_get_calib_params(&params);
