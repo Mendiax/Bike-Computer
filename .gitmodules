@@ -10,3 +10,6 @@
 [submodule "bike_computer_v3/tests/external/pico_tests"]
 	path = bike_computer_v3/tests/external/pico_tests
 	url = git@github.com:Mendiax/pico_tests.git
+[submodule "bike_computer_v3/source/external/FreeRTOS/FreeRTOS-Kernel"]
+	path = bike_computer_v3/source/external/FreeRTOS/FreeRTOS-Kernel
+	url = git@github.com:FreeRTOS/FreeRTOS-Kernel.git
