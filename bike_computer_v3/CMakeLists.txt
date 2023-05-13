@@ -53,6 +53,7 @@ add_subdirectory(source/lib/common)
 add_subdirectory(source/lib/tools)
 add_subdirectory(source/lib/Parser)
 add_subdirectory(source/lib/Actors)
+add_subdirectory(source/lib/Filters)
 
 if(PICO_PLATFORM MATCHES "rp2040")
     add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-truncation)
