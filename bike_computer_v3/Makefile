@@ -9,6 +9,9 @@ PICO_MAIN_FILE := pico_main
 PICO_TEST_FILE := target_test
 PICO_GSM_CONSOLE_FILE := pico_gsm_console
 
+PICO_MAIN_FILE_PATH_RELATIVE:=$(BUILD)/$(PICO_MAIN_FILE).uf2
+PICO_TEST_FILE_PATH_RELATIVE:=$(BUILD)/$(PICO_TEST_FILE).uf2
+
 SUPRESS_WARINGS := supress_warnings.txt
 
 PROJ_DIR=$(shell pwd)
@@ -185,6 +188,13 @@ serial: restart
 
 cw_all:
 	./tools/boot/boot.sh -o b && $(MAKE) all && $(MAKE) write_main && sleep 2 && ./tools/serial.bat
+
+cw_tool:
+	$(MAKE) all && $(MAKE) write_picotool
+
+write_picotool:
+	picotool load -x ./$(PICO_MAIN_FILE_PATH_RELATIVE) -f || picotool load -x ./$(PICO_MAIN_FILE_PATH_RELATIVE) -F
+
 
 cwt_all:
 	cd tools && ./boot/boot.sh -o b && $(MAKE) test && $(MAKE) write_test && sleep 2 && ./serial.bat
