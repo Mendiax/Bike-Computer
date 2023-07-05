@@ -29,19 +29,27 @@ struct Signal
 {
 private:
     const sig_id id;
+    const size_t payload_size;
     char *payload;
     void* actor_p;
-    const size_t payload_size;
 
 public:
     Signal(sig_id id)
-        : id{id}, payload_size{0}
+        : id{id}, payload_size{0}, actor_p{0}
     {
         this->payload = nullptr;
     }
+
     template<typename T>
     Signal(sig_id id, T* payload)
-        : id{id}, payload_size{sizeof(T)}
+        : id{id}, payload_size{sizeof(T)}, actor_p{0}
+    {
+        this->payload = (char *)payload;
+    }
+
+    template<typename T>
+    Signal(sig_id id, T* payload, void* actor_p)
+        : id{id}, payload_size{sizeof(T)}, actor_p{actor_p}
     {
         this->payload = (char *)payload;
     }
