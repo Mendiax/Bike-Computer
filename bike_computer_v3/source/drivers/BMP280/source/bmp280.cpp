@@ -265,7 +265,7 @@ std::tuple<float, float> bmp280::get_temp_press()
     TRACE_PLOT(1, "pressure low pass filter", press_filter);
 
 
-    return std::make_tuple(temperature, press_avg);
+    return std::make_tuple(temperature, press_filter);
 }
 
 void bmp280::init()
@@ -273,7 +273,7 @@ void bmp280::init()
     I2C_Init();
     press_buffer = ring_buffer_create(sizeof(float), BUFFER_LEN);
     filter = new Filter_Low_Pass<float>(0.1);
-  
+
     bmp280_init();
     // retrieve fixed compensation params
     bmp280_get_calib_params(&params);
