@@ -49,6 +49,9 @@ message("[INFO] [CMAKE] C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
 #                     -Wfatal-errors
 #                     )
 
+
+add_definitions(-DPICO_DISABLE_SHARED_IRQ_HANDLERS=1)
+
 add_subdirectory(source/lib/common)
 add_subdirectory(source/lib/tools)
 add_subdirectory(source/lib/Parser)

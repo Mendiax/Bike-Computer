@@ -99,7 +99,7 @@ endef
 ################################################################################
 
 
-all: clean_tests_header
+all: clean_tests_header cmake
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
@@ -247,7 +247,7 @@ clean: clean_tests_header
 	rm -rf  $(BUILD)
 	mkdir -p $(BUILD)
 
-reset: clean cmake all
+clean_reset: clean cmake all
 	@echo "clean make done!"
 
 # test:

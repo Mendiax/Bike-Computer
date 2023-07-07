@@ -208,15 +208,39 @@ void Data_Actor::setup(void)
     session_p = new Session_Data();
     TRACE_DEBUG(0, TRACE_MAIN, "INIT BMP280\n");
     bmp280::init();
+    TRACE_DEBUG(0, TRACE_MAIN, "BMP280 IS ON\n");
 
     TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR SIM868\n");
-    while (sim868::check_for_boot_long() == false) {
-        sleep_ms(1000);
+    // while (sim868::check_for_boot_long() == false) {
+    //     sleep_ms(1000);
+    // }
+    sim868::waitForBoot();
+    TRACE_DEBUG(0, TRACE_MAIN, "SIM868 IS ON\n");
+
+    TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY\n");
+    {
+        bool is_charging = 0;
+        uint8_t bat_lev = 0;
+        uint16_t voltage = 0;
+        while(sim868::get_bat_level(is_charging, bat_lev, voltage) == false)
+        {
+            sleep_ms(500);
+        }
+        sensors_data.lipo.is_charging = is_charging;
+        sensors_data.lipo.level = bat_lev;
+        TRACE_DEBUG(1, TRACE_CORE_0,
+                    "bat info %d,%" PRIu8 ",%" PRIu16 "\n",
+                    is_charging, bat_lev, voltage);
     }
+    TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY DONE\n");
+
+
+
     TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR TIME\n");
     while (sensors_data.current_time.is_valid() == false) {
         cycle_get_gps_data();
     }
+    TRACE_DEBUG(0, TRACE_MAIN, "TIME RECEIVED\n");
 }
 
 int Data_Actor::loop(void)
@@ -425,7 +449,7 @@ static float calc_slope(const float distance, const float altitude)
     static float last_altitude = 0.0f;
     static float slope;
     // check if last_distance is no bigger than current distance
-    if(distance > last_distance)
+    if(distance >= last_distance + 20.0)
     {
 
         const float current_alt = altitude;
@@ -659,9 +683,9 @@ static void cycle_get_slope()
 {
     CYCLE_UPDATE_SIMPLE(true, 500,
         {
-            if (speed::get_distance_m() > 10)
-            {
-                sensors_data.slope = calc_slope(speed::get_distance_m(), sensors_data.altitude);
-            }
+            sensors_data.slope = calc_slope(speed::get_distance_m(), sensors_data.altitude);
+            // if (speed::get_distance_m() > 10)
+            // {
+            // }
         });
 }
