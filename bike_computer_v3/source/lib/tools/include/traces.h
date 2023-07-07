@@ -111,7 +111,7 @@ static inline void traces_init()
     // TRACES_ON(3, TRACE_CORE_0); // gps update
     // TRACES_ON(4, TRACE_CORE_0); // BMP280 update
     // TRACES_ON(5, TRACE_CORE_0); // gear ratio
-    // TRACES_ON(6, TRACE_CORE_0); // signal strength
+    TRACES_ON(6, TRACE_CORE_0); // signal strength
 
 
 
