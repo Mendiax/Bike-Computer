@@ -99,11 +99,11 @@ endef
 ################################################################################
 
 
-all: clean_tests_header cmake
+full_build: clean_tests_header cmake
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
-full_build: cmake
+all: clean_tests_header
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
