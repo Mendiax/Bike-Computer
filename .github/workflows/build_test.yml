@@ -1,11 +1,7 @@
 name: target CI
 # runs-on: self-hosted
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: push
 
 concurrency:
   group: tests-on-host-${{ github.head_ref }}
@@ -51,13 +47,13 @@ jobs:
     - name: cmake
       run: |
         export PICO_SDK_PATH=$(pwd)/pico-sdk && echo $PICO_SDK_PATH
-        cd bike_computer_v3 && make cmake H=1 D=${{ matrix.debug }}
+         make cmake H=1 D=${{ matrix.debug }}
 
     - name: make
-      run: cd bike_computer_v3 && make all
+      run:  make all
 
     - name: test
-      run: cd bike_computer_v3 && make ctest
+      run:  make ctest
 
   Tests_HOST_valgrind:
     runs-on: ubuntu-latest
@@ -93,13 +89,13 @@ jobs:
     - name: cmake
       run: |
         export PICO_SDK_PATH=$(pwd)/pico-sdk && echo $PICO_SDK_PATH
-        cd bike_computer_v3 && make cmake H=1 D=${{ matrix.debug }} valgrind=1
+         make cmake H=1 D=${{ matrix.debug }} valgrind=1
 
     - name: make
-      run: cd bike_computer_v3 && make all
+      run:  make all
 
     - name: test
-      run: cd bike_computer_v3 && make ctest
+      run:  make ctest
 
   Tests_HW:
     runs-on: self-hosted
@@ -125,19 +121,19 @@ jobs:
         git submodule update --init --recursive
 
     - name: check_env
-      run: cd bike_computer_v3 && ls
+      run:  ls
 
     - name: cmake
-      run: cd bike_computer_v3 && make cmake L=1 D=${{ matrix.debug }}
+      run:  make cmake L=1 D=${{ matrix.debug }}
 
     - name: make
-      run: cd bike_computer_v3 && make all
+      run:  make all
 
     - name: check_log
-      run: cd bike_computer_v3 && make warnings
+      run:  make warnings
 
     - name: run local
-      run: cd bike_computer_v3 && make ctest
+      run:  make ctest
 
 
 
@@ -152,13 +148,13 @@ jobs:
   #   if: success() || failure()
   #   steps:
   #   - name: clean
-  #     run: cd bike_computer_v3 && make clean
+  #     run:  make clean
 
   #   - name: build cmake for host
-  #     run: cd bike_computer_v3 && make cmake H=1
+  #     run:  make cmake H=1
 
   #   - name: build host
-  #     run: cd bike_computer_v3 && make all
+  #     run:  make all
 
 
   # test_host:
@@ -166,7 +162,7 @@ jobs:
   #   runs-on: self-hosted
   #   steps:
   #   - name: run tests on host
-  #     run: cd bike_computer_v3 && make ctest
+  #     run:  make ctest
 
 
 
@@ -192,10 +188,10 @@ jobs:
   #       submodules: 'true'
 
   #   - name: build cmake for host
-  #     run: cd bike_computer_v3 && make cmake_host
+  #     run:  make cmake_host
 
   #   - name: build host
-  #     run: cd bike_computer_v3 && make host
+  #     run:  make host
 
 
   # test_host:
@@ -203,5 +199,5 @@ jobs:
   #   runs-on: self-hosted
   #   steps:
   #   - name: run tests on host
-  #     run: cd bike_computer_v3 && make test_host
+  #     run:  make test_host
 

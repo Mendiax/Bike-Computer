@@ -1,12 +1,12 @@
-[submodule "bike_computer_v3/source/external/no-OS-FatFS-SD-SPI-RPi-Pico"]
-	path = bike_computer_v3/source/external/no-OS-FatFS-SD-SPI-RPi-Pico
+[submodule "source/external/no-OS-FatFS-SD-SPI-RPi-Pico"]
+	path = source/external/no-OS-FatFS-SD-SPI-RPi-Pico
 	url = https://github.com/carlk3/no-OS-FatFS-SD-SPI-RPi-Pico
-[submodule "bike_computer_v3/pico-host-sdl"]
-	path = bike_computer_v3/pico-host-sdl
+[submodule "pico-host-sdl"]
+	path = pico-host-sdl
 	url = https://github.com/raspberrypi/pico-host-sdl
-[submodule "bike_computer_v3/source/external/pico-host-sdl"]
-	path = bike_computer_v3/source/external/pico-host-sdl
+[submodule "source/external/pico-host-sdl"]
+	path = source/external/pico-host-sdl
 	url = https://github.com/raspberrypi/pico-host-sdl
-[submodule "bike_computer_v3/tests/external/pico_tests"]
-	path = bike_computer_v3/tests/external/pico_tests
+[submodule "tests/external/pico_tests"]
+	path = tests/external/pico_tests
 	url = git@github.com:Mendiax/pico_tests.git

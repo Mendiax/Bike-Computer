@@ -1,0 +1,17 @@
+# host data
+host: local
+# binary file that will be executed
+bin_file: ../../../build/tests/hw
+
+# example of file for ssh connection
+# host: example.com
+# username: user1
+# password: password1
+# # binary file that will be executed
+# bin_file: path/to/bin.uf2
+# # path to folder with files needed to run on host
+# test_folder: host_files
+# # script with bash that will execute pico tests script
+# script_file: run.sh
+# # folder that data will be copied to on host
+# destination_folder: /tmp/pico_test

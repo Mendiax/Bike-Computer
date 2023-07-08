@@ -1,4 +1,0 @@
-# host data
-host: local
-# binary file that will be executed
-bin_file: ../../../build/tests/hw

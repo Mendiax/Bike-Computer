@@ -1,6 +1,41 @@
-.vscode
-bikecomputer/
+# build files
+build/
+tests/hw/tests/test_cases.h
+
+# local files
+pico/
+specification/
+sim800_doc/
+source/external/no-OS-FatFS
+tests/hw/hw_config/config.yaml
+
+# parser files
+source/lib/Parser/src/parser_bison.hpp
+source/lib/Parser/src/parser_bison.cpp
+source/lib/Parser/src/lexer.cpp
+source/lib/Parser/test_data.json
+
+# clion
+.idea
+cmake-build-release
+cmake-build-debug
 
 
-bike_computer_v3/specification/AT.txt
+# vs code
 .cache
+.vscode
+
+# old
+drivers/DOF/Mag/
+junk/
+
+tests.log
+
+# tools
+tools/data/log
+tools/data/map.html
+tools/data/gear.png
+
+# doxygen
+tools/doxygen/doc
+tools/doxygen/logs
