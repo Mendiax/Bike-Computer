@@ -7,8 +7,6 @@
 #include <pico/stdlib.h>
 #include "bmp280.hpp"
 #include "display/driver.hpp"
-#include "pico/mutex.h"
-#include "pico/sem.h"
 #include "pico/time.h"
 #include "pico/util/datetime.h"
 
@@ -24,6 +22,7 @@
 #include "core_utils.hpp"
 #include "data_actor.hpp"
 #include "ringbuffer.h"
+#include "session.hpp"
 #include "signals.hpp"
 #include "traces.h"
 #include "common_types.h"
@@ -39,8 +38,6 @@
 // SIM868
 #include "sim868/interface.hpp"
 #include "sim868/gps.hpp"
-// BMP
-#include "i2c.h"
 
 #include "hardware/rtc.h"
 #include "utils.hpp"
@@ -165,6 +162,7 @@ void Data_Actor::setup(void)
 {
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
+    session_p = new Session_Data();
 
     rtc_init();
     datetime_t t = {
@@ -205,7 +203,7 @@ void Data_Actor::setup(void)
     sim868::init();
     sim868::turnOn();
 
-    session_p = new Session_Data();
+
     TRACE_DEBUG(0, TRACE_MAIN, "INIT BMP280\n");
     bmp280::init();
     TRACE_DEBUG(0, TRACE_MAIN, "BMP280 IS ON\n");
@@ -255,6 +253,7 @@ int Data_Actor::loop(void)
     int64_t timeToSleep = fpsToUs(DATA_PER_SECOND) - frameTimeUs;
     TRACE_DEBUG(2, TRACE_CORE_0, "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",
                    frameTimeUs, fpsToUs(DATA_PER_SECOND), timeToSleep);
+    sleep_us(std::max(timeToSleep, (int64_t)0));
     return 1;
 }
 
@@ -304,10 +303,20 @@ void Data_Actor::handle_sig_set_total(const Signal &sig)
 void Data_Actor::handle_sig_req_packet(const Signal &sig)
 {
     auto payload = sig.get_payload<Data_Actor::Sig_Display_Actor_Req_Packet*>();
-    *payload->packet_p = {sensors_data, *session_p};
+    if(session_p)
     {
-        Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
-        Display_Actor::get_instance().send_signal(sig);
+        *payload->packet_p = {sensors_data, *session_p};
+        {
+            Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
+            Display_Actor::get_instance().send_signal(sig);
+        }
+    }
+    else {
+        *payload->packet_p = {sensors_data, Session_Data()};
+        {
+            Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
+            Display_Actor::get_instance().send_signal(sig);
+        }
     }
 }
 
@@ -396,7 +405,7 @@ int Data_Actor::loop_frame_update()
         {
             PRINT("waiting for boot");
         }
-        PRINT("Booting done");
+        // PRINT("Booting done");
     }
     cycle_log_data();
     cycle_get_weather_data();
@@ -570,11 +579,15 @@ static void cycle_get_battery_status()
                  });
 }
 
+#ifndef FOLDER_LOG_DATA
+#define FOLDER_LOG_DATA "log/"
+#endif
+
 static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const Session_Data& session, const Sensor_Data& sensor_data)
 {
     auto payload = new Display_Actor::Sig_Display_Actor_Log();
     std::stringstream ss;
-    ss << "log/gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
+    ss << FOLDER_LOG_DATA "gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
     payload->file_name = ss.str();
     payload->header = "time;latitude;longitude;velocity_gps;velocity_gpio;altitude_gps;altitude_press;slope;cadence;gear\n";
 

@@ -7,7 +7,9 @@ target_include_directories(GUI_Impl PUBLIC include)
 target_link_libraries(GUI_Impl PUBLIC pico_stdlib
     Gui
     Common
-    Cores)
+    Cores
+    FatFs_SPI
+    )
 
 
 

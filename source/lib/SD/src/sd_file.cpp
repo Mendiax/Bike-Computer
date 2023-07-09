@@ -96,7 +96,7 @@ Sd_File::Result Sd_File::clear()
 {
     FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name.c_str(),  FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
+    res = f_open(&file_p, file_name.c_str(),  FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
     if (res != FR_OK)
     {
         // failed
@@ -167,7 +167,7 @@ Sd_File::Result Sd_File::overwrite(const char* string, size_t pos)
 {
     FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name.c_str(),  FA_WRITE);
+    res = f_open(&file_p, file_name.c_str(),  FA_READ | FA_WRITE);
     if (res != FR_OK)
     {
         // failed

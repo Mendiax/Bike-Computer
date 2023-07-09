@@ -3,10 +3,12 @@
 #include "traces.h"
 #include "utils.hpp"
 
-
+#if BUILD_FOR_HOST
+// simulate timers for cadence sim
+#include "timers.hpp"
+#endif
 #include <pico/time.h>
 #include <hardware/gpio.h>
-#include <pico/sync.h>
 
 #include <math.h>
 #include <stdio.h>

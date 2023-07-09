@@ -4,8 +4,11 @@
 // |           includes            |
 // #-------------------------------#
 // pico includes
+#ifdef MOCK_MULTICORE
+#include "mock_mutex.hpp"
+#else
 #include <pico/mutex.h>
-
+#endif
 // c/c++ includes
 #include <queue>
 #include <stdio.h>

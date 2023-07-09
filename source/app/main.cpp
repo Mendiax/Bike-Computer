@@ -9,43 +9,45 @@
 
 
 
-std::string read_non_block()
-{
-    #define ENDSTDIN	255
-    #define CR		13
-    #define LF		10
-    char strg[100] = {0};
-    unsigned char chr;
-    int lp = 0;
+// std::string read_non_block()
+// {
+//     #define ENDSTDIN	255
+//     #define CR		13
+//     #define LF		10
+//     char strg[100] = {0};
+//     unsigned char chr;
+//     int lp = 0;
 
-    memset(strg, 0, sizeof(strg));
+//     memset(strg, 0, sizeof(strg));
 
-	chr = getchar_timeout_us(0);
-	while(chr != ENDSTDIN)
-	{
-        if (chr != CR)
-		    strg[lp++] = chr;
-		if(chr == LF || lp == (sizeof(strg) - 1))
-		{
-			strg[lp] = 0;	//terminate string
-			lp = 0;
-			break;
-		}
+// 	chr = getchar_timeout_us(0);
+// 	while(chr != ENDSTDIN)
+// 	{
+//         if (chr != CR)
+// 		    strg[lp++] = chr;
+// 		if(chr == LF || lp == (sizeof(strg) - 1))
+// 		{
+// 			strg[lp] = 0;	//terminate string
+// 			lp = 0;
+// 			break;
+// 		}
 
-		chr = getchar_timeout_us(0);
-	}
-    return std::string(strg);
-}
+// 		chr = getchar_timeout_us(0);
+// 	}
+//     return std::string(strg);
+// }
 
 int main()
 {
     //traces setup
     traces_init();
 
+    #ifdef BUILD_FOR_PICO
     // setup console
     sleep_ms(1000);
     stdio_init_all();
     sleep_ms(2000);
+    #endif
 
     // while (1) {
     //     printf("[START] waiting for \"s\"\n");

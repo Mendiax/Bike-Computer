@@ -99,7 +99,7 @@ endef
 ################################################################################
 
 
-full_build: clean_tests_header cmake
+full_build: clean cmake
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
@@ -146,13 +146,34 @@ ctest:
 ctest_all: all
 	$(MAKE) ctest
 
+ctest_all_clean: full_build
+	$(MAKE) ctest
+
+test_all:
+	$(MAKE) ctest_all_clean L=$(L) D=0 H=1
+	$(MAKE) warnings
+	$(MAKE) ctest_all_clean L=$(L) D=0
+	$(MAKE) warnings
+
+
+
 parser:
 	bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
 	flex -Cr -o source/lib/Parser/src/lexer.cpp source/lib/Parser/lexer.l
 
 
-CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ -B $(BUILD) -DPICO_MAIN_FILE=$(PICO_MAIN_FILE) -DPICO_TEST_FILE=$(PICO_TEST_FILE) -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_VERBOSE_MAKEFILE=$(CMAKE_VERBOSE_MAKEFILE) \
-			  -DPICO_PLATFORM=$(BUILD_TARGET) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DPICO_TEST_HOST=$(PICO_TEST_HOST) -DPICO_TEST_VALGRIND=$(PICO_TEST_VALGRIND)
+CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ \
+	-B $(BUILD) \
+	-DPICO_MAIN_FILE=$(PICO_MAIN_FILE) \
+	-DPICO_TEST_FILE=$(PICO_TEST_FILE) \
+	-DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+	-DCMAKE_VERBOSE_MAKEFILE=$(CMAKE_VERBOSE_MAKEFILE) \
+	-DPICO_PLATFORM=$(BUILD_TARGET) \
+	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+	-DPICO_TEST_HOST=$(PICO_TEST_HOST) \
+	-DPICO_TEST_VALGRIND=$(PICO_TEST_VALGRIND) \
+	# -DPICO_SDK_PRE_LIST_DIRS=$(PROJ_DIR)/source/external/pico-host-sdl
+
 
 #-DCMAKE_VERBOSE_MAKEFILE=ON
 cmake: clean folder parser
@@ -163,6 +184,7 @@ cmaker: clean folder parser
 
 cmake_host: clean folder parser
 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Debug -DPICO_PLATFORM=host
+
 # -DPICO_SDK_PRE_LIST_DIRS=$(PROJ_DIR)/source/external/pico-host-sdl
 
 
@@ -201,11 +223,11 @@ cwt_all:
 
 .PHONY: boot
 boot:
-	./tools/boot/boot.sh -o b
+	./tools/boot/boot.sh -o b -p $(PORT)
 
 .PHONY: restart
 restart:
-	./tools/boot/boot.sh -o r
+	./tools/boot/boot.sh -o r -p $(PORT)
 
 w: write_main
 wt: write_test
@@ -232,6 +254,8 @@ cwgsm: gsm write_gsm_console
 
 plot:
 	python3 tools/plotter.py
+
+
 
 ################################################################################
 #                               clean                                          #

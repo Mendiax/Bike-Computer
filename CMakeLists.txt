@@ -52,39 +52,16 @@ message("[INFO] [CMAKE] C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
 
 add_definitions(-DPICO_DISABLE_SHARED_IRQ_HANDLERS=1)
 
-add_subdirectory(source/lib/common)
-add_subdirectory(source/lib/tools)
-add_subdirectory(source/lib/Parser)
-add_subdirectory(source/lib/Actors)
-add_subdirectory(source/lib/Filters)
+
+
+
+
 
 if(PICO_PLATFORM MATCHES "rp2040")
     add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-truncation)
-    ################################ SUBDIRECTORY #################################
+    add_definitions(-DBUILD_FOR_PICO) # build i2c interface
 
-    add_subdirectory(source/lib/SD)
-    add_subdirectory(source/lib/gui)
-    add_subdirectory(source/lib/views)
-
-
-    add_subdirectory(source/drivers/display)
-    add_subdirectory(source/drivers/interrupts)
-    add_subdirectory(source/drivers/speedometer)
-    add_subdirectory(source/drivers/cadence)
-    add_subdirectory(source/drivers/buttons)
-    add_subdirectory(source/drivers/sim868)
-    # add_subdirectory(source/drivers/EPROM)
-
-    # DOF
-    add_subdirectory(source/drivers/BMP280)
     add_subdirectory(source/drivers/I2C)
-    # add_subdirectory(source/drivers/DOF/IMU)
-    # add_subdirectory(source/drivers/DOF/MPU9250)
-
-    # SD
-
-    add_subdirectory(source/app/gui)
-    add_subdirectory(source/app/cores)
 
 
     add_subdirectory(source/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
@@ -114,45 +91,6 @@ if(PICO_PLATFORM MATCHES "rp2040")
             FatFs_SPI
     )
 
-    # #################################### TEST #####################################
-    # # TODO tests: https://stackoverflow.com/questions/13703647/how-to-properly-add-include-directories-with-cmake
-
-    # message("PICO_TEST_FILE=${PICO_TEST_FILE}")
-    # if( NOT PICO_TEST_FILE )
-    #         SET(PICO_TEST_FILE pico_test)
-    #         message("SET PICO_TEST_FILE = ${PICO_TEST_FILE}")
-    # endif()
-    # add_executable(${PICO_TEST_FILE} source/app/test.cpp  ${SD_CONFIG_SRC})
-    # # add_executable(${PICO_TEST_FILE} source/tests/tc_basic.cpp ${SD_CONFIG_SRC})
-
-    # pico_enable_stdio_usb(${PICO_TEST_FILE} ENABLED)
-    # pico_enable_stdio_uart(${PICO_TEST_FILE} 0)
-
-    # pico_add_extra_outputs(${PICO_TEST_FILE})
-
-    # target_link_libraries( ${PICO_TEST_FILE}
-    #         pico_stdlib
-    #         pico_multicore
-    #         hardware_spi
-    #         hardware_adc
-    #         hardware_uart
-
-    #         Display
-    #         Tools
-    #         Cadence
-    #         Speedometer
-
-    #         GSM
-
-    #         # IMU I2C
-
-    #         Actors
-    #         # EPROM
-    #         test_main
-    #         Parser
-
-    # )
-
     #################################### Console #####################################
     # TODO tests: https://stackoverflow.com/questions/13703647/how-to-properly-add-include-directories-with-cmake
 
@@ -176,10 +114,64 @@ if(PICO_PLATFORM MATCHES "rp2040")
     )
 
 else()
-# add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
+    add_definitions(-DBUILD_FOR_HOST)
+    add_definitions(-DBUILD_MOCK_INTERRUPTS)
+    add_definitions(-DMOCK_MULTICORE)
 
+    SET(SD_MOCK_PATH tests/host/sd_card_mock)
+    add_definitions(-DCONFIG_FILE_NAME="${SD_MOCK_PATH}/config_file.txt")
+    add_definitions(-DFILE_TOTAL_DATA="${SD_MOCK_PATH}/total_stats.txt")
+    add_definitions(-DFOLDER_LOG_DATA="${SD_MOCK_PATH}/log/")
+    add_definitions(-DFILE_SESSION_DATA="${SD_MOCK_PATH}/session_log.csv")
+
+    # add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
     add_compile_options(-Wno-unused-variable -Werror=return-type)
+
+    # enable display emulation
+    set(BUILD_MOCK_DISPLAY "BUILD")
+    set(BUILD_MOCK_BMP280 "BUILD")
+    set(BUILD_MOCK_INTERRUPTS "BUILD")
+    set(BUILD_MOCK_MULTICORE "BUILD")
+
+    add_subdirectory(tests/host/mock/multicore)
+    add_subdirectory(tests/host/mock/display)
+    add_subdirectory(source/external/imgui)
+
 endif()
+
+
+
+add_subdirectory(source/lib/common)
+add_subdirectory(source/lib/tools)
+add_subdirectory(source/lib/Parser)
+add_subdirectory(source/lib/Actors)
+add_subdirectory(source/lib/Filters)
+
+add_subdirectory(source/drivers/BMP280)
+add_subdirectory(source/drivers/display)
+add_subdirectory(source/lib/views)
+add_subdirectory(source/lib/gui)
+
+add_subdirectory(source/drivers/sim868)
+
+
+
+
+add_subdirectory(source/drivers/interrupts)
+add_subdirectory(source/drivers/buttons)
+add_subdirectory(source/drivers/speedometer)
+add_subdirectory(source/drivers/cadence)
+
+add_subdirectory(source/lib/SD)
+
+add_subdirectory(source/app/gui)
+add_subdirectory(source/app/cores)
+
+
+
+
+
+
 
 # enable testing and define tests
 enable_testing()

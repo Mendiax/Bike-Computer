@@ -12,6 +12,10 @@
 #include <interrupts/interrupts.hpp>
 #include "utils.hpp"
 #include "traces.h"
+#if BUILD_FOR_HOST
+// simulate timers for cadence sim
+#include "timers.hpp"
+#endif
 
 #if 0
 #define DEBUG_SPEED(__info, ...) printf("[DEBUG_SPEED] : " __info, ##__VA_ARGS__)
@@ -68,10 +72,6 @@ float speed_kph_to_mps(float speed_kph)
 float speed_mps_to_kmph(float speed_mps)
 {
     return speed_mps * 3.6;
-}
-float speed_getDistance()
-{
-    return (float)speed_wheelCounter * wheel_size;
 }
 
 float speed::get_velocity_kph_raw()
@@ -130,11 +130,14 @@ void speed_emulate_slowing(float speed, float accel)
     // PRINT("adding timer in " << speed_to_ms(speed) << " for " << speed << " w " << accel << "a");
     add_alarm_in_ms(speed_to_ms(speed), alarm_callback, (void*)data, false);
 }
+
+
 void speed_emulate(float speed)
 {
     TRACE_DEBUG(0, TRACE_SPEED, "Speed emulate add timer\n");
     static struct repeating_timer timer;
-    cancel_repeating_timer(&timer);
+    if(timer.callback != NULL)
+        cancel_repeating_timer(&timer);
     add_repeating_timer_ms(-speed_to_ms(speed), repeating_timer_callback, NULL, &timer);
 }
 // static definitions
@@ -148,6 +151,7 @@ static uint32_t speed_to_ms(float speed_kph)
 }
 
 bool repeating_timer_callback([[maybe_unused]] struct repeating_timer *t) {
+    // TRACE_DEBUG(1, TRACE_SPEED, "repeating_timer_callback()\n");
     speed_update();
     return true;
 }
@@ -179,19 +183,32 @@ static void speed_update()
     dataReady = true;
 }
 
-float speed::get_time_total()
+float speed::get_time_total(const bool reset)
 {
-    float time_s = (float)speed_total_time / 1000.0f;
-    speed_total_time = 0;
-    return time_s / 3600.0f;
+    return get_time_total_s(reset) / 3600.0f;
 }
 
-float speed::get_distance_total(bool reset)
+float speed::get_distance_total(const bool reset)
 {
-    float dist = (float)speed_wheelCounter_total * wheel_size;
+    return get_distance_total_m(reset) / 1000.0f;
+}
+
+float speed::get_time_total_s(const bool reset)
+{
+    const float time_s = (float)speed_total_time / 1000.0f;
+    if(reset)
+    {
+        speed_total_time = 0;
+    }
+    return time_s;
+}
+
+float speed::get_distance_total_m(const bool reset)
+{
+    const float dist = (float)speed_wheelCounter_total * wheel_size;
     if(reset)
         speed_wheelCounter_total = 0;
-    return dist / 1000.0f;
+    return dist;
 }
 
 void speed::set_wheel(float wheel_diameter)
@@ -206,7 +223,7 @@ float speed::get_velocity_kph()
 
 float speed::get_distance_m()
 {
-    return speed_getDistance();
+    return (float)speed_wheelCounter * wheel_size;
 }
 
 float speed::kph_to_rpm(float kph)

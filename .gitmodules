@@ -9,4 +9,7 @@
 	url = https://github.com/raspberrypi/pico-host-sdl
 [submodule "tests/external/pico_tests"]
 	path = tests/external/pico_tests
-	url = git@github.com:Mendiax/pico_tests.git
+	url = https://github.com/Mendiax/pico_tests
+[submodule "source/external/imgui/imgui"]
+	path = source/external/imgui/imgui
+	url = https://github.com/ocornut/imgui

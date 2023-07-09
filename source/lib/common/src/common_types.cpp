@@ -1,7 +1,5 @@
 #include "common_types.h"
 
-#include <pico/multicore.h>
-#include <pico/sync.h>
 
 #include <math.h>
 

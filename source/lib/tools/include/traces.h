@@ -2,7 +2,11 @@
 #define TRACES_H
 
 #include <stdint.h>
+#ifdef MOCK_MULTICORE
+#include "mock_mutex.hpp"
+#else
 #include <pico/sync.h>
+#endif
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include <inttypes.h>
@@ -70,12 +74,13 @@ enum tracesE{
     TRACE_ACTOR,
     TRACE_GUI,
     TRACE_PLOTTER,
+    TRACE_HOST, // test debug only!
     NO_TRACES
 };
 
 
 extern uint32_t tracesOn[];
-extern mutex_t tracesMutex;
+extern mutex tracesMutex;
 
 static inline void traces_init()
 {

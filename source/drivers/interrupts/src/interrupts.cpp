@@ -3,7 +3,6 @@
 
 #include <math.h>
 #include <pico/time.h>
-#include <hardware/gpio.h>
 #include <stdio.h>
 #include <string.h>
 #include <interrupts/interrupts.hpp>
@@ -31,19 +30,22 @@ static void interrutpCallback_core0(uint gpio, uint32_t events);
  */
 static void interrutpCallback_core1(uint gpio, uint32_t events);
 
+
+// Those functions are implemented in hw dependent files
+// see src_hw and src_mock
 /**
  * @brief Set the up interrupt object
  *
  * @param inter
  */
-static inline void setup_interrupt(const Interrupt& inter, bool pullup, void (*interrutp_cb)(uint, uint32_t));
+void setup_interrupt(const Interrupt& inter, bool pullup, void (*interrutp_cb)(uint, uint32_t));
 
 /**
  * @brief Set the up interrupt btn object
  *
  * @param btn
  */
-static inline void setup_interrupt_btn(Button_Interface& btn, void (*interrutp_cb)(uint, uint32_t));
+void setup_interrupt_btn(Button_Interface& btn, void (*interrutp_cb)(uint, uint32_t));
 
 
 /**
@@ -116,28 +118,7 @@ static inline void check_interrupt_btn(Button_Interface& btn, const uint gpio,co
     }
 }
 
-static inline void setup_interrupt(const Interrupt& inter,bool pullup, void (*interrutp_cb)(uint, uint32_t))
-{
-    gpio_init(inter.pin);
-    gpio_set_dir(inter.pin, GPIO_IN);
-    if(pullup)
-    {
-        gpio_pull_up(inter.pin);
-    }
-    gpio_set_irq_enabled_with_callback(inter.pin, inter.event, true, interrutp_cb);
-}
 
-static inline void setup_interrupt_btn(Button_Interface& btn, void (*interrutp_cb)(uint, uint32_t))
-{
-    auto inter_pres = btn.get_interrupt_pressed();
-    auto inter_rel = btn.get_interrupt_released();
-
-    gpio_init(inter_pres.pin);
-    gpio_set_dir(inter_pres.pin, GPIO_IN);
-    gpio_pull_up(inter_pres.pin);
-    gpio_set_irq_enabled_with_callback(inter_pres.pin, inter_pres.event, true, interrutp_cb);
-    gpio_set_irq_enabled_with_callback(inter_pres.pin, inter_rel.event, true, interrutp_cb);
-}
 
 const Interrupt& Button_Interface::get_interrupt_pressed() const
 {

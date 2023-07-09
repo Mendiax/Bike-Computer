@@ -1,6 +1,7 @@
 #include "sd_common.h"
 #include "traces.h"
 #include "sd_card.h"
+#include <vector>
 
 
 FATFS fs;
@@ -49,8 +50,13 @@ void unmount_drive()
 
 void dir::del(const char* path)
 {
-    std::string full_path = SD_DRIVE_NAME;
+    std::string full_path = path;
+    #ifdef BUILD_FOR_PICO
+    // building for pico we can allocate on stack
+    // for host we are creating with f_opendir
+    full_path = SD_DRIVE_NAME;
     full_path += path;
+    #endif
 
     auto files_in_dir = get_files(path);
     for(auto& f : files_in_dir)
@@ -64,15 +70,37 @@ void dir::del(const char* path)
 
 std::vector<std::string> dir::get_files(const char* path)
 {
-    FRESULT res;
-    DIR dir;
+// #ifdef BUILD_FOR_HOST
+//     std::vector<std::string> founded_files;
+//     DIR* dir = opendir(path);
+//     if (dir == NULL) {
+//         TRACE_ABNORMAL(TRACE_HOST, "Failed to open directory %s.\n", path);
+//         return founded_files;
+//     }
+
+//     struct dirent* entry;
+//     while ((entry = readdir(dir)) != NULL) {
+//         founded_files.emplace_back(entry->d_name);
+//     }
+//     closedir(dir);
+//     return founded_files;
+// #else
     static FILINFO fno;
-
+    FRESULT res;
     mount_drive();
-    std::string full_path = SD_DRIVE_NAME;
-    full_path += path;
-
     std::vector<std::string> founded_files;
+
+    std::string full_path = path;
+    #ifdef BUILD_FOR_PICO
+    // building for pico we can allocate on stack
+    // for host we are creating with f_opendir
+    DIR dir;
+    full_path = SD_DRIVE_NAME;
+    full_path += path;
+    #else
+    DIR* dir;
+    #endif
+
 
     res = f_opendir(&dir, full_path.c_str());                       /* Open the directory */
     if (res == FR_OK) {
@@ -86,6 +114,10 @@ std::vector<std::string> dir::get_files(const char* path)
         }
         f_closedir(&dir);
     }
+    else{
+        TRACE_ABNORMAL(TRACE_HOST, "could not open file %s", path);
+    }
 
     return founded_files;
+// #endif
 }

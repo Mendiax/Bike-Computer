@@ -27,8 +27,19 @@ jobs:
       with:
         release: '10.3-2021.10' # <-- The compiler release to use
 
+    - name: install_dependencies
+      run: |
+        sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu `lsb_release -sc` main universe restricted multiverse"
+        sudo apt-get update -y -qq
+        sudo apt-get install libsdl2-dev
+
     - name: Checkout repository
       uses: actions/checkout@v3
+
+    - name: fetch submodules
+      run: |
+        git submodule sync
+        git submodule update --init --recursive
 
     - name: download pico-sdk
       uses: actions/checkout@master
@@ -74,8 +85,19 @@ jobs:
       with:
         release: '10.3-2021.10' # <-- The compiler release to use
 
+    - name: install_dependencies
+      run: |
+        sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu `lsb_release -sc` main universe restricted multiverse"
+        sudo apt-get update -y -qq
+        sudo apt-get install libsdl2-dev
+
     - name: Checkout repository
       uses: actions/checkout@v3
+
+    - name: fetch submodules
+      run: |
+        git submodule sync
+        git submodule update --init --recursive
 
     - name: download pico-sdk
       uses: actions/checkout@master

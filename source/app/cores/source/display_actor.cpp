@@ -146,7 +146,9 @@ void Display_Actor::handle_sig_total_update(const Signal &sig)
     set_total_data(time, dist);
 }
 
-
+#ifndef CONFIG_FILE_NAME
+#define CONFIG_FILE_NAME "bike_gears.cfg"
+#endif
 void Display_Actor::setup(void)
 {
     TRACE_DEBUG(0, TRACE_CORE_1, "interrupt setup\n");
@@ -162,13 +164,12 @@ void Display_Actor::setup(void)
 
     TRACE_DEBUG(0, TRACE_CORE_1, "reading config file\n");
     {
-        const std::string config_file_name = "bike_gears.cfg";
-        Sd_File config_file(config_file_name);
+        Sd_File config_file(CONFIG_FILE_NAME);
         auto content = config_file.read_all();
 
         auto payload = new Data_Actor::Sig_Data_Actor_Set_Config();
         payload->file_content = config_file.read_all();
-        payload->file_name = config_file_name;
+        payload->file_name = CONFIG_FILE_NAME;
         Signal sig(actors_common::SIG_DATA_ACTOR_SET_CONFIG ,payload);
         Data_Actor::get_instance().send_signal(sig);
     }
@@ -305,6 +306,8 @@ int Display_Actor::loop(void)
     int64_t timeToSleep = fpsToUs(FRAME_PER_SECOND) - frameTimeUs;
     TRACE_DEBUG(1, TRACE_CORE_1, "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",
                    frameTimeUs, fpsToUs(FRAME_PER_SECOND), timeToSleep);
+    sleep_us(std::max(timeToSleep, (int64_t)0));
+
     return 1;
 }
 
@@ -319,10 +322,13 @@ static void set_total_data(float time, float dist)
     }
     total_stats.overwrite(new_dist_time.c_str());
 }
+#ifndef FILE_TOTAL_DATA
+#define FILE_TOTAL_DATA "total_stats.txt"
+#endif
 
 static void get_total_data(float& time, float& dist)
 {
-    Sd_File total_stats("total_stats.txt");
+    Sd_File total_stats(FILE_TOTAL_DATA);
     const auto stats = total_stats.read_all();
     const auto dist_time = split_string(stats, ';');
     dist = 0.0f, time = 0.0f;
