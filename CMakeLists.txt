@@ -53,17 +53,12 @@ message("[INFO] [CMAKE] C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
 add_definitions(-DPICO_DISABLE_SHARED_IRQ_HANDLERS=1)
 
 
-add_subdirectory(source/lib/common)
-add_subdirectory(source/lib/tools)
-add_subdirectory(source/lib/Parser)
-add_subdirectory(source/lib/Actors)
-add_subdirectory(source/lib/Filters)
-add_subdirectory(source/drivers/BMP280)
+
+
 
 if(PICO_PLATFORM MATCHES "rp2040")
-add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-truncation)
-################################ SUBDIRECTORY #################################
-    add_definitions(-DBUILD_BMP280_RAW)
+    add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-truncation)
+    add_definitions(-DBUILD_BMP280_RAW) # build i2c interface
 
     add_subdirectory(source/drivers/I2C)
     add_subdirectory(source/lib/SD)
@@ -71,7 +66,6 @@ add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-tr
     add_subdirectory(source/lib/views)
 
 
-    add_subdirectory(source/drivers/display)
     add_subdirectory(source/drivers/interrupts)
     add_subdirectory(source/drivers/speedometer)
     add_subdirectory(source/drivers/cadence)
@@ -116,45 +110,6 @@ add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-tr
             FatFs_SPI
     )
 
-    # #################################### TEST #####################################
-    # # TODO tests: https://stackoverflow.com/questions/13703647/how-to-properly-add-include-directories-with-cmake
-
-    # message("PICO_TEST_FILE=${PICO_TEST_FILE}")
-    # if( NOT PICO_TEST_FILE )
-    #         SET(PICO_TEST_FILE pico_test)
-    #         message("SET PICO_TEST_FILE = ${PICO_TEST_FILE}")
-    # endif()
-    # add_executable(${PICO_TEST_FILE} source/app/test.cpp  ${SD_CONFIG_SRC})
-    # # add_executable(${PICO_TEST_FILE} source/tests/tc_basic.cpp ${SD_CONFIG_SRC})
-
-    # pico_enable_stdio_usb(${PICO_TEST_FILE} ENABLED)
-    # pico_enable_stdio_uart(${PICO_TEST_FILE} 0)
-
-    # pico_add_extra_outputs(${PICO_TEST_FILE})
-
-    # target_link_libraries( ${PICO_TEST_FILE}
-    #         pico_stdlib
-    #         pico_multicore
-    #         hardware_spi
-    #         hardware_adc
-    #         hardware_uart
-
-    #         Display
-    #         Tools
-    #         Cadence
-    #         Speedometer
-
-    #         GSM
-
-    #         # IMU I2C
-
-    #         Actors
-    #         # EPROM
-    #         test_main
-    #         Parser
-
-    # )
-
     #################################### Console #####################################
     # TODO tests: https://stackoverflow.com/questions/13703647/how-to-properly-add-include-directories-with-cmake
 
@@ -178,10 +133,22 @@ add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-tr
     )
 
 else()
-# add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
-
+    # add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
     add_compile_options(-Wno-unused-variable -Werror=return-type)
+
+    # enable display emulation
+    set(HOST_EMULATE_DISPLAY "HOST_EMULATE_DISPLAY")
+
 endif()
+
+add_subdirectory(source/lib/common)
+add_subdirectory(source/lib/tools)
+add_subdirectory(source/lib/Parser)
+add_subdirectory(source/lib/Actors)
+add_subdirectory(source/lib/Filters)
+
+add_subdirectory(source/drivers/BMP280)
+add_subdirectory(source/drivers/display)
 
 # enable testing and define tests
 enable_testing()

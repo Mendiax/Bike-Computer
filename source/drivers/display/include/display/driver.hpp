@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "display/fonts.h"
-
+#include "display/display_config.hpp"
 
 #define LOW 0
 #define HIGH 1
@@ -21,16 +21,7 @@
 // #define MOSI 3
 // #define CLK  2
 
-//#define ROTATE
-#ifdef ROTATE
-    #define DISPLAY_WIDTH  240
-    #define DISPLAY_HEIGHT 320
-#else
-    #define DISPLAY_HEIGHT 240
-    #define DISPLAY_WIDTH  320
-#endif
 
-#define DISPLAY_PIXEL_COUNT (DISPLAY_HEIGHT * DISPLAY_WIDTH)
 
 /* colors ------------------------------------------------------------------*/
 #define COLOR_WHITE          (display::DisplayColor){0xF, 0xF, 0xF}

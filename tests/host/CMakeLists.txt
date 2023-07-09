@@ -7,13 +7,13 @@ function(add_test_executable test_name)
     add_executable(${test_name} ${test_sources})
 
 
-    target_link_libraries(${test_name} bcTest Parser BMP280) # move as param ?
+    target_link_libraries(${test_name} bcTest Parser BMP280 Display) # move as param ?
 
     # Add the test to CTest
     # add_test(NAME ${test_name} COMMAND $<TARGET_FILE:tests_host>)
 
-    message("[INFO] [TEST] PICO_TEST_VALGRIND=${PICO_TEST_VALGRIND}")
     if(PICO_TEST_VALGRIND MATCHES "valgrind")
+      message("[INFO] [TEST] PICO_TEST_VALGRIND=${PICO_TEST_VALGRIND}")
       # find_program(VALGRIND "valgrind")
       set( MEMORYCHECK_COMMAND_OPTIONS --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 )
       set( MEMORYCHECK_SUPPRESSIONS_FILE ${PROJECT_SOURCE_DIR}/${test_name}/valgrind_suppress.txt)
@@ -31,5 +31,7 @@ if(PICO_PLATFORM MATCHES "host")
   add_test_executable(test_host host_main.cpp)
   add_test_executable(test_parser test_parser.cpp test_parser_data.cpp)
   add_test_executable(test_bmp280 test_bmp280.cpp)
+  add_test_executable(test_display test_display.cpp)
+
 
 endif()

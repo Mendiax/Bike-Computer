@@ -128,8 +128,7 @@ void bmp280_read_raw(int32_t* const temp, int32_t* const pressure) {
     // note: normal mode does not require further ctrl_meas and config register writes
 
     uint8_t buf[6];
-    uint8_t reg = REG_PRESSURE_MSB;
-    I2C_ReadBuff(ADDR, REG_PRESSURE_MSB, 6, buf)
+    I2C_ReadBuff(ADDR, REG_PRESSURE_MSB, 6, buf);
 
     // store the 20 bit read in a 32 bit signed integer for conversion
     *pressure = (buf[0] << 12) | (buf[1] << 4) | (buf[2] >> 4);
@@ -237,13 +236,13 @@ void bmp280_init() {
     // send register number followed by its corresponding value
     buf[0] = REG_CONFIG;
     buf[1] = reg_config_val;
-    i2c_write_buffer_reg(ADDR, 2, buf);
+    i2c_write_buffer(ADDR, 2, buf);
 
     // osrs_t x1, osrs_p x4, normal mode operation
     const uint8_t reg_ctrl_meas_val = (0x01 << 5) | (0x03 << 2) | (0x03);
     buf[0] = REG_CTRL_MEAS;
     buf[1] = reg_ctrl_meas_val;
-    i2c_write_buffer_reg(ADDR, 2, buf);
+    i2c_write_buffer(ADDR, 2, buf);
 
 
     bmp280_get_calib_params(&sensor_data.params);

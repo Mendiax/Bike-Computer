@@ -99,7 +99,7 @@ endef
 ################################################################################
 
 
-full_build: clean_tests_header cmake
+full_build: clean cmake
 	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
@@ -145,6 +145,17 @@ ctest:
 
 ctest_all: all
 	$(MAKE) ctest
+
+ctest_all_clean: full_build
+	$(MAKE) ctest
+
+test_all:
+	$(MAKE) ctest_all_clean L=$(L) D=0 H=1
+	$(MAKE) warnings
+	$(MAKE) ctest_all_clean L=$(L) D=0
+	$(MAKE) warnings
+
+
 
 parser:
 	bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
@@ -232,6 +243,8 @@ cwgsm: gsm write_gsm_console
 
 plot:
 	python3 tools/plotter.py
+
+
 
 ################################################################################
 #                               clean                                          #
