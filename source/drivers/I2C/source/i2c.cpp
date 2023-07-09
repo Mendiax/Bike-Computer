@@ -40,6 +40,11 @@
 
 void I2C_Init(void)
 {
+  static bool is_inited = false;
+  if (is_inited){
+    return;
+  }
+  is_inited = true;
 	bi_decl(bi_2pins_with_func(I2C_PIN_SDA, I2C_PIN_SCL, GPIO_FUNC_I2C));
 	//stdio_init_all();
 
@@ -76,7 +81,14 @@ void I2C_WriteOneByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t Data)
   *                true: Write a buffer succeed
 **/
 
-bool I2C_WriteBuff(uint8_t DevAddr, uint8_t RegAddr, uint8_t Num, uint8_t *pBuff)
+bool i2c_write_buffer_reg(uint8_t DevAddr, uint8_t Num, uint8_t *pBuff)
+{
+	i2c_write_blocking(i2c1, DevAddr, pBuff, Num, false);  // true to keep master control of bus
+	return true;
+}
+
+
+bool i2c_write_buffer_reg(uint8_t DevAddr, uint8_t RegAddr, uint8_t Num, uint8_t *pBuff)
 {
 	i2c_write_blocking(i2c1, DevAddr, &RegAddr, 1, true);  // true to keep master control of bus
 	i2c_write_blocking(i2c1, DevAddr, pBuff, Num, false);  // true to keep master control of bus

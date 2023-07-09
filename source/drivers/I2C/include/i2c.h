@@ -4,7 +4,7 @@
   * @author  Waveshare Team
   * @version V1.0
   * @date    29-August-2014
-  * @brief   This file contains all the functions prototypes for the I2C firmware 
+  * @brief   This file contains all the functions prototypes for the I2C firmware
   *          library.
 
   ******************************************************************************
@@ -29,13 +29,14 @@
 #include <stdint.h>
 
 
-
-void I2C_WriteOneByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t Data);//
-uint8_t I2C_ReadOneByte(uint8_t DevAddr, uint8_t RegAddr);//
-//bool I2C_WriteBuff(uint8_t DevAddr, uint8_t RegAddr, uint8_t Num, uint8_t *pBuff);
-bool I2C_ReadBuff(uint8_t DevAddr, uint8_t RegAddr, uint8_t Num, uint8_t *pBuff);//
-
 void I2C_Init(void);
+
+void I2C_WriteOneByte(uint8_t DevAddr, uint8_t RegAddr, uint8_t Data);
+uint8_t I2C_ReadOneByte(uint8_t DevAddr, uint8_t RegAddr);
+bool i2c_write_buffer(uint8_t DevAddr, uint8_t Num, uint8_t *pBuff);
+bool i2c_write_buffer_reg(uint8_t DevAddr, uint8_t RegAddr, uint8_t Num, uint8_t *pBuff);
+bool I2C_ReadBuff(uint8_t DevAddr, uint8_t RegAddr, uint8_t Num, uint8_t *pBuff);
+
 
 int scan();
 

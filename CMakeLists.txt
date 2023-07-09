@@ -52,16 +52,20 @@ message("[INFO] [CMAKE] C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
 
 add_definitions(-DPICO_DISABLE_SHARED_IRQ_HANDLERS=1)
 
+
 add_subdirectory(source/lib/common)
 add_subdirectory(source/lib/tools)
 add_subdirectory(source/lib/Parser)
 add_subdirectory(source/lib/Actors)
 add_subdirectory(source/lib/Filters)
+add_subdirectory(source/drivers/BMP280)
 
 if(PICO_PLATFORM MATCHES "rp2040")
-    add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-truncation)
-    ################################ SUBDIRECTORY #################################
+add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-truncation)
+################################ SUBDIRECTORY #################################
+    add_definitions(-DBUILD_BMP280_RAW)
 
+    add_subdirectory(source/drivers/I2C)
     add_subdirectory(source/lib/SD)
     add_subdirectory(source/lib/gui)
     add_subdirectory(source/lib/views)
@@ -76,8 +80,6 @@ if(PICO_PLATFORM MATCHES "rp2040")
     # add_subdirectory(source/drivers/EPROM)
 
     # DOF
-    add_subdirectory(source/drivers/BMP280)
-    add_subdirectory(source/drivers/I2C)
     # add_subdirectory(source/drivers/DOF/IMU)
     # add_subdirectory(source/drivers/DOF/MPU9250)
 
