@@ -1,5 +1,4 @@
 #include <cstdint>
-#ifndef BUILD_BMP280_RAW
 #include "bmp280_raw.hpp"
 /*
 simulate bmp280 behaviour
@@ -59,5 +58,3 @@ float bmp280_get_press()
 {
     return pressure;
 }
-
-#endif

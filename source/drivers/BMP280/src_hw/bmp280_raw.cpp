@@ -26,8 +26,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This should be build only if there is bmp280 hw supported.
 In other case use mock executable.
 */
-#ifdef BUILD_BMP280_RAW
-
 #include "bmp280_raw.hpp"
 #include "filterlowpass.hpp"
 
@@ -271,6 +269,3 @@ float bmp280_get_press()
 
     return pressure;
 }
-
-#endif
-

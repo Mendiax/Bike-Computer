@@ -7,7 +7,14 @@ function(add_test_executable test_name)
     add_executable(${test_name} ${test_sources})
 
 
-    target_link_libraries(${test_name} bcTest Parser BMP280 Display) # move as param ?
+    target_link_libraries(${test_name} bcTest
+      Parser
+      BMP280
+      Display
+      FatFs_SPI
+      SD
+      pico_test
+      ) # move as param ?
 
     # Add the test to CTest
     # add_test(NAME ${test_name} COMMAND $<TARGET_FILE:tests_host>)
@@ -26,12 +33,24 @@ endfunction()
 
 if(PICO_PLATFORM MATCHES "host")
   message("[INFO] [TEST] generate host tests")
-  add_subdirectory(mock)
+  set(SD_TEST_FOLDER ${CMAKE_BINARY_DIR}/sd_card_sim)
+  message("SD Folder: ${SD_TEST_FOLDER}")
+  if (EXISTS ${folder_to_clear})
+    file(REMOVE_RECURSE ${folder_to_clear})
+    message("Folder cleared: ${folder_to_clear}")
+  else()
+      message("Folder does not exist: ${folder_to_clear}")
+  endif()
+  file(MAKE_DIRECTORY ${SD_TEST_FOLDER})
+  add_definitions(-DSD_TEST_FOLDER="${SD_TEST_FOLDER}")
+  add_subdirectory(mock/sd)
 
   add_test_executable(test_host host_main.cpp)
   add_test_executable(test_parser test_parser.cpp test_parser_data.cpp)
   add_test_executable(test_bmp280 test_bmp280.cpp)
   add_test_executable(test_display test_display.cpp)
+  add_test_executable(test_sd test_sd.cpp)
+
 
 
 endif()

@@ -56,30 +56,20 @@ add_definitions(-DPICO_DISABLE_SHARED_IRQ_HANDLERS=1)
 
 
 
+
 if(PICO_PLATFORM MATCHES "rp2040")
     add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra -Wformat-truncation)
-    add_definitions(-DBUILD_BMP280_RAW) # build i2c interface
+    add_definitions(-DBUILD_FOR_PICO) # build i2c interface
 
     add_subdirectory(source/drivers/I2C)
-    add_subdirectory(source/lib/SD)
-    add_subdirectory(source/lib/gui)
-    add_subdirectory(source/lib/views)
 
-
-    add_subdirectory(source/drivers/interrupts)
     add_subdirectory(source/drivers/speedometer)
     add_subdirectory(source/drivers/cadence)
-    add_subdirectory(source/drivers/buttons)
     add_subdirectory(source/drivers/sim868)
-    # add_subdirectory(source/drivers/EPROM)
-
-    # DOF
-    # add_subdirectory(source/drivers/DOF/IMU)
-    # add_subdirectory(source/drivers/DOF/MPU9250)
-
-    # SD
 
     add_subdirectory(source/app/gui)
+
+
     add_subdirectory(source/app/cores)
 
 
@@ -133,11 +123,15 @@ if(PICO_PLATFORM MATCHES "rp2040")
     )
 
 else()
+    add_definitions(-DBUILD_FOR_HOST)
+    add_definitions(-DBUILD_MOCK_INTERRUPTS)
     # add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
     add_compile_options(-Wno-unused-variable -Werror=return-type)
 
     # enable display emulation
-    set(HOST_EMULATE_DISPLAY "HOST_EMULATE_DISPLAY")
+    set(BUILD_MOCK_DISPLAY "BUILD")
+    set(BUILD_MOCK_BMP280 "BUILD")
+    set(BUILD_MOCK_INTERRUPTS "BUILD")
 
 endif()
 
@@ -149,6 +143,19 @@ add_subdirectory(source/lib/Filters)
 
 add_subdirectory(source/drivers/BMP280)
 add_subdirectory(source/drivers/display)
+add_subdirectory(source/lib/views)
+add_subdirectory(source/lib/gui)
+
+add_subdirectory(source/drivers/interrupts)
+add_subdirectory(source/drivers/buttons)
+
+add_subdirectory(source/lib/SD)
+
+
+
+
+
+
 
 # enable testing and define tests
 enable_testing()

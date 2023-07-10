@@ -70,6 +70,7 @@ enum tracesE{
     TRACE_ACTOR,
     TRACE_GUI,
     TRACE_PLOTTER,
+    TRACE_HOST, // test debug only!
     NO_TRACES
 };
 
