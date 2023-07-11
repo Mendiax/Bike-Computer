@@ -14,6 +14,7 @@ function(add_test_executable test_name)
       FatFs_SPI
       SD
       pico_test
+      Speedometer
       ) # move as param ?
 
     # Add the test to CTest
@@ -44,12 +45,15 @@ if(PICO_PLATFORM MATCHES "host")
   file(MAKE_DIRECTORY ${SD_TEST_FOLDER})
   add_definitions(-DSD_TEST_FOLDER="${SD_TEST_FOLDER}")
   add_subdirectory(mock/sd)
+  add_subdirectory(mock/gpio)
+
 
   add_test_executable(test_host host_main.cpp)
   add_test_executable(test_parser test_parser.cpp test_parser_data.cpp)
   add_test_executable(test_bmp280 test_bmp280.cpp)
   add_test_executable(test_display test_display.cpp)
   add_test_executable(test_sd test_sd.cpp)
+  add_test_executable(test_speed test_speed.cpp)
 
 
 

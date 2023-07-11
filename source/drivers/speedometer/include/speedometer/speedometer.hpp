@@ -17,14 +17,6 @@
 
 float speed_mps_to_kmph(float speed_mps);
 
-float speed_getDistance();
-
-
-
-void speed_new();
-
-void speed_delete();
-
 void speed_emulate(float speed = 20.0);
 
 void speed_emulate_slowing(float speed, float accel);
@@ -43,13 +35,26 @@ namespace speed
      *
      * @return float time in h
      */
-    float get_time_total();
+    float get_time_total(bool reset = true);
     /**
      * @brief Get the distance total
      *
      * @return float distance in km
      */
     float get_distance_total(bool reset = true);
+
+        /**
+     * @brief Get the time total
+     *
+     * @return float time in h
+     */
+    float get_time_total_s(bool reset = true);
+    /**
+     * @brief Get the distance total
+     *
+     * @return float distance in km
+     */
+    float get_distance_total_m(bool reset = true);
 
     float get_velocity_kph();
     float get_velocity_kph_raw();
