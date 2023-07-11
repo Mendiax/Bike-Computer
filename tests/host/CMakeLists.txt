@@ -16,6 +16,7 @@ function(add_test_executable test_name)
       pico_test
       Speedometer
       GSM
+      MOCK_SIM868
       ) # move as param ?
 
     # Add the test to CTest
@@ -48,6 +49,8 @@ if(PICO_PLATFORM MATCHES "host")
   add_subdirectory(mock/sd)
   add_subdirectory(mock/gpio)
   add_subdirectory(mock/rtc)
+  add_subdirectory(mock/sim868)
+
 
 
 
@@ -58,6 +61,29 @@ if(PICO_PLATFORM MATCHES "host")
   add_test_executable(test_sd test_sd.cpp)
   add_test_executable(test_speed test_speed.cpp)
   add_test_executable(test_sim868 test_sim868.cpp)
+
+
+message("PICO_MAIN_FILE=${PICO_MAIN_FILE}")
+if( NOT PICO_MAIN_FILE )
+        SET(PICO_MAIN_FILE pico_main)
+        message("SET PICO_MAIN_FILE = ${PICO_MAIN_FILE}")
+endif()
+add_executable( ${PICO_MAIN_FILE} main.cpp)
+target_compile_definitions(${PICO_MAIN_FILE} PRIVATE PICO_MALLOC_PANIC=0)
+
+pico_enable_stdio_usb( ${PICO_MAIN_FILE} 1)
+pico_enable_stdio_uart( ${PICO_MAIN_FILE} 0)
+
+pico_add_extra_outputs( ${PICO_MAIN_FILE})
+
+target_link_libraries( ${PICO_MAIN_FILE}
+        pico_stdlib
+        pico_multicore
+        Tools
+        Cores
+        FatFs_SPI
+        MOCK_SIM868
+)
 
 
 

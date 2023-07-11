@@ -406,7 +406,7 @@ int Data_Actor::loop_frame_update()
         {
             PRINT("waiting for boot");
         }
-        PRINT("Booting done");
+        // PRINT("Booting done");
     }
     cycle_log_data();
     cycle_get_weather_data();

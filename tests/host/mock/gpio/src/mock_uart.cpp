@@ -46,7 +46,6 @@ void mock_irq_set_exclusive_handler(uart_irq irq_callback)
 void mock_uart_puts(const char* str)
 {
     std::unique_lock<std::mutex> lock(mtx_puts_buffer);
-    std::cout << "mock uart:" << str << std::endl;
     puts_buffer.emplace(str);
 }
 

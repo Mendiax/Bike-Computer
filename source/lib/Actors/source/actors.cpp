@@ -8,6 +8,7 @@
 
 // my includes
 #include "actors.hpp"
+#include "pico/time.h"
 #include "traces.h"
 
 // #------------------------------#
@@ -44,7 +45,15 @@ Actor::Actor()
 void Actor::send_signal(const Signal &sig)
 {
     mutex_enter_blocking(&mutex_queue);
+
     this->sig_queue.push(sig);
+
+    #ifdef BUILD_FOR_HOST
+    // for some reason there is bug that mutex exit fails
+    // if there is no this sleep
+    sleep_ms(100);
+    #endif
+
     mutex_exit(&mutex_queue);
     TRACE_DEBUG(1, TRACE_ACTOR,"sent sig id=%" PRIu16 "\n", sig.get_sig_id());
 }
