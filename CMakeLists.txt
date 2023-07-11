@@ -64,7 +64,6 @@ if(PICO_PLATFORM MATCHES "rp2040")
     add_subdirectory(source/drivers/I2C)
 
 
-    add_subdirectory(source/drivers/sim868)
 
     add_subdirectory(source/app/gui)
     add_subdirectory(source/app/cores)
@@ -142,6 +141,9 @@ add_subdirectory(source/drivers/BMP280)
 add_subdirectory(source/drivers/display)
 add_subdirectory(source/lib/views)
 add_subdirectory(source/lib/gui)
+
+add_subdirectory(source/drivers/sim868)
+
 
 
 

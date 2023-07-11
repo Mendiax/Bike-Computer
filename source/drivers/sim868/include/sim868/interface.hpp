@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
-#include "hardware/uart.h"
 #include "traces.h"
 #include <pico/stdlib.h>
 

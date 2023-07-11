@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <pico/stdlib.h>
 
+
+
 // c/c++ includes
 #include <string.h>
 #include <string>
@@ -15,6 +17,13 @@
 #include "traces.h"
 #include "massert.hpp"
 #include "utils.hpp"
+
+#ifdef BUILD_FOR_PICO
+#include "hardware/uart.h"
+#else
+// mock
+#include "mock_uart.hpp"
+#endif
 
 // global
 
@@ -49,6 +58,7 @@ void sim868::init(void)
     current_response.status = ResponseStatus::RECEIVED;
     current_response.response = "";
 
+
     // GPIO
     gpio_init(SIM868_PIN_POWER);
     gpio_set_dir(SIM868_PIN_POWER, GPIO_OUT);
@@ -64,6 +74,7 @@ void sim868::init(void)
     gpio_set_function(UART_TX_PIN0, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN0, GPIO_FUNC_UART);
 
+    #ifdef BUILD_FOR_PICO
 
     // set irq on recive
     uart_set_fifo_enabled(UART_ID, true);
@@ -76,6 +87,9 @@ void sim868::init(void)
 
     // Now enable the UART to send interrupts - RX only
     uart_set_irq_enables(UART_ID, true, false);
+    #else
+    irq_set_exclusive_handler(UART_IRQ, on_uart_rx);
+    #endif
 }
 
 void sim868::turnOn(void)

@@ -15,6 +15,7 @@ function(add_test_executable test_name)
       SD
       pico_test
       Speedometer
+      GSM
       ) # move as param ?
 
     # Add the test to CTest
@@ -54,6 +55,8 @@ if(PICO_PLATFORM MATCHES "host")
   add_test_executable(test_display test_display.cpp)
   add_test_executable(test_sd test_sd.cpp)
   add_test_executable(test_speed test_speed.cpp)
+  add_test_executable(test_sim868 test_sim868.cpp)
+
 
 
 
