@@ -8,6 +8,7 @@
 #include "traces.h"
 
 #include <pico/multicore.h>
+#include <thread>
 
 
 
@@ -20,7 +21,12 @@ void core_setup(void)
 
     auto data_actor = Data_Actor::get_instance();
     TRACE_DEBUG(0, TRACE_MAIN, "Launch core1\n");
+
+    #ifdef BUILD_FOR_PICO
     multicore_launch_core1(core1LaunchThread);
+    #else
+    auto core1 = new std::thread(core1LaunchThread);
+    #endif
 
     TRACE_DEBUG(0, TRACE_MAIN, "Start core0 function\n");
     data_actor.run_thread();

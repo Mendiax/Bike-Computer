@@ -47,6 +47,8 @@ if(PICO_PLATFORM MATCHES "host")
   add_definitions(-DSD_TEST_FOLDER="${SD_TEST_FOLDER}")
   add_subdirectory(mock/sd)
   add_subdirectory(mock/gpio)
+  add_subdirectory(mock/rtc)
+
 
 
   add_test_executable(test_host host_main.cpp)

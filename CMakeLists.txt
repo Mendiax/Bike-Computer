@@ -64,37 +64,32 @@ if(PICO_PLATFORM MATCHES "rp2040")
     add_subdirectory(source/drivers/I2C)
 
 
-
-    add_subdirectory(source/app/gui)
-    add_subdirectory(source/app/cores)
-
-
     add_subdirectory(source/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
     set(SD_CONFIG_SRC "${CMAKE_CURRENT_SOURCE_DIR}/source/external/FatFs_config/hw_config.c")
 
 
     #################################### MAIN #####################################
 
-    message("PICO_MAIN_FILE=${PICO_MAIN_FILE}")
-    if( NOT PICO_MAIN_FILE )
-            SET(PICO_MAIN_FILE pico_main)
-            message("SET PICO_MAIN_FILE = ${PICO_MAIN_FILE}")
-    endif()
-    add_executable( ${PICO_MAIN_FILE} source/app/main.cpp ${SD_CONFIG_SRC})
-    target_compile_definitions(${PICO_MAIN_FILE} PRIVATE PICO_MALLOC_PANIC=0)
+#     message("PICO_MAIN_FILE=${PICO_MAIN_FILE}")
+#     if( NOT PICO_MAIN_FILE )
+#             SET(PICO_MAIN_FILE pico_main)
+#             message("SET PICO_MAIN_FILE = ${PICO_MAIN_FILE}")
+#     endif()
+#     add_executable( ${PICO_MAIN_FILE} source/app/main.cpp ${SD_CONFIG_SRC})
+#     target_compile_definitions(${PICO_MAIN_FILE} PRIVATE PICO_MALLOC_PANIC=0)
 
-    pico_enable_stdio_usb( ${PICO_MAIN_FILE} 1)
-    pico_enable_stdio_uart( ${PICO_MAIN_FILE} 0)
+#     pico_enable_stdio_usb( ${PICO_MAIN_FILE} 1)
+#     pico_enable_stdio_uart( ${PICO_MAIN_FILE} 0)
 
-    pico_add_extra_outputs( ${PICO_MAIN_FILE})
+#     pico_add_extra_outputs( ${PICO_MAIN_FILE})
 
-    target_link_libraries( ${PICO_MAIN_FILE}
-            pico_stdlib
-            pico_multicore
-            Tools
-            Cores
-            FatFs_SPI
-    )
+#     target_link_libraries( ${PICO_MAIN_FILE}
+#             pico_stdlib
+#             pico_multicore
+#             Tools
+#             Cores
+#             FatFs_SPI
+#     )
 
     #################################### Console #####################################
     # TODO tests: https://stackoverflow.com/questions/13703647/how-to-properly-add-include-directories-with-cmake
@@ -121,6 +116,9 @@ if(PICO_PLATFORM MATCHES "rp2040")
 else()
     add_definitions(-DBUILD_FOR_HOST)
     add_definitions(-DBUILD_MOCK_INTERRUPTS)
+    add_definitions(-DCONFIG_FILE_NAME="tests/host/config_file.txt")
+    add_definitions(-DFILE_TOTAL_DATA="tests/host/total_stats.txt")
+
     # add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
     add_compile_options(-Wno-unused-variable -Werror=return-type)
 
@@ -130,6 +128,27 @@ else()
     set(BUILD_MOCK_INTERRUPTS "BUILD")
 
 endif()
+
+message("PICO_MAIN_FILE=${PICO_MAIN_FILE}")
+    if( NOT PICO_MAIN_FILE )
+            SET(PICO_MAIN_FILE pico_main)
+            message("SET PICO_MAIN_FILE = ${PICO_MAIN_FILE}")
+    endif()
+    add_executable( ${PICO_MAIN_FILE} source/app/main.cpp)
+    target_compile_definitions(${PICO_MAIN_FILE} PRIVATE PICO_MALLOC_PANIC=0)
+
+    pico_enable_stdio_usb( ${PICO_MAIN_FILE} 1)
+    pico_enable_stdio_uart( ${PICO_MAIN_FILE} 0)
+
+    pico_add_extra_outputs( ${PICO_MAIN_FILE})
+
+    target_link_libraries( ${PICO_MAIN_FILE}
+            pico_stdlib
+            pico_multicore
+            Tools
+            Cores
+            FatFs_SPI
+    )
 
 add_subdirectory(source/lib/common)
 add_subdirectory(source/lib/tools)
@@ -153,6 +172,9 @@ add_subdirectory(source/drivers/speedometer)
 add_subdirectory(source/drivers/cadence)
 
 add_subdirectory(source/lib/SD)
+
+add_subdirectory(source/app/gui)
+add_subdirectory(source/app/cores)
 
 
 

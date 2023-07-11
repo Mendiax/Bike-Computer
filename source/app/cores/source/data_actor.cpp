@@ -24,6 +24,7 @@
 #include "core_utils.hpp"
 #include "data_actor.hpp"
 #include "ringbuffer.h"
+#include "session.hpp"
 #include "signals.hpp"
 #include "traces.h"
 #include "common_types.h"
@@ -39,8 +40,6 @@
 // SIM868
 #include "sim868/interface.hpp"
 #include "sim868/gps.hpp"
-// BMP
-#include "i2c.h"
 
 #include "hardware/rtc.h"
 #include "utils.hpp"
@@ -165,6 +164,7 @@ void Data_Actor::setup(void)
 {
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
+    session_p = new Session_Data();
 
     rtc_init();
     datetime_t t = {
@@ -205,7 +205,7 @@ void Data_Actor::setup(void)
     sim868::init();
     sim868::turnOn();
 
-    session_p = new Session_Data();
+
     TRACE_DEBUG(0, TRACE_MAIN, "INIT BMP280\n");
     bmp280::init();
     TRACE_DEBUG(0, TRACE_MAIN, "BMP280 IS ON\n");
@@ -304,10 +304,20 @@ void Data_Actor::handle_sig_set_total(const Signal &sig)
 void Data_Actor::handle_sig_req_packet(const Signal &sig)
 {
     auto payload = sig.get_payload<Data_Actor::Sig_Display_Actor_Req_Packet*>();
-    *payload->packet_p = {sensors_data, *session_p};
+    if(session_p)
     {
-        Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
-        Display_Actor::get_instance().send_signal(sig);
+        *payload->packet_p = {sensors_data, *session_p};
+        {
+            Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
+            Display_Actor::get_instance().send_signal(sig);
+        }
+    }
+    else {
+        *payload->packet_p = {sensors_data, Session_Data()};
+        {
+            Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
+            Display_Actor::get_instance().send_signal(sig);
+        }
     }
 }
 
