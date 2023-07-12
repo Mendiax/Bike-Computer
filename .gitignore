@@ -39,3 +39,4 @@ tools/data/gear.png
 # doxygen
 tools/doxygen/doc
 tools/doxygen/logs
+imgui.ini
