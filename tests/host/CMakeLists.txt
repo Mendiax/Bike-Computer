@@ -17,6 +17,7 @@ function(add_test_executable test_name)
       Speedometer
       GSM
       MOCK_SIM868
+      IMGUI_SDL2
       ) # move as param ?
 
     # Add the test to CTest
@@ -61,6 +62,8 @@ if(PICO_PLATFORM MATCHES "host")
   add_test_executable(test_sd test_sd.cpp)
   add_test_executable(test_speed test_speed.cpp)
   add_test_executable(test_sim868 test_sim868.cpp)
+  add_test_executable(test_imgui test_imgui.cpp)
+
 
 
 message("PICO_MAIN_FILE=${PICO_MAIN_FILE}")
