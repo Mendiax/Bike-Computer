@@ -2,7 +2,7 @@ aux_source_directory(./src DIR_BMP280_SRCS)
 aux_source_directory(./src_hw DIR_BMP280_hw_SRCS)
 aux_source_directory(./src_mock DIR_BMP280_mock_SRCS)
 
-if (BUILD_MOCK_DISPLAY)
+if (BUILD_MOCK_BMP280)
     set(DIR_bmp280_sources ${DIR_BMP280_SRCS} ${DIR_BMP280_mock_SRCS})
 else()
     set(DIR_bmp280_sources ${DIR_BMP280_SRCS} ${DIR_BMP280_hw_SRCS})

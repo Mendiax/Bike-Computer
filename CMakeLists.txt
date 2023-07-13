@@ -127,6 +127,7 @@ else()
     set(BUILD_MOCK_BMP280 "BUILD")
     set(BUILD_MOCK_INTERRUPTS "BUILD")
 
+    add_subdirectory(tests/host/mock/display)
     add_subdirectory(source/external/imgui)
 
 endif()

@@ -1,81 +1,157 @@
-// Dear ImGui: standalone example application for SDL2 + OpenGL
-// (SDL is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
-// If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
-// Read online: https://github.com/ocornut/imgui/tree/master/docs
 
-// **DO NOT USE THIS CODE IF YOUR CODE/ENGINE IS USING MODERN OPENGL (SHADERS, VBO, VAO, etc.)**
-// **Prefer using the code in the example_sdl2_opengl3/ folder**
-// See imgui_impl_sdl2.cpp for details.
+// #------------------------------#
+// |          includes            |
+// #------------------------------#
+// pico includes
+#include "display/display_config.hpp"
+#include "pico/time.h"
 
+// external lib
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl2.h"
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-#include "pico/time.h"
-
+// c/c++ includes
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <stdio.h>
-#include <thread>
 #include <mutex>
+#include <thread>
 
 
+// my includes
+#include "display_functions_mock.hpp"
+#include "traces.h"
+#include "display/driver.hpp"
+#include "hw_functions.hpp"
 
-void* thread_display_kernel();
+// #------------------------------#
+// |           macros             |
+// #------------------------------#
 
-#define DISPLAY_HEIGHT 240
-#define DISPLAY_WIDTH  320
-#define DISPLAY_BUFFER_SIZE (DISPLAY_HEIGHT * DISPLAY_WIDTH)
+// #------------------------------#
+// | global variables definitions |
+// #------------------------------#
 
-std::thread* display_thread;
-struct Display_Thread_Args{
-    uint8_t display_buffer[DISPLAY_BUFFER_SIZE];
-    uint buffer_idx; // use to refresh data
+// #------------------------------#
+// | static variables definitions |
+// #------------------------------#
+
+/**
+Holds data for imgui. Main program loads here data.
+*/
+struct Imgui_Display_Data{
     std::mutex mtx_buffer;
+    display::DisplayColor imgui_display_buffer[DISPLAY_PIXEL_COUNT];
 };
+static Imgui_Display_Data imgui_display_data;
+static std::thread* imgui_thread;
 
-static Display_Thread_Args display_args;
+
+// #------------------------------#
+// | static functions declarations|
+// #------------------------------#
+void imgui_thread_kernel(void);
+
+// #------------------------------#
+// | global function definitions  |
+// #------------------------------#
+// functions from display driver
 void display_init(void)
 {
-    memset(display_args.display_buffer, 0, DISPLAY_BUFFER_SIZE);
-    display_args.buffer_idx = 0;
-    display_thread = new std::thread(thread_display_kernel);
+    // PRINT("display_init");
+    // do nothing
+    memset(imgui_display_data.imgui_display_buffer, 0, sizeof(imgui_display_data.imgui_display_buffer));
+    Imgui_Display::start();
 }
+
 void display_display(uint8_t display_buffer[DISPLAY_BUFFER_SIZE])
 {
-    display_args.mtx_buffer.lock();
-    memcpy(display_args.display_buffer, display_buffer, DISPLAY_BUFFER_SIZE);
-    display_args.mtx_buffer.unlock();
-}
+    (void)display_buffer;
+    // PRINT("display_display");
+    std::unique_lock<std::mutex> lock(imgui_display_data.mtx_buffer);
+    // lock.lock();
 
-int main(int, char**)
-{
-    display_init();
-    uint8_t display_buffer[DISPLAY_BUFFER_SIZE];
-    memset(display_buffer, 0, DISPLAY_BUFFER_SIZE);
-    while (1) {
-        display_buffer[rand() % DISPLAY_BUFFER_SIZE] += 10;
-        display_display(display_buffer);
-        sleep_ms(10);
+    // imgui_display_data.mtx_buffer.lock();
+
+    for(size_t idx = 0; idx < DISPLAY_PIXEL_COUNT; idx+=1)
+    {
+        struct pixel2
+        {
+            uint8_t rg;
+            uint8_t br;
+            uint8_t gb;
+
+        };
+        pixel2 *buffer_pixels = (pixel2 *)display_buffer;
+
+        const uint_fast32_t index_pixels = idx >> 1;
+        pixel2 *const pixel_p = &buffer_pixels[index_pixels];
+        uint8_t r = 0;
+        uint8_t g = 0;
+        uint8_t b = 0;
+        if (idx & 1)
+        {
+            r = pixel_p->br & 0x0f;
+            g = pixel_p->gb & 0xf0;
+            b = pixel_p->gb & 0x0f;
+        }
+        else
+        {
+            r = pixel_p->rg & 0xf0;
+            g = pixel_p->rg & 0x0f;
+            b = pixel_p->br & 0xf0;
+        }
+        imgui_display_data.imgui_display_buffer[idx] = {r,g,b};
     }
+    // for(size_t i = 0; i < DISPLAY_BUFFER_SIZE; i+=3)
+    // {
+    //     assert(i/3 + 1 < DISPLAY_PIXEL_COUNT);
+    //     assert(i/3 < DISPLAY_PIXEL_COUNT);
 
-    display_thread->join();
+    //     // load 2 pixels
+    //     uint8_t* pixels = &display_buffer[i];
+    //     imgui_display_data.imgui_display_buffer[i/3] =
+    //         display::DisplayColor{(uint8_t)(pixels[0] & 0xf0),
+    //                               (uint8_t)(pixels[0] & 0x0f),
+    //                               (uint8_t)(pixels[1] & 0xf0)};
+    //     imgui_display_data.imgui_display_buffer[i/3 + 1] =
+    //         display::DisplayColor{(uint8_t)(pixels[1] & 0x0f),
+    //                               (uint8_t)(pixels[2] & 0xf0),
+    //                               (uint8_t)(pixels[2] & 0x0f)};
 
-    return 0;
+    // }
+    // imgui_display_data.mtx_buffer.unlock();
+
+    // copy display_buffer to imgui data
 }
 
-// Main code
-void* thread_display_kernel()
+void Imgui_Display::start(void)
+{
+    ::imgui_thread = new std::thread(imgui_thread_kernel);
+}
+
+void Imgui_Display::stop(void)
+{
+    // TODO
+    ::imgui_thread->join();
+}
+
+// #------------------------------#
+// | static functions definitions |
+// #------------------------------#
+
+void imgui_thread_kernel(void)
 {
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
         printf("Error: %s\n", SDL_GetError());
-        return NULL;
+        return;
     }
 
     // From 2.0.18: Enable native IME.
@@ -134,7 +210,7 @@ void* thread_display_kernel()
     // Main loop
     bool done = false;
     int scale = 2;
-    uint8_t display_buffer[DISPLAY_BUFFER_SIZE];
+    display::DisplayColor imgui_display_buffer[DISPLAY_PIXEL_COUNT] = {0};
     while (!done)
     {
         // Poll and handle events (inputs, window resize, etc.)
@@ -228,15 +304,18 @@ void* thread_display_kernel()
         glPushMatrix();
         glLoadIdentity();
 
-        display_args.mtx_buffer.lock();
-        memcpy(display_buffer, display_args.display_buffer, DISPLAY_BUFFER_SIZE);
-        display_args.mtx_buffer.unlock();
+        imgui_display_data.mtx_buffer.lock();
+        memcpy(imgui_display_buffer, imgui_display_data.imgui_display_buffer, sizeof(display::DisplayColor) * DISPLAY_PIXEL_COUNT);
+        imgui_display_data.mtx_buffer.unlock();
 
         // Render a 360x240 pixel array with RGB colors
         for (int y = 0; y < DISPLAY_HEIGHT; ++y) {
             for (int x = 0; x < DISPLAY_WIDTH; ++x) {
-                float val = (float)(display_buffer[(x) * (y)] % 256);
-                glColor4f(val, val, val, 1.0f);  // RGB color
+                size_t idx = y * DISPLAY_WIDTH + x;
+                assert(idx < DISPLAY_PIXEL_COUNT);
+                display::DisplayColor val = (imgui_display_buffer[idx]);
+
+                glColor4f((float)val.r, (float)val.g, (float)val.b, 1.0f);  // RGB color
                 // glColor4f(x / (float)window_width, y /(float)window_height, 0.0f, 1.0f);  // RGB color
                 glRectf((x*scale) + window_offset_x, (y * scale) + window_offset_y, ( (x +1) * scale) + window_offset_x,  ((y + 1) * scale) + window_offset_y);  // Render a single pixel
             }
@@ -262,6 +341,4 @@ void* thread_display_kernel()
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
     SDL_Quit();
-
-    return NULL;
 }
