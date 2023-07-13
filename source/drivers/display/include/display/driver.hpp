@@ -47,7 +47,7 @@ namespace display
 
     struct DisplayColor
     {
-        int8_t r, g, b;
+        uint8_t r, g, b;
     };
 
     void init(void);

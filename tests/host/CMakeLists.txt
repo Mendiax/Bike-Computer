@@ -18,6 +18,7 @@ function(add_test_executable test_name)
       GSM
       MOCK_SIM868
       IMGUI_SDL2
+      MOCK_DISPLAY
       ) # move as param ?
 
     # Add the test to CTest
@@ -51,6 +52,8 @@ if(PICO_PLATFORM MATCHES "host")
   add_subdirectory(mock/gpio)
   add_subdirectory(mock/rtc)
   add_subdirectory(mock/sim868)
+  # add_subdirectory(mock/display)
+
 
 
 
@@ -86,6 +89,8 @@ target_link_libraries( ${PICO_MAIN_FILE}
         Cores
         FatFs_SPI
         MOCK_SIM868
+        Display
+        MOCK_DISPLAY
 )
 
 
