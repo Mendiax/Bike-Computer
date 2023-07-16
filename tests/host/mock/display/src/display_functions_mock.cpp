@@ -28,6 +28,7 @@
 #include "traces.h"
 #include "display/driver.hpp"
 #include "hw_functions.hpp"
+#include "speedometer/speedometer.hpp"
 
 // #------------------------------#
 // |           macros             |
@@ -209,7 +210,9 @@ void imgui_thread_kernel(void)
 
     // Main loop
     bool done = false;
-    int scale = 2;
+    int scale = 3;
+    float speed = 20.0f;
+    float cadence = 80.0f;
     display::DisplayColor imgui_display_buffer[DISPLAY_PIXEL_COUNT] = {0};
     while (!done)
     {
@@ -224,8 +227,13 @@ void imgui_thread_kernel(void)
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
                 done = true;
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
-                done = true;
+            if (event.type == SDL_WINDOWEVENT &&
+                event.window.event == SDL_WINDOWEVENT_CLOSE &&
+                event.window.windowID == SDL_GetWindowID(window))
+                {
+                    done = true;
+                    exit(0);
+                }
         }
 
         // Start the Dear ImGui frame
@@ -249,6 +257,8 @@ void imgui_thread_kernel(void)
             ImGui::Checkbox("Another Window", &show_another_window);
 
             ImGui::SliderInt("Display size", &scale, 1, 3);
+            ImGui::SliderFloat("speed", &speed, 0.0f, 40.0f);
+
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
@@ -269,6 +279,11 @@ void imgui_thread_kernel(void)
             if (ImGui::Button("Close Me"))
                 show_another_window = false;
             ImGui::End();
+        }
+        static float speed_prev = 0.0f;
+        if (speed_prev != speed){
+            speed_emulate(speed);
+            speed_prev = speed;
         }
         const uint window_width = DISPLAY_WIDTH * scale;
         const uint window_height = DISPLAY_HEIGHT * scale;
