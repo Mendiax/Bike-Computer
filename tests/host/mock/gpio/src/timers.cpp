@@ -15,6 +15,7 @@
 // my includes
 #include "pico/time.h"
 #include "timers.hpp"
+#include "traces.h"
 
 // #------------------------------#
 // |           macros             |
@@ -55,12 +56,17 @@ static pthread_t& get_timer_pthread(const Alarm_t * timer_p);
 // #------------------------------#
 // | global function definitions  |
 // #------------------------------#
-void cancel_timer(repeating_timer_t * timer_p)
+void mock_cancel_timer(repeating_timer_t * timer_p)
 {
     if(timer_p != NULL && alarm_pool_threads_taken[timer_p->alarm_id] == true)
     {
         pthread_cancel(get_timer_pthread(timer_p));
         alarm_pool_threads_taken[timer_p->alarm_id] = false;
+        pthread_join(get_timer_pthread(timer_p), NULL);
+        *timer_p = repeating_timer{0};
+    }
+    else {
+        TRACE_ABNORMAL(TRACE_HOST, "cancel null or not taken timer %d\n", (int)alarm_pool_threads_taken[timer_p->alarm_id]);
     }
 }
 
@@ -88,10 +94,11 @@ static void* repeating_timer_thread(void* args)
     repeating_timer* timer_p= (repeating_timer*)args;
     // TODO handle negative
     sleep_us(std::abs(timer_p->delay_us));
-    while (timer_p->callback(timer_p)) {
+    while (timer_p->callback(timer_p) && alarm_pool_threads[timer_p->alarm_id]) {
         sleep_us(std::abs(timer_p->delay_us));
     }
     alarm_pool_threads_taken[timer_p->alarm_id] = false;
+    PRINTF("alarm exited %d", (int)timer_p->alarm_id);
     return NULL;
 }
 

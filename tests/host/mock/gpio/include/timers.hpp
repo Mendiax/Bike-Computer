@@ -16,7 +16,7 @@
 // #-------------------------------#
 // |            macros             |
 // #-------------------------------#
-#define cancel_repeating_timer(timer) // TODO
+#define cancel_repeating_timer(timer) mock_cancel_timer(timer)
 // #-------------------------------#
 // | global types declarations     |
 // #-------------------------------#
@@ -30,7 +30,7 @@
 // #-------------------------------#
 
 
-
+void mock_cancel_timer(repeating_timer_t * timer_p);
 
 bool add_repeating_timer_ms(int32_t delay_ms, repeating_timer_callback_t callback, void *user_data, repeating_timer_t *out);
 

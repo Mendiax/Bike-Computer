@@ -130,6 +130,8 @@ void speed_emulate_slowing(float speed, float accel)
     // PRINT("adding timer in " << speed_to_ms(speed) << " for " << speed << " w " << accel << "a");
     add_alarm_in_ms(speed_to_ms(speed), alarm_callback, (void*)data, false);
 }
+
+
 void speed_emulate(float speed)
 {
     TRACE_DEBUG(0, TRACE_SPEED, "Speed emulate add timer\n");
