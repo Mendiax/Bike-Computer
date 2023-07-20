@@ -1,27 +1,23 @@
-#ifndef __RTC_RTC_HPP__
-#define __RTC_RTC_HPP__
+#ifndef __MULTICORE_MUTEX_HPP__
+#define __MULTICORE_MUTEX_HPP__
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
 // pico includes
-#include "pico/time.h"
+
 // c/c++ includes
+#include <mutex>
 
 // my includes
+
 // #-------------------------------#
 // |            macros             |
 // #-------------------------------#
 
-// for now do not use
-void rtc_init();
-void rtc_set_datetime(datetime_t* time_p);
-void rtc_get_datetime(datetime_t* time_p);
-
-
 // #-------------------------------#
 // | global types declarations     |
 // #-------------------------------#
-
+using mutex = std::mutex;
 // #-------------------------------#
 // | global variables declarations |
 // #-------------------------------#
@@ -29,7 +25,9 @@ void rtc_get_datetime(datetime_t* time_p);
 // #-------------------------------#
 // | global function declarations  |
 // #-------------------------------#
-
+void mutex_init(mutex* mtx_p);
+void mutex_enter_blocking(mutex* mtx_p);
+void mutex_exit(mutex* mtx_p);
 
 
 #endif

@@ -136,7 +136,8 @@ void speed_emulate(float speed)
 {
     TRACE_DEBUG(0, TRACE_SPEED, "Speed emulate add timer\n");
     static struct repeating_timer timer;
-    cancel_repeating_timer(&timer);
+    if(timer.callback != NULL)
+        cancel_repeating_timer(&timer);
     add_repeating_timer_ms(-speed_to_ms(speed), repeating_timer_callback, NULL, &timer);
 }
 // static definitions
@@ -150,7 +151,7 @@ static uint32_t speed_to_ms(float speed_kph)
 }
 
 bool repeating_timer_callback([[maybe_unused]] struct repeating_timer *t) {
-    TRACE_DEBUG(1, TRACE_SPEED, "repeating_timer_callback()\n");
+    // TRACE_DEBUG(1, TRACE_SPEED, "repeating_timer_callback()\n");
     speed_update();
     return true;
 }

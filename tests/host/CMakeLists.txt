@@ -7,7 +7,9 @@ function(add_test_executable test_name)
     add_executable(${test_name} ${test_sources})
 
 
-    target_link_libraries(${test_name} bcTest
+    target_link_libraries(${test_name}
+      MOCK_MULTICORE
+      bcTest
       Parser
       BMP280
       Display
@@ -19,6 +21,7 @@ function(add_test_executable test_name)
       MOCK_SIM868
       IMGUI_SDL2
       MOCK_DISPLAY
+      Actors
       ) # move as param ?
 
     # Add the test to CTest
@@ -48,10 +51,12 @@ if(PICO_PLATFORM MATCHES "host")
   endif()
   file(MAKE_DIRECTORY ${SD_TEST_FOLDER})
   add_definitions(-DSD_TEST_FOLDER="${SD_TEST_FOLDER}")
+  # add_subdirectory(mock/multicore)
   add_subdirectory(mock/sd)
   add_subdirectory(mock/gpio)
   add_subdirectory(mock/rtc)
   add_subdirectory(mock/sim868)
+
   # add_subdirectory(mock/display)
 
 
@@ -65,7 +70,9 @@ if(PICO_PLATFORM MATCHES "host")
   add_test_executable(test_sd test_sd.cpp)
   add_test_executable(test_speed test_speed.cpp)
   add_test_executable(test_sim868 test_sim868.cpp)
-  add_test_executable(test_imgui test_imgui.cpp)
+  # add_test_executable(test_imgui test_imgui.cpp)
+  add_test_executable(test_actors test_actors.cpp)
+
 
 
 

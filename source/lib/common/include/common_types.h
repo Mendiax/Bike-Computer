@@ -5,7 +5,6 @@
 // #include "display/driver.hpp"
 #include "gear_suggestion.hpp"
 
-#include "pico/sync.h"
 #include "pico/util/datetime.h"
 
 #include <string>

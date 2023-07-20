@@ -7,8 +7,6 @@
 #include <pico/stdlib.h>
 #include "bmp280.hpp"
 #include "display/driver.hpp"
-#include "pico/mutex.h"
-#include "pico/sem.h"
 #include "pico/time.h"
 #include "pico/util/datetime.h"
 
@@ -255,6 +253,7 @@ int Data_Actor::loop(void)
     int64_t timeToSleep = fpsToUs(DATA_PER_SECOND) - frameTimeUs;
     TRACE_DEBUG(2, TRACE_CORE_0, "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",
                    frameTimeUs, fpsToUs(DATA_PER_SECOND), timeToSleep);
+    sleep_us(std::max(timeToSleep, 0L));
     return 1;
 }
 
@@ -580,11 +579,15 @@ static void cycle_get_battery_status()
                  });
 }
 
+#ifndef FOLDER_LOG_DATA
+#define FOLDER_LOG_DATA "log/"
+#endif
+
 static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const Session_Data& session, const Sensor_Data& sensor_data)
 {
     auto payload = new Display_Actor::Sig_Display_Actor_Log();
     std::stringstream ss;
-    ss << "log/gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
+    ss << FOLDER_LOG_DATA "gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
     payload->file_name = ss.str();
     payload->header = "time;latitude;longitude;velocity_gps;velocity_gpio;altitude_gps;altitude_press;slope;cadence;gear\n";
 

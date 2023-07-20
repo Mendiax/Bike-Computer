@@ -42,7 +42,7 @@ struct timer_pthread{
 static alarm_pool_t* alarm_pool_default;
 
 static pthread_t alarm_pool_threads[NO_TIMERS];
-static bool alarm_pool_threads_taken[NO_TIMERS];
+static volatile bool alarm_pool_threads_taken[NO_TIMERS];
 
 // #------------------------------#
 // | static functions declarations|
@@ -122,9 +122,11 @@ static alarm_id_t get_free_pool(void)
     {
         if(alarm_pool_threads_taken[i] == false){
             alarm_pool_threads_taken[i] = true;
+            TRACE_DEBUG(0, TRACE_HOST, "added timer at %d\n", i);
             return i;
         }
     }
+    TRACE_ABNORMAL(TRACE_HOST, "not enough timers\n");
     assert(false);
     return -1;
 }
