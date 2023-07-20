@@ -1,22 +1,17 @@
-#ifndef __RTC_RTC_HPP__
-#define __RTC_RTC_HPP__
+#ifndef __MULTICORE_MULTICORE_HPP__
+#define __MULTICORE_MULTICORE_HPP__
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
 // pico includes
-#include "pico/time.h"
+
 // c/c++ includes
 
 // my includes
+
 // #-------------------------------#
 // |            macros             |
 // #-------------------------------#
-
-// for now do not use
-void rtc_init();
-void rtc_set_datetime(datetime_t* time_p);
-void rtc_get_datetime(datetime_t* time_p);
-
 
 // #-------------------------------#
 // | global types declarations     |
@@ -29,7 +24,5 @@ void rtc_get_datetime(datetime_t* time_p);
 // #-------------------------------#
 // | global function declarations  |
 // #-------------------------------#
-
-
 
 #endif

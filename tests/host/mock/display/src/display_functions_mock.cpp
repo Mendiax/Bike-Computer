@@ -29,6 +29,7 @@
 #include "display/driver.hpp"
 #include "hw_functions.hpp"
 #include "speedometer/speedometer.hpp"
+#include "buttons/buttons.h"
 
 // #------------------------------#
 // |           macros             |
@@ -41,6 +42,7 @@
 // #------------------------------#
 // | static variables definitions |
 // #------------------------------#
+static bool done = false;
 
 /**
 Holds data for imgui. Main program loads here data.
@@ -56,6 +58,15 @@ static std::thread* imgui_thread;
 // #------------------------------#
 // | static functions declarations|
 // #------------------------------#
+void handle_button(Button& btn, const char* label)
+{
+    if(ImGui::Button(label))
+    {
+        btn.on_call_press();
+        sleep_ms(100);
+        btn.on_call_release();
+    }
+}
 void imgui_thread_kernel(void);
 
 // #------------------------------#
@@ -139,6 +150,7 @@ void Imgui_Display::start(void)
 void Imgui_Display::stop(void)
 {
     // TODO
+    ::done = true;
     ::imgui_thread->join();
 }
 
@@ -209,7 +221,6 @@ void imgui_thread_kernel(void)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
-    bool done = false;
     int scale = 3;
     float speed = 20.0f;
     float cadence = 80.0f;
@@ -250,22 +261,28 @@ void imgui_thread_kernel(void)
             static float f = 0.0f;
             static int counter = 0;
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Begin("Control panel");                          // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
+            ImGui::Text("Use to interact with device.");               // Display some text (you can use a format strings too)
+            // ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            // ImGui::Checkbox("Another Window", &show_another_window);
 
             ImGui::SliderInt("Display size", &scale, 1, 3);
             ImGui::SliderFloat("speed", &speed, 0.0f, 40.0f);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            handle_button(btn0, "TL");
+            handle_button(btn1, "TR");
+            handle_button(btn2, "BR");
+            handle_button(btn3, "BL");
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
+
+            // ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            // ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+            // if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+            //     counter++;
+            // ImGui::SameLine();
+            // ImGui::Text("counter = %d", counter);
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();

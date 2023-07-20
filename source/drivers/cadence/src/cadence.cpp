@@ -9,7 +9,6 @@
 #endif
 #include <pico/time.h>
 #include <hardware/gpio.h>
-#include <pico/sync.h>
 
 #include <math.h>
 #include <stdio.h>

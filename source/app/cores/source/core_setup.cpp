@@ -19,7 +19,7 @@ void core_setup(void)
 {
     TRACE_DEBUG(0, TRACE_MAIN, "Init common data\n");
 
-    auto data_actor = Data_Actor::get_instance();
+    auto& data_actor = Data_Actor::get_instance();
     TRACE_DEBUG(0, TRACE_MAIN, "Launch core1\n");
 
     #ifdef BUILD_FOR_PICO
@@ -34,7 +34,7 @@ void core_setup(void)
 
 void core1LaunchThread(void)
 {
-    auto display_actor = Display_Actor::get_instance();
+    auto& display_actor = Display_Actor::get_instance();
     display_actor.run_thread();
 }
 

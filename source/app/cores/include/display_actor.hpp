@@ -1,7 +1,6 @@
 #ifndef CORE1_H
 #define CORE1_H
 
-#include <pico/sync.h>
 #include "common_types.h"
 #include "common_actors.hpp"
 
@@ -9,6 +8,10 @@
 #include "common_types.h"
 
 #include "gui/structure.hpp"
+
+#ifndef FILE_SESSION_DATA
+#define FILE_SESSION_DATA "session_log.csv"
+#endif
 
 class Display_Actor : public Actor
 {
@@ -100,7 +103,7 @@ public:
     }
 
     static inline const char* get_session_log_file_name(){
-        return "session_log.csv";
+        return FILE_SESSION_DATA;
     }
     static inline Display_Actor& get_instance()
     {

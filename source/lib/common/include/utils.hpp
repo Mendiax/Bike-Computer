@@ -5,7 +5,6 @@
 
 #include "pico/types.h"
 
-#include <pico/mutex.h>
 
 #include <string>
 #include <inttypes.h>

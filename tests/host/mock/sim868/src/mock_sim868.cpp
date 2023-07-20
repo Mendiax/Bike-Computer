@@ -138,6 +138,7 @@ std::string Mock_SIM868::get_current_time()
     const  std::time_t currentTimeT = std::chrono::system_clock::to_time_t(currentTime);
     std::tm timeInfo;
     localtime_r(&currentTimeT, &timeInfo);
+
     std::stringstream ss;
     ss << std::put_time(&timeInfo, "%Y%m%d%H%M%S.000");
 

@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include "pico/time.h"
 #include "pico/stdlib.h"
-#include "pico/sync.h"
 #include "utils.hpp"
 
 /**
