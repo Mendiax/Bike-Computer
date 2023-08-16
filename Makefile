@@ -224,11 +224,11 @@ cwt_all:
 
 .PHONY: boot
 boot:
-	./tools/boot/boot.sh -o b
+	./tools/boot/boot.sh -o b -p $(PORT)
 
 .PHONY: restart
 restart:
-	./tools/boot/boot.sh -o r
+	./tools/boot/boot.sh -o r -p $(PORT)
 
 w: write_main
 wt: write_test
