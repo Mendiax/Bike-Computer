@@ -236,11 +236,11 @@ void Data_Actor::setup(void)
 
 
 
-    TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR TIME\n");
-    while (sensors_data.current_time.is_valid() == false) {
-        cycle_get_gps_data();
-    }
-    TRACE_DEBUG(0, TRACE_MAIN, "TIME RECEIVED\n");
+    // TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR TIME\n");
+    // while (sensors_data.current_time.is_valid() == false) {
+    //     cycle_get_gps_data();
+    // }
+    // TRACE_DEBUG(0, TRACE_MAIN, "TIME RECEIVED\n");
 }
 
 int Data_Actor::loop(void)
