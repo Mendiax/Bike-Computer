@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-port="COM25"
+port="COM8"
 operation=""
 
 while getopts p:o: flag

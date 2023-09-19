@@ -2,12 +2,16 @@
 build/
 tests/hw/tests/test_cases.h
 
+# do not update
+tools/serial.bat
+
 # local files
 pico/
 specification/
 sim800_doc/
 source/external/no-OS-FatFS
 tests/hw/hw_config/config.yaml
+imgui.ini
 
 # parser files
 source/lib/Parser/src/parser_bison.hpp
