@@ -40,3 +40,4 @@ tools/data/gear.png
 tools/doxygen/doc
 tools/doxygen/logs
 imgui.ini
+.gdb_history
