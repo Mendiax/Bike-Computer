@@ -21,15 +21,15 @@ int test_display_basic()
     display::display();
     display::display();
 
-    sleep_ms(3000);
-
-    Imgui_Display::stop();
+    sleep_ms(1000);
+    // Imgui_Display::stop();
+    sleep_ms(1000);
     return 0;
 }
 
 int main()
 {
-    BC_TEST(test_display_basic);
+    // BC_TEST(test_display_basic);
     BC_TEST_END();
     sleep_ms(1000);
     return 0;

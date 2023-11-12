@@ -253,7 +253,7 @@ int Data_Actor::loop(void)
     int64_t timeToSleep = fpsToUs(DATA_PER_SECOND) - frameTimeUs;
     TRACE_DEBUG(2, TRACE_CORE_0, "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",
                    frameTimeUs, fpsToUs(DATA_PER_SECOND), timeToSleep);
-    sleep_us(std::max(timeToSleep, 0L));
+    sleep_us(std::max(timeToSleep, (int64_t)0));
     return 1;
 }
 

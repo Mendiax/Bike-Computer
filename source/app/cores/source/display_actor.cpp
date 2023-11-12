@@ -306,7 +306,7 @@ int Display_Actor::loop(void)
     int64_t timeToSleep = fpsToUs(FRAME_PER_SECOND) - frameTimeUs;
     TRACE_DEBUG(1, TRACE_CORE_1, "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",
                    frameTimeUs, fpsToUs(FRAME_PER_SECOND), timeToSleep);
-    sleep_us(std::max(timeToSleep, 0L));
+    sleep_us(std::max(timeToSleep, (int64_t)0));
 
     return 1;
 }

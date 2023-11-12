@@ -25,9 +25,21 @@
 // | global function declarations  |
 // #-------------------------------#
 
+/**
+ * @brief namespace for running display outside of main program
+ *
+ */
 namespace Imgui_Display
 {
+    /**
+     * @brief starts rendering display
+     *
+     */
     void start(void);
+    /**
+     * @brief stops rendering display
+     *
+     */
     void stop(void);
 };
 
