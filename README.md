@@ -1,6 +1,14 @@
-# Bike_computer
-Bike computer based on pi pico.
 ![Build](https://github.com/Mendiax/Bike-Computer/actions/workflows/build_test.yml/badge.svg)
+# Bike_computer
+
+Bike computer based on pi pico.
+
+Bicycle computer that collects basic data such as speed, cadence and many other functionalities.
+This device stands out by measuring your current gear. The gear is measured by
+the ratio of the rotation of the pedals to the rotation of the wheel.
+Also contains velocity approximations for a decelerating bicycle. The speed approximation functionality has been tested and works correctly and the gear indication works satisfactorily.
+
+
 
 ## Measured Data
 Measured and Displayed Data:
@@ -27,26 +35,30 @@ Measured and Displayed Data:
    - Temperature [°C]
    - Gradient [%]
 
-
-# Build
-```sh
-$make
-```
-For more info about building parameters
-```sh
-$make help
-```
-
-# Emulator
-There is working emulator to run it on normal computer build with [ImGui](https://github.com/ocornut/imgui) with use of SDL2.
-
-# Tests
-Tests build with my custom test framework that make it possible to run it on rp2040 hw. [pico_test](https://github.com/Mendiax/pico_tests)
-
-
-
-
 6. Time and Total Metrics:
    - Current date and time [yyyy.mm.dd,hh:mm:ss]
    - Total distance traveled [km]
    - Total driving time [h]
+
+##
+<img src="imgs/gui_example.jpg">
+
+# Build
+```sh
+$ make
+```
+For more info about building parameters
+```sh
+$ make H=1
+```
+
+# Emulator
+There is working emulator to run it on normal computer build with [ImGui](https://github.com/ocornut/imgui) with use of SDL2.
+<img src="imgs/gui_example_sim.png">
+```sh
+$ make
+$ ./build/tests/host/pico_main
+```
+
+# Tests
+Tests build with my custom test framework that make it possible to run it on rp2040 hw. [pico_test](https://github.com/Mendiax/pico_tests)
