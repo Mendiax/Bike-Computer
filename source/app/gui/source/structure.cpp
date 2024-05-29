@@ -10,6 +10,8 @@
 #include "gui/view_last_avg.hpp"
 #include "gui/view_last_date.hpp"
 #include "gui/view_last_time.hpp"
+#include "gui/view_sensors.hpp"
+
 #include "views/view.hpp"
 
 #include "gui/structure.hpp"
@@ -79,6 +81,8 @@ void Gui::create()
     session_menu->add_view(new View_Gps(*data, *session));
     session_menu->add_view(new View_Date(*data, *session));
     session_menu->add_view(new View_Total(*data, *session));
+    session_menu->add_view(new View_Sensors(*data, *session));
+
     // -----------------------------
     //      history
     // -----------------------------

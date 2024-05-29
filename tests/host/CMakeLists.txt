@@ -17,6 +17,7 @@ function(add_test_executable test_name)
       SD
       pico_test
       Speedometer
+      MPU9250
       GSM
       MOCK_SIM868
       IMGUI_SDL2

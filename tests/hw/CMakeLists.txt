@@ -39,6 +39,7 @@ target_link_libraries(${PICO_TEST_FILE}
     Interrupts
     Speedometer
     Cadence
+    MPU9250
     )
 
 pico_enable_stdio_usb(${PICO_TEST_FILE} ENABLED)
@@ -74,6 +75,7 @@ target_link_libraries(${PICO_TEST_FILE}
     Interrupts
     Speedometer
     Cadence
+    MPU9250
     )
 
 pico_enable_stdio_usb(${PICO_TEST_FILE} ENABLED)

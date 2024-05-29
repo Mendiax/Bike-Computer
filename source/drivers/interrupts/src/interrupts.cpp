@@ -1,18 +1,25 @@
-// #include <speedometer/speedometer.hpp>
-// #include "cadence/cadence.hpp"
-
+#include <cstddef>
 #include <math.h>
-#include <pico/time.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <pico/time.h>
+
 #include <interrupts/interrupts.hpp>
 #include "buttons/buttons.h"
 
 // include interrupts
-extern Interrupt interruptSpeed;
+extern Interrupt interrupt_speed;
 extern Interrupt interrupt_cadence;
+// extern Interrupt interrupt_mpu;
 
-// buttons
+#define MAX_INTERRUPTS 3
+
+static Interrupt interrupts_core_0[MAX_INTERRUPTS];
+static Interrupt interrupts_core_1[MAX_INTERRUPTS];
+static size_t interrupts_core_0_counter = 0;
+static size_t interrupts_core_1_counter = 0;
+
 
 
 /**
@@ -55,20 +62,40 @@ void setup_interrupt_btn(Button_Interface& btn, void (*interrutp_cb)(uint, uint3
  * @param gpio
  * @param events
  */
-static inline void checkInterrupt(const Interrupt& inter, const uint gpio,const uint32_t events);
+static inline void check_interrupt(const Interrupt& inter, const uint gpio,const uint32_t events);
 static inline void check_interrupt_btn(Button_Interface& btn, const uint gpio,const uint32_t events);
 
+void interrupt_add(Interrupt interrupt, INTERRUPT_CORE core, bool pullup)
+{
+    switch (core) {
+    case NONE:
+        return;
+    case CORE_0:
+        setup_interrupt(interrupt, pullup, interrutpCallback_core0);
+        interrupts_core_0[interrupts_core_0_counter++] = interrupt;
+        break;
+    case CORE_1:
+        setup_interrupt(interrupt, pullup, interrutpCallback_core1);
+        interrupts_core_0[interrupts_core_1_counter++] = interrupt;
+      break;
+    }
+}
 
 void interruptSetupCore0(void)
 {
-    setup_interrupt(interruptSpeed, true, interrutpCallback_core0);
-    setup_interrupt(interrupt_cadence, true, interrutpCallback_core0);
+    setup_interrupt(interrupt_speed,   true,  interrutpCallback_core0);
+    setup_interrupt(interrupt_cadence, true,  interrutpCallback_core0);
+    // setup_interrupt(interrupt_mpu,     false, interrutpCallback_core0);
 }
 
 static void interrutpCallback_core0(uint gpio, uint32_t events)
 {
-    checkInterrupt(interruptSpeed, gpio, events);
-    checkInterrupt(interrupt_cadence, gpio, events);
+    check_interrupt(interrupt_speed,   gpio, events);
+    check_interrupt(interrupt_cadence, gpio, events);
+    // check_interrupt(interrupt_mpu,     gpio, events);
+    for(size_t i=0; i < interrupts_core_0_counter; i++) {
+        check_interrupt(interrupts_core_0[i], gpio, events);
+    }
 }
 
 /**
@@ -92,7 +119,7 @@ static void interrutpCallback_core1(uint gpio, uint32_t events)
 }
 
 
-static inline void checkInterrupt(const Interrupt& inter, const uint gpio,const uint32_t events)
+static inline void check_interrupt(const Interrupt& inter, const uint gpio,const uint32_t events)
 {
     if (inter.pin == gpio && (events & inter.event))
     {

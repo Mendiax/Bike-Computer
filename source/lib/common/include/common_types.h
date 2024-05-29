@@ -76,6 +76,7 @@ struct Battery
 {
     bool is_charging;
     int8_t level; // in %
+    float voltage;
 };
 
 struct GpsDataS
@@ -107,6 +108,13 @@ struct RGB
     int8_t r, g, b;
 };
 
+struct IMU
+{
+    struct{
+        float x, y, z;
+    } rotation;
+};
+
 struct Gear_Suggestions
 {
     float cadence_min;
@@ -126,6 +134,7 @@ typedef struct Sensor_Data
     GpsDataS gps_data;
     Battery lipo; // battery info
     Gear_S gear;  // gear {front, rear}
+    IMU imu;
     // SystemState current_state;
     // gear suggestions
     Gear_Suggestions gear_suggestions;

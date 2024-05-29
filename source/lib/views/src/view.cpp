@@ -141,7 +141,7 @@ void View_Creator::add_Units(const char* over, const char* under, const Frame& f
  * @param len
  * @return auto
  */
-std::tuple<Frame, Frame> View_Creator::splitFrame(const Frame& frame, uint16_t length, bool align_right)
+std::tuple<Frame, Frame> View_Creator::split_frame(const Frame& frame, uint16_t length, bool align_right)
 {
     massert(length > 1, "length should be greater than 1\n");
     const uint16_t widthPerChar = frame.width / length;
@@ -195,6 +195,20 @@ std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame, uint8_
     const Frame f2 = {next_x, frame.y, f2_w, frame.height};
     return std::make_tuple(f1,f2);
 }
+
+std::vector<Frame> View_Creator::split_vertical_arr(const Frame &frame, const uint8_t cnt)
+{
+    const uint16_t width = frame.width / cnt;
+    uint16_t x = frame.x;
+    std::vector<Frame> frames(cnt, {frame.x, frame.y, width, frame.height});
+    for(auto& f : frames)
+    {
+        f.x = x;
+        x += width;
+    }
+    return frames;
+}
+
 
 /**
  * @brief splits frame into 2 frames with half of height

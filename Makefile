@@ -24,7 +24,7 @@ $(info [INFO] using $(NPROCS) threads)
 WSL = $(grep wsl -i /proc/version)
 ifeq ($(WSL),)
 	PICO_DRIVE_LETTER := H
-	PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_MAIN_FILE).uf2)
+	PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(PICO_MAIN_FILE_PATH_RELATIVE).uf2)
 	PICO_TEST_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_TEST_FILE).uf2)
 $(info [INFO] Running WSL)
 $(info [INFO] [WSL] pico letter $(PICO_DRIVE_LETTER))
@@ -232,7 +232,8 @@ restart:
 w: write_main
 wt: write_test
 write_main:
-	./tools/boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
+	# ./tools/boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
+	picotool load -v -x $(PICO_MAIN_FILE_PATH) -f
 
 write_test: boot
 	./boot/upload.sh -p '$(PICO_TEST_FILE_PATH)' -d $(PICO_DRIVE_LETTER)

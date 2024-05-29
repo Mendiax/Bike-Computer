@@ -149,7 +149,7 @@ void consoleGSM()
         uart_puts(UART_ID, "\r\n");
         mutex_exit(&uart_mutex);
     }
-    sim868::turnOff();
+    sim868::turn_off();
 }
 
 

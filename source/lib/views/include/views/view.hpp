@@ -102,7 +102,7 @@ public:
      * @param len
      * @return std::tuple<Frame, Frame>
      */
-    static std::tuple<Frame, Frame> splitFrame(const Frame &frame, uint16_t length, bool align_right = false);
+    static std::tuple<Frame, Frame> split_frame(const Frame &frame, uint16_t length, bool align_right = false);
 
     /**
      * @brief splits frame into 2 frames with half of width
@@ -111,6 +111,8 @@ public:
      * @return constexpr std::tuple<Frame, Frame>
      */
     static std::tuple<Frame, Frame> split_vertical(const Frame &frame, uint8_t ratio = 2, bool invert = false);
+    static std::vector<Frame> split_vertical_arr(const Frame &frame, uint8_t cnt);
+
     // std::tuple<Frame, Frame> split_vertical(const Frame& frame, float ratio);
 
     /**
@@ -272,7 +274,7 @@ void View_Creator::addValueUnitsVertical(const char *format, size_t commonLength
                                          const Frame &frame,
                                          Align align, bool alignRight)
 {
-    auto [frameValue, frameUnits] = this->splitFrame(frame, commonLength + 1, alignRight);
+    auto [frameValue, frameUnits] = this->split_frame(frame, commonLength + 1, alignRight);
     this->add_value(format, commonLength, data, frameValue);
     this->add_Units(over, under, frameUnits,  align);
 }
@@ -284,7 +286,7 @@ void View_Creator::addValueValuesVertical(const char *format, size_t commonLengt
                                            const Frame &frame,
                                            Align align, bool alignRight)
 {
-    auto [frameValue, frameUnits] = this->splitFrame(frame, (uint16_t)commonLength + 1, alignRight);
+    auto [frameValue, frameUnits] = this->split_frame(frame, (uint16_t)commonLength + 1, alignRight);
     this->add_value(format, commonLength, data, frameValue);
     this->add_Vertical(overFormat, overCommonLength, overData,
                        underFormat, underCommonLength, underData,

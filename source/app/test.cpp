@@ -316,7 +316,7 @@ void test_sim868_interface(void)
         sleep_ms(1000);
     }
     sim868::sendRequestLong("AT+CGNSPWR=0",2000);
-    sim868::turnOff();
+    sim868::turn_off();
 }
 
 void test_speedData()

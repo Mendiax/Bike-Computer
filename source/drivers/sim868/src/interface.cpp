@@ -25,7 +25,11 @@
 #include "mock_uart.hpp"
 #endif
 
+
+#define MAX_FAIL_COUNT 10
+
 // global
+
 
 // static variables
 static bool sim_booted = false;
@@ -92,7 +96,7 @@ void sim868::init(void)
     #endif
 }
 
-void sim868::turnOn(void)
+void sim868::turn_on(void)
 {
     gpio_put(SIM868_PIN_POWER, 1);
     sim_on = 1;
@@ -100,7 +104,7 @@ void sim868::turnOn(void)
     current_response.response = "";
 }
 
-void sim868::turnOff(void)
+void sim868::turn_off(void)
 {
     gpio_put(SIM868_PIN_POWER, 0);
     sim_on = 0;
@@ -109,15 +113,15 @@ void sim868::turnOff(void)
 // resets module with deleay of 2s
 void sim868::reset(void)
 {
-    turnOff();
+    turn_off();
     sleep_ms(2000);
-    turnOn();
+    turn_on();
 }
 
 void sim868::boot(void)
 {
     init();
-    turnOn();
+    turn_on();
     sleep_ms(3000);
     waitForBoot();
 }
@@ -165,7 +169,7 @@ void sim868::waitForBoot()
         }
         if(fail_counter > 10)
         {
-            turnOff();
+            turn_off();
             return;
         }
     }
@@ -178,6 +182,7 @@ bool sim868::get_bat_level(bool& is_charging,
                            uint16_t& voltage)
 {
     static uint64_t id;
+    static uint8_t fail_counter=0;
     if(check_response(id)) // it will return false if id == 0
     {
         // response received
@@ -189,6 +194,10 @@ bool sim868::get_bat_level(bool& is_charging,
         if(values.size() < 3)
         {
             TRACE_ABNORMAL(TRACE_SIM868, "not enough params %s, %zu\n", respond.c_str(), values.size());
+            fail_counter++;
+            if(fail_counter >= MAX_FAIL_COUNT){
+                sim868::turn_off();
+            }
             return false;
         }
 

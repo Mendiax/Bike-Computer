@@ -26,6 +26,7 @@
 #include "signals.hpp"
 #include "traces.h"
 #include "common_types.h"
+#include "MPU9250.hpp"
 
 #include "speedometer/speedometer.hpp"
 #include "cadence/cadence.hpp"
@@ -201,7 +202,7 @@ void Data_Actor::setup(void)
     TRACE_DEBUG(0, TRACE_MAIN, "INIT SIM868\n");
     // setup sim868
     sim868::init();
-    sim868::turnOn();
+    sim868::turn_on();
 
 
     TRACE_DEBUG(0, TRACE_MAIN, "INIT BMP280\n");
@@ -231,6 +232,9 @@ void Data_Actor::setup(void)
                     is_charging, bat_lev, voltage);
     }
     TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY DONE\n");
+
+    mpu9250::init();
+    // float data[3];
 
 
 
@@ -408,9 +412,21 @@ int Data_Actor::loop_frame_update()
         // PRINT("Booting done");
     }
     cycle_log_data();
-    cycle_get_weather_data();
+    // cycle_get_weather_data();
     cycle_get_slope();
 
+    Vector3<int16_t> accel;
+    Vector3<float> gyro;
+    std::tie(gyro, accel) = mpu9250::get_mpu_data();
+    // mpu9250::read_accel(accel);
+    // mpu9250::read_gyro(gyro);
+
+    sensors_data.imu.rotation.x = gyro.x;
+    sensors_data.imu.rotation.y = gyro.y;
+    sensors_data.imu.rotation.z = gyro.z;
+
+
+    // PRINTF("%f\t%f\t%f\n", INS_ARR(gyro.arr));
 
 
 

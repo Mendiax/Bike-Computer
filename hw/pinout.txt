@@ -5,3 +5,5 @@
 5 // ss_gpio
 6 // sck_gpio
 7 // mosi_gpio
+
+GP20 -> int mpu

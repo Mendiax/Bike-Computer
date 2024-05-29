@@ -62,7 +62,7 @@ static float speed_getSpeed(float speed);
 static float speed_velocity_from_delta(int64_t delta_time);
 
 // global definitions
-Interrupt interruptSpeed = {PIN_SPEED, speed_update, GPIO_IRQ_EDGE_RISE}; // GPIO_IRQ_EDGE_FALL
+Interrupt interrupt_speed = {PIN_SPEED, speed_update, GPIO_IRQ_EDGE_RISE}; // GPIO_IRQ_EDGE_FALL
 
 float speed_kph_to_mps(float speed_kph)
 {
