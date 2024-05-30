@@ -16,7 +16,7 @@ set(required_libraries
     Speedometer
     Cadence
     MPU9250
-    BMP280
+    DOF
     Common
     GSM
     Tools

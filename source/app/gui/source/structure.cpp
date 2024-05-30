@@ -79,9 +79,9 @@ void Gui::create()
     session_menu->add_view(new View_Velocity(*data, *session));
     session_menu->add_view(new View_Max_Avg(*data, *session));
     session_menu->add_view(new View_Gps(*data, *session));
+    session_menu->add_view(new View_Sensors(*data, *session));
     session_menu->add_view(new View_Date(*data, *session));
     session_menu->add_view(new View_Total(*data, *session));
-    session_menu->add_view(new View_Sensors(*data, *session));
 
     // -----------------------------
     //      history
@@ -95,6 +95,7 @@ void Gui::create()
     // -----------------------------
     main_menu->add_view(new Main_New_Session((gui::View_List*)session_menu));
     main_menu->add_view(new Main_History((gui::View_List*)history_session_menu));
+
 
     this->current_view_list = main_menu;
 }

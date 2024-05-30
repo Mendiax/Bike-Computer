@@ -4,6 +4,7 @@
 #include "bike_config.hpp"
 // #include "display/driver.hpp"
 #include "gear_suggestion.hpp"
+#include <vector3.hpp>
 
 #include "pico/util/datetime.h"
 
@@ -110,9 +111,10 @@ struct RGB
 
 struct IMU
 {
-    struct{
-        float x, y, z;
-    } rotation;
+    Vector3<float> rotation;
+    Vector3<float> rotation_speed;
+    Vector3<int16_t> accelerometer;
+    Vector3<int16_t> magnetometer;
 };
 
 struct Gear_Suggestions

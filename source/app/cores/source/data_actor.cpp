@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <pico/stdlib.h>
-#include "bmp280.hpp"
 #include "display/driver.hpp"
 #include "pico/time.h"
 #include "pico/util/datetime.h"
@@ -26,6 +25,8 @@
 #include "signals.hpp"
 #include "traces.h"
 #include "common_types.h"
+#include "dof.hpp"
+#include "bmp280.hpp"
 #include "MPU9250.hpp"
 
 #include "speedometer/speedometer.hpp"
@@ -163,6 +164,12 @@ void Data_Actor::setup(void)
 {
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
+
+    TRACE_DEBUG(0, TRACE_MAIN, "INIT SIM868\n");
+    // setup sim868
+    sim868::init();
+    sim868::turn_on();
+
     session_p = new Session_Data();
 
     rtc_init();
@@ -199,41 +206,41 @@ void Data_Actor::setup(void)
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 0);
 
-    TRACE_DEBUG(0, TRACE_MAIN, "INIT SIM868\n");
-    // setup sim868
-    sim868::init();
-    sim868::turn_on();
 
 
-    TRACE_DEBUG(0, TRACE_MAIN, "INIT BMP280\n");
-    bmp280::init();
-    TRACE_DEBUG(0, TRACE_MAIN, "BMP280 IS ON\n");
+
+    TRACE_DEBUG(0, TRACE_MAIN, "INIT DOF\n");
+    dof::init(true);
+    mpu9250::set_reference(
+        sensors_data.imu.rotation, sensors_data.imu.rotation_speed,
+        sensors_data.imu.accelerometer, sensors_data.imu.magnetometer);
+    TRACE_DEBUG(0, TRACE_MAIN, "DOF IS ON\n");
 
     TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR SIM868\n");
     // while (sim868::check_for_boot_long() == false) {
     //     sleep_ms(1000);
     // }
-    sim868::waitForBoot();
-    TRACE_DEBUG(0, TRACE_MAIN, "SIM868 IS ON\n");
+    // sim868::waitForBoot();
+    // TRACE_DEBUG(0, TRACE_MAIN, "SIM868 IS ON\n");
 
-    TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY\n");
-    {
-        bool is_charging = 0;
-        uint8_t bat_lev = 0;
-        uint16_t voltage = 0;
-        while(sim868::get_bat_level(is_charging, bat_lev, voltage) == false)
-        {
-            sleep_ms(500);
-        }
-        sensors_data.lipo.is_charging = is_charging;
-        sensors_data.lipo.level = bat_lev;
-        TRACE_DEBUG(1, TRACE_CORE_0,
-                    "bat info %d,%" PRIu8 ",%" PRIu16 "\n",
-                    is_charging, bat_lev, voltage);
-    }
-    TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY DONE\n");
+    // TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY\n");
+    // {
+    //     bool is_charging = 0;
+    //     uint8_t bat_lev = 0;
+    //     uint16_t voltage = 0;
+    //     while(sim868::get_bat_level(is_charging, bat_lev, voltage) == false)
+    //     {
+    //         sleep_ms(500);
+    //     }
+    //     sensors_data.lipo.is_charging = is_charging;
+    //     sensors_data.lipo.level = bat_lev;
+    //     TRACE_DEBUG(1, TRACE_CORE_0,
+    //                 "bat info %d,%" PRIu8 ",%" PRIu16 "\n",
+    //                 is_charging, bat_lev, voltage);
+    // }
+    // TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY DONE\n");
 
-    mpu9250::init();
+    // mpu9250::init();
     // float data[3];
 
 
@@ -412,18 +419,18 @@ int Data_Actor::loop_frame_update()
         // PRINT("Booting done");
     }
     cycle_log_data();
-    // cycle_get_weather_data();
+    cycle_get_weather_data();
     cycle_get_slope();
 
-    Vector3<int16_t> accel;
-    Vector3<float> gyro;
-    std::tie(gyro, accel) = mpu9250::get_mpu_data();
-    // mpu9250::read_accel(accel);
-    // mpu9250::read_gyro(gyro);
+    // Vector3<int16_t> accel;
+    // Vector3<float> gyro;
+    // std::tie(gyro, accel) = mpu9250::get_mpu_data();
+    // // mpu9250::read_accel(accel);
+    // // mpu9250::read_gyro(gyro);
 
-    sensors_data.imu.rotation.x = gyro.x;
-    sensors_data.imu.rotation.y = gyro.y;
-    sensors_data.imu.rotation.z = gyro.z;
+    // sensors_data.imu.rotation.x = gyro.x;
+    // sensors_data.imu.rotation.y = gyro.y;
+    // sensors_data.imu.rotation.z = gyro.z;
 
 
     // PRINTF("%f\t%f\t%f\n", INS_ARR(gyro.arr));

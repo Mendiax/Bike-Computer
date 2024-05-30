@@ -129,7 +129,7 @@ else()
 
     # enable display emulation
     set(BUILD_MOCK_DISPLAY "BUILD")
-    set(BUILD_MOCK_BMP280 "BUILD")
+    set(BUILD_MOCK_DOF "BUILD")
     set(BUILD_MOCK_INTERRUPTS "BUILD")
     set(BUILD_MOCK_MULTICORE "BUILD")
 
@@ -147,7 +147,7 @@ add_subdirectory(source/lib/Parser)
 add_subdirectory(source/lib/Actors)
 add_subdirectory(source/lib/Filters)
 
-add_subdirectory(source/drivers/BMP280)
+add_subdirectory(source/drivers/DOF)
 add_subdirectory(source/drivers/display)
 add_subdirectory(source/lib/views)
 add_subdirectory(source/lib/gui)

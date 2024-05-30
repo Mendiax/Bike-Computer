@@ -60,7 +60,7 @@ void View_Creator::draw()
 void View_Creator::add_new_window(const Window& window)
 {
     TRACE_DEBUG(7, TRACE_VIEWS, "adding new window with id=%" PRIuFAST8 " \n", this->currnetNumberOfWindows);
-    massert(this->currnetNumberOfWindows < MAX_NUMBER_OF_WINDOWS, "maximum numbers of windows reached in current view\n");
+    massert(this->currnetNumberOfWindows < MAX_NUMBER_OF_WINDOWS, "maximum numbers of windows reached in current view %d\n", this->currnetNumberOfWindows);
     this->windows[this->currnetNumberOfWindows] = window;
     this->currnetNumberOfWindows++;
 }

@@ -11,7 +11,7 @@ function(add_test_executable test_name)
       MOCK_MULTICORE
       bcTest
       Parser
-      BMP280
+      DOF
       Display
       FatFs_SPI
       SD
@@ -66,7 +66,7 @@ if(PICO_PLATFORM MATCHES "host")
 
   add_test_executable(test_host host_main.cpp)
   add_test_executable(test_parser test_parser.cpp test_parser_data.cpp)
-  add_test_executable(test_bmp280 test_bmp280.cpp)
+  add_test_executable(test_dof test_dof.cpp)
   add_test_executable(test_display test_display.cpp)
   add_test_executable(test_sd test_sd.cpp)
   add_test_executable(test_speed test_speed.cpp)

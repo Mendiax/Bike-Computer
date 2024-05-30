@@ -27,7 +27,7 @@
 // |            macros             |
 // #-------------------------------#
 #define TOP_BAR_HEIGHT (DISPLAY_HEIGHT / 10)
-#define MAX_NUMBER_OF_WINDOWS 13
+#define MAX_NUMBER_OF_WINDOWS 20
 
 #define VIEW_DEBUG
 
