@@ -162,9 +162,10 @@ static void send_speed_comp(float raw, float filtered)
 // #------------------------------#
 void Data_Actor::setup(void)
 {
+    sensors_data.imu.accel_hist.set_length(100);
+
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
-
     TRACE_DEBUG(0, TRACE_MAIN, "INIT SIM868\n");
     // setup sim868
     sim868::init();
@@ -422,18 +423,10 @@ int Data_Actor::loop_frame_update()
     cycle_get_weather_data();
     cycle_get_slope();
 
-    // Vector3<int16_t> accel;
-    // Vector3<float> gyro;
-    // std::tie(gyro, accel) = mpu9250::get_mpu_data();
-    // // mpu9250::read_accel(accel);
-    // // mpu9250::read_gyro(gyro);
 
-    // sensors_data.imu.rotation.x = gyro.x;
-    // sensors_data.imu.rotation.y = gyro.y;
-    // sensors_data.imu.rotation.z = gyro.z;
+    sensors_data.imu.accel_hist.add_element((float)sensors_data.imu.rotation_speed.y);
 
-
-    // PRINTF("%f\t%f\t%f\n", INS_ARR(gyro.arr));
+    PRINTF("%f\n", (float)sensors_data.imu.rotation_speed.y);
 
 
 
@@ -591,7 +584,7 @@ static void cycle_get_battery_status()
     bool is_charging = 0;
     uint8_t bat_lev = 0;
     uint16_t voltage = 0;
-    CYCLE_UPDATE_SIMPLE_SLOW_RERUN(sim868::get_bat_level(is_charging, bat_lev, voltage), BAT_LEV_CYCLE_MS, 500,
+    CYCLE_UPDATE_SIMPLE_SLOW_RERUN(sim868::get_bat_level(is_charging, bat_lev, voltage), BAT_LEV_CYCLE_MS, 3000,
                  {
 
                      sensors_data.lipo.is_charging = is_charging;

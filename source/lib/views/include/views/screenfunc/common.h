@@ -7,7 +7,7 @@
 #include "traces.h"
 
 /* data ptr, additional data ptr, window(size) */
-typedef void (*drawFunc_p)(const void *);
+typedef void (*DrawFuncT)(const void *);
 
 enum class Align{
     LEFT,
@@ -24,7 +24,7 @@ struct DisplayData
     const char* format;
     uint16_t format_length;
     const void* data;
-    drawFunc_p func;
+    DrawFuncT func;
 };
 
 // should be first in the struct

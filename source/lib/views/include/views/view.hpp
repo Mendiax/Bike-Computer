@@ -18,6 +18,8 @@
 #include "views/screenfunc/common.h"
 #include "views/screenfunc/val.h"
 #include "views/screenfunc/label.h"
+#include "views/screenfunc/plot.h"
+
 
 
 #include "window.h"
@@ -83,6 +85,14 @@ public:
                       const char *underFormat, size_t underCommonLength, const Q *underData,
                       const Frame &frame, Align align = Align::LEFT);
     void add_Units(const char* over, const char* under, const Frame& frame, Align align);
+
+    template<typename T>
+    void add_plot(const PlotSettings& settings);
+    template<typename T>
+    void add_plot_ring(const PlotSettings& settings);
+
+
+
 
     /**
      * @brief adds label in fomrat:
@@ -249,6 +259,26 @@ void View_Creator::add_value(const char* format, size_t commonLength, const T* d
     new_window.settings.val.data = data;
     add_new_window(new_window);
 }
+
+template<typename T>
+void View_Creator::add_plot(const PlotSettings& settings)
+{
+    Window new_window;
+    new_window.updateFunc_p = get_draw_func_plot<T>();
+    new_window.settings.plot = settings;
+    add_new_window(new_window);
+}
+
+template<typename T>
+void View_Creator::add_plot_ring(const PlotSettings& settings)
+{
+    Window new_window;
+    new_window.updateFunc_p = get_draw_func_plot_ring<T>();
+    new_window.settings.plot = settings;
+    add_new_window(new_window);
+}
+
+
 
 template <typename T, typename Q>
 void View_Creator::add_Vertical(const char *overFormat, size_t overCommonLength, const T *overData,

@@ -161,7 +161,6 @@ add_subdirectory(source/drivers/interrupts)
 add_subdirectory(source/drivers/buttons)
 add_subdirectory(source/drivers/speedometer)
 add_subdirectory(source/drivers/cadence)
-add_subdirectory(source/drivers/MPU9250)
 
 
 add_subdirectory(source/lib/SD)

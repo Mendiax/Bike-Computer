@@ -17,12 +17,12 @@ function(add_test_executable test_name)
       SD
       pico_test
       Speedometer
-      MPU9250
       GSM
       MOCK_SIM868
       IMGUI_SDL2
       MOCK_DISPLAY
       Actors
+      Views
       ) # move as param ?
 
     # Add the test to CTest
@@ -66,13 +66,15 @@ if(PICO_PLATFORM MATCHES "host")
 
   add_test_executable(test_host host_main.cpp)
   add_test_executable(test_parser test_parser.cpp test_parser_data.cpp)
-  add_test_executable(test_dof test_dof.cpp)
+  add_test_executable(test_bmp280 test_bmp280.cpp)
   add_test_executable(test_display test_display.cpp)
   add_test_executable(test_sd test_sd.cpp)
   add_test_executable(test_speed test_speed.cpp)
   add_test_executable(test_sim868 test_sim868.cpp)
   # add_test_executable(test_imgui test_imgui.cpp)
   add_test_executable(test_actors test_actors.cpp)
+  add_test_executable(test_plot test_plot.cpp)
+
 
 
 

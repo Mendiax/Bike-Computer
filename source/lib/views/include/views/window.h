@@ -10,7 +10,7 @@
 struct Window
 {
     Settings settings;
-    drawFunc_p updateFunc_p;
+    DrawFuncT updateFunc_p;
 
     inline void update()
     {

@@ -17,7 +17,7 @@ void drawFormatVariableVoid(const void *settings);
     { \
         drawFormatVariable<type>(settings); \
     } \
-    drawFunc_p getDrawFunc(const type* var) \
+    DrawFuncT getDrawFunc(const type* var) \
     { \
         (void) var; \
         return drawFormat_##type; \
@@ -39,38 +39,38 @@ CREATE_FUNC(double)
 // {
 //     ValDrawTime(settings);
 // }
-drawFunc_p getDrawFunc(const mtime_t* var)
+DrawFuncT getDrawFunc(const mtime_t* var)
 {
     (void) var;
     return ValDrawTime;
 }
 
-drawFunc_p getDrawFunc(const TimeS* var)
+DrawFuncT getDrawFunc(const TimeS* var)
 {
     (void) var;
     return drawFormat_TimeS;
 }
 
 
-drawFunc_p getDrawFunc(const char* var)
+DrawFuncT getDrawFunc(const char* var)
 {
     (void) var;
     return drawFormat_char_p;
 }
 
-drawFunc_p getDrawFunc(const Time_HourS* var)
+DrawFuncT getDrawFunc(const Time_HourS* var)
 {
     (void) var;
     return drawFormat_Time_HourS;
 }
 
-drawFunc_p getDrawFunc(const Time_DateS* var)
+DrawFuncT getDrawFunc(const Time_DateS* var)
 {
     (void) var;
     return drawFormat_Time_DateS;
 }
 
-drawFunc_p getDrawFunc(const Battery* var)
+DrawFuncT getDrawFunc(const Battery* var)
 {
     (void) var;
     return draw_battery_level;
@@ -80,7 +80,7 @@ void drawFormat_void(const void *settings)
 {
     drawFormatVariableVoid(settings);
 }
-drawFunc_p getDrawFunc(const void* var)
+DrawFuncT getDrawFunc(const void* var)
 {
     (void) var;
     return drawFormat_void;

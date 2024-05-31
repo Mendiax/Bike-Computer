@@ -15,7 +15,6 @@ set(required_libraries
     Display
     Speedometer
     Cadence
-    MPU9250
     DOF
     Common
     GSM

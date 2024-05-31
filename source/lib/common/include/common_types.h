@@ -1,17 +1,28 @@
-#ifndef TYPES_H
-#define TYPES_H
-
-#include "bike_config.hpp"
-// #include "display/driver.hpp"
-#include "gear_suggestion.hpp"
-#include <vector3.hpp>
-
+#ifndef __COMMON_TYPES_H__
+#define __COMMON_TYPES_H__
+// #-------------------------------#
+// |           includes            |
+// #-------------------------------#
+// c/c++ includes
 #include "pico/util/datetime.h"
-
 #include <string>
 #include <array>
 #include <vector>
 
+// my includes
+#include "bike_config.hpp"
+// #include "display/driver.hpp"
+#include "gear_suggestion.hpp"
+#include <vector3.hpp>
+#include "ringarray.hpp"
+
+// #-------------------------------#
+// |            macros             |
+// #-------------------------------#
+
+// #-------------------------------#
+// | global types declarations     |
+// #-------------------------------#
 struct SpeedData
 {
     uint64_t drive_time; // in s
@@ -115,6 +126,7 @@ struct IMU
     Vector3<float> rotation_speed;
     Vector3<int16_t> accelerometer;
     Vector3<int16_t> magnetometer;
+    RingArray<float> accel_hist;
 };
 
 struct Gear_Suggestions
@@ -151,5 +163,17 @@ typedef struct Sensor_Data
     float velocity_raw;
 
 } Sensor_Data;
+
+// #-------------------------------#
+// | global variables declarations |
+// #-------------------------------#
+
+// #-------------------------------#
+// | global function declarations  |
+// #-------------------------------#
+
+// #-------------------------------#
+// |  global function definitions  |
+// #-------------------------------#
 
 #endif

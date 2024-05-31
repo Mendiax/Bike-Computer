@@ -11,6 +11,8 @@
 #include "gui/view_last_date.hpp"
 #include "gui/view_last_time.hpp"
 #include "gui/view_sensors.hpp"
+#include "gui/view_sensors_plots.hpp"
+
 
 #include "views/view.hpp"
 
@@ -93,6 +95,8 @@ void Gui::create()
     // -----------------------------
     //      main menu
     // -----------------------------
+
+    main_menu->add_view(new View_Sensors_Plots(*data, *session));
     main_menu->add_view(new Main_New_Session((gui::View_List*)session_menu));
     main_menu->add_view(new Main_History((gui::View_List*)history_session_menu));
 
