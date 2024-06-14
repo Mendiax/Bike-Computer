@@ -426,7 +426,7 @@ int Data_Actor::loop_frame_update()
 
     sensors_data.imu.accel_hist.add_element((float)sensors_data.imu.rotation_speed.y);
 
-    PRINTF("%f\n", (float)sensors_data.imu.rotation_speed.y);
+    // PRINTF("%f\n", (float)sensors_data.imu.rotation_speed.y);
 
 
 
@@ -574,8 +574,10 @@ static void cycle_print_heart_beat()
 {
     CYCLE_UPDATE_SIMPLE(true, HEART_BEAT_CYCLE_MS,
         {
-            float memory = (float)check_free_mem()/1000.0;
-            PRINTF("[HEART_BEAT] time since boot: %.3fs Avaible memory = %.3fkb/256kb\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0, memory);
+            // float memory = (float)check_free_mem()/1000.0;
+            // PRINTF("[HEART_BEAT] time since boot: %.3fs Avaible memory = %.3fkb/256kb\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0, memory);
+            PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
+
         });
 }
 

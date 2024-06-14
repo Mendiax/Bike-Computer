@@ -84,6 +84,7 @@ void Gui::create()
     session_menu->add_view(new View_Sensors(*data, *session));
     session_menu->add_view(new View_Date(*data, *session));
     session_menu->add_view(new View_Total(*data, *session));
+    session_menu->add_view(new View_Sensors_Plots(*data, *session));
 
     // -----------------------------
     //      history
@@ -96,7 +97,6 @@ void Gui::create()
     //      main menu
     // -----------------------------
 
-    main_menu->add_view(new View_Sensors_Plots(*data, *session));
     main_menu->add_view(new Main_New_Session((gui::View_List*)session_menu));
     main_menu->add_view(new Main_History((gui::View_List*)history_session_menu));
 
