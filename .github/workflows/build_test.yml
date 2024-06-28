@@ -1,5 +1,4 @@
 name: target CI
-# runs-on: self-hosted
 
 on: push
 
@@ -119,107 +118,42 @@ jobs:
     - name: test
       run:  make ctest
 
-  Tests_HW:
-    runs-on: self-hosted
-    strategy:
-      fail-fast: false
-      matrix:
-        debug: [1, 0]
-    steps:
-    - name: Clean Workspace
-      shell: bash
-      run: |
-        echo "Cleaning workspace directory..."
-        rm -rfv ${{ github.workspace }}
-        mkdir -p ${{ github.workspace }}
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      # with:
-      #   submodules: 'true'
-
-    - name: fetch submodules
-      run: |
-        git submodule sync
-        git submodule update --init --recursive
-
-    - name: check_env
-      run:  ls
-
-    - name: cmake
-      run:  make cmake L=1 D=${{ matrix.debug }}
-
-    - name: make
-      run:  make all
-
-    - name: check_log
-      run:  make warnings
-
-    - name: run local
-      run:  make ctest
-
-
-
-  #==========================================================================
-  #                              HOST
-  #==========================================================================
-
-
-  # build_host:
-  #   needs: [test_target, warnings]
+  # Tests_HW:
   #   runs-on: self-hosted
-  #   if: success() || failure()
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       debug: [1, 0]
   #   steps:
-  #   - name: clean
-  #     run:  make clean
-
-  #   - name: build cmake for host
-  #     run:  make cmake H=1
-
-  #   - name: build host
-  #     run:  make all
-
-
-  # test_host:
-  #   needs: [build_host]
-  #   runs-on: self-hosted
-  #   steps:
-  #   - name: run tests on host
-  #     run:  make ctest
-
-
-
-  # build_test_host:
-  #   # needs: [build]
-  #   # runs-on: ubuntu-latest
-  #   runs-on: self-hosted
-  #   steps:
-  #   # - name: download pico-sdk
-  #   #   uses: actions/checkout@master
-  #   #   with:
-  #   #     repository: raspberrypi/pico-sdk
-  #   #     path: ./pico-sdk
-  #   #     submodules: 'true'
-  #   #     # recursive
-
-  #   # - name: export path
-  #   #   run: ls /tmp && ls && pwd && export PICO_SDK_PATH=./pico-sdk $$ echo $PICO_SDK_PATH
-
+  #   - name: Clean Workspace
+  #     shell: bash
+  #     run: |
+  #       echo "Cleaning workspace directory..."
+  #       rm -rfv ${{ github.workspace }}
+  #       mkdir -p ${{ github.workspace }}
   #   - name: Checkout repository
   #     uses: actions/checkout@v3
-  #     with:
-  #       submodules: 'true'
+  #     # with:
+  #     #   submodules: 'true'
 
-  #   - name: build cmake for host
-  #     run:  make cmake_host
+  #   - name: fetch submodules
+  #     run: |
+  #       git submodule sync
+  #       git submodule update --init --recursive
 
-  #   - name: build host
-  #     run:  make host
+  #   - name: check_env
+  #     run:  ls
 
+  #   - name: cmake
+  #     run:  make cmake L=1 D=${{ matrix.debug }}
 
-  # test_host:
-  #   needs: [build_test_host]
-  #   runs-on: self-hosted
-  #   steps:
-  #   - name: run tests on host
-  #     run:  make test_host
+  #   - name: make
+  #     run:  make all
+
+  #   - name: check_log
+  #     run:  make warnings
+
+  #   - name: run local
+  #     run:  make ctest
+
 
