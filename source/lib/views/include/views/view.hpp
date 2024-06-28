@@ -18,6 +18,8 @@
 #include "views/screenfunc/common.h"
 #include "views/screenfunc/val.h"
 #include "views/screenfunc/label.h"
+#include "views/screenfunc/plot.h"
+
 
 
 #include "window.h"
@@ -27,7 +29,7 @@
 // |            macros             |
 // #-------------------------------#
 #define TOP_BAR_HEIGHT (DISPLAY_HEIGHT / 10)
-#define MAX_NUMBER_OF_WINDOWS 13
+#define MAX_NUMBER_OF_WINDOWS 20
 
 #define VIEW_DEBUG
 
@@ -84,6 +86,14 @@ public:
                       const Frame &frame, Align align = Align::LEFT);
     void add_Units(const char* over, const char* under, const Frame& frame, Align align);
 
+    template<typename T>
+    void add_plot(const PlotSettings& settings);
+    template<typename T>
+    void add_plot_ring(const PlotSettings& settings);
+
+
+
+
     /**
      * @brief adds label in fomrat:
      * |<x0> <x1> ... <xn>| evenly distributed
@@ -102,7 +112,7 @@ public:
      * @param len
      * @return std::tuple<Frame, Frame>
      */
-    static std::tuple<Frame, Frame> splitFrame(const Frame &frame, uint16_t length, bool align_right = false);
+    static std::tuple<Frame, Frame> split_frame(const Frame &frame, uint16_t length, bool align_right = false);
 
     /**
      * @brief splits frame into 2 frames with half of width
@@ -111,6 +121,8 @@ public:
      * @return constexpr std::tuple<Frame, Frame>
      */
     static std::tuple<Frame, Frame> split_vertical(const Frame &frame, uint8_t ratio = 2, bool invert = false);
+    static std::vector<Frame> split_vertical_arr(const Frame &frame, uint8_t cnt);
+
     // std::tuple<Frame, Frame> split_vertical(const Frame& frame, float ratio);
 
     /**
@@ -248,6 +260,26 @@ void View_Creator::add_value(const char* format, size_t commonLength, const T* d
     add_new_window(new_window);
 }
 
+template<typename T>
+void View_Creator::add_plot(const PlotSettings& settings)
+{
+    Window new_window;
+    new_window.updateFunc_p = get_draw_func_plot<T>();
+    new_window.settings.plot = settings;
+    add_new_window(new_window);
+}
+
+template<typename T>
+void View_Creator::add_plot_ring(const PlotSettings& settings)
+{
+    Window new_window;
+    new_window.updateFunc_p = get_draw_func_plot_ring<T>();
+    new_window.settings.plot = settings;
+    add_new_window(new_window);
+}
+
+
+
 template <typename T, typename Q>
 void View_Creator::add_Vertical(const char *overFormat, size_t overCommonLength, const T *overData,
                                 const char *underFormat, size_t underCommonLength, const Q *underData,
@@ -272,7 +304,7 @@ void View_Creator::addValueUnitsVertical(const char *format, size_t commonLength
                                          const Frame &frame,
                                          Align align, bool alignRight)
 {
-    auto [frameValue, frameUnits] = this->splitFrame(frame, commonLength + 1, alignRight);
+    auto [frameValue, frameUnits] = this->split_frame(frame, commonLength + 1, alignRight);
     this->add_value(format, commonLength, data, frameValue);
     this->add_Units(over, under, frameUnits,  align);
 }
@@ -284,7 +316,7 @@ void View_Creator::addValueValuesVertical(const char *format, size_t commonLengt
                                            const Frame &frame,
                                            Align align, bool alignRight)
 {
-    auto [frameValue, frameUnits] = this->splitFrame(frame, (uint16_t)commonLength + 1, alignRight);
+    auto [frameValue, frameUnits] = this->split_frame(frame, (uint16_t)commonLength + 1, alignRight);
     this->add_value(format, commonLength, data, frameValue);
     this->add_Vertical(overFormat, overCommonLength, overData,
                        underFormat, underCommonLength, underData,

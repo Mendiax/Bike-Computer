@@ -15,12 +15,13 @@ set(required_libraries
     Display
     Speedometer
     Cadence
-    BMP280
+    DOF
     Common
     GSM
     Tools
     Actors
-    SD)
+    SD
+    )
 
 if(PICO_PLATFORM MATCHES "host")
     list(APPEND required_libraries RTC)

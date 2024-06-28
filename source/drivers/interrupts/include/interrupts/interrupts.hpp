@@ -23,6 +23,14 @@ struct Interrupt
     gpio_irq_level event;
 };
 
+enum INTERRUPT_CORE{
+    NONE,
+    CORE_0,
+    CORE_1
+};
+
+void interrupt_add(Interrupt interrupt, INTERRUPT_CORE core, bool pullup);
+
 void interruptSetupCore0(void);
 void interruptSetupCore1(void);
 

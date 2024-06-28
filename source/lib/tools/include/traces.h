@@ -13,6 +13,8 @@
 #include <bitset>
 #include <iostream>
 
+// #define TRACES_DISABLE
+
 #define PRINT_BITS(x) do{std::bitset<sizeof(x)*8> __bits = x; std::cout << #x "=" <<__bits << std::endl;}while(0)
 #define PRINT_BITS_N(x, n) do{std::bitset<n> __bits = x; std::cout << #x "=" <<__bits << std::endl;}while(0)
 #define PRINT_BITS_ARRAY(arr, n) do{\
@@ -85,6 +87,9 @@ extern mutex tracesMutex;
 static inline void traces_init()
 {
     mutex_init(&tracesMutex);
+    #ifdef TRACES_DISABLE
+    return;
+    #endif
     // all 0 ids are for abnormal traces and tunrd on on default
     for(size_t i = 0; i < NO_TRACES; i++)
     {

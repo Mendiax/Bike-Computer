@@ -20,9 +20,12 @@ static Ring_Buffer* press_buffer = 0;
 static Filter_Low_Pass<float>* filter = 0;
 
 
-std::tuple<float, float> bmp280::get_temp_press()
+
+std::tuple<float, float> bmp280::get_temp_press(bool update_data)
 {
-    bmp280_update_data();
+    if(update_data){
+        bmp280_update_data();
+    }
     float temperature = bmp280_get_temp();
     float pressure = bmp280_get_press();
 
@@ -45,6 +48,10 @@ std::tuple<float, float> bmp280::get_temp_press()
 
 
     return std::make_tuple(temperature, press_filter);
+}
+
+void bmp280::update(){
+    bmp280_update_data();
 }
 
 void bmp280::init()

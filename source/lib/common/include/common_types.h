@@ -1,16 +1,28 @@
-#ifndef TYPES_H
-#define TYPES_H
-
-#include "bike_config.hpp"
-// #include "display/driver.hpp"
-#include "gear_suggestion.hpp"
-
+#ifndef __COMMON_TYPES_H__
+#define __COMMON_TYPES_H__
+// #-------------------------------#
+// |           includes            |
+// #-------------------------------#
+// c/c++ includes
 #include "pico/util/datetime.h"
-
 #include <string>
 #include <array>
 #include <vector>
 
+// my includes
+#include "bike_config.hpp"
+// #include "display/driver.hpp"
+#include "gear_suggestion.hpp"
+#include <vector3.hpp>
+#include "ringarray.hpp"
+
+// #-------------------------------#
+// |            macros             |
+// #-------------------------------#
+
+// #-------------------------------#
+// | global types declarations     |
+// #-------------------------------#
 struct SpeedData
 {
     uint64_t drive_time; // in s
@@ -76,6 +88,7 @@ struct Battery
 {
     bool is_charging;
     int8_t level; // in %
+    float voltage;
 };
 
 struct GpsDataS
@@ -107,6 +120,15 @@ struct RGB
     int8_t r, g, b;
 };
 
+struct IMU
+{
+    Vector3<float> rotation;
+    Vector3<float> rotation_speed;
+    Vector3<int16_t> accelerometer;
+    Vector3<int16_t> magnetometer;
+    RingArray<float> accel_hist;
+};
+
 struct Gear_Suggestions
 {
     float cadence_min;
@@ -126,6 +148,7 @@ typedef struct Sensor_Data
     GpsDataS gps_data;
     Battery lipo; // battery info
     Gear_S gear;  // gear {front, rear}
+    IMU imu;
     // SystemState current_state;
     // gear suggestions
     Gear_Suggestions gear_suggestions;
@@ -140,5 +163,17 @@ typedef struct Sensor_Data
     float velocity_raw;
 
 } Sensor_Data;
+
+// #-------------------------------#
+// | global variables declarations |
+// #-------------------------------#
+
+// #-------------------------------#
+// | global function declarations  |
+// #-------------------------------#
+
+// #-------------------------------#
+// |  global function definitions  |
+// #-------------------------------#
 
 #endif

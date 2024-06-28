@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <pico/stdlib.h>
-#include "bmp280.hpp"
 #include "display/driver.hpp"
 #include "pico/time.h"
 #include "pico/util/datetime.h"
@@ -26,6 +25,9 @@
 #include "signals.hpp"
 #include "traces.h"
 #include "common_types.h"
+#include "dof.hpp"
+#include "bmp280.hpp"
+#include "MPU9250.hpp"
 
 #include "speedometer/speedometer.hpp"
 #include "cadence/cadence.hpp"
@@ -160,8 +162,15 @@ static void send_speed_comp(float raw, float filtered)
 // #------------------------------#
 void Data_Actor::setup(void)
 {
+    sensors_data.imu.accel_hist.set_length(100);
+
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
+    TRACE_DEBUG(0, TRACE_MAIN, "INIT SIM868\n");
+    // setup sim868
+    sim868::init();
+    sim868::turn_on();
+
     session_p = new Session_Data();
 
     rtc_init();
@@ -198,39 +207,42 @@ void Data_Actor::setup(void)
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 0);
 
-    TRACE_DEBUG(0, TRACE_MAIN, "INIT SIM868\n");
-    // setup sim868
-    sim868::init();
-    sim868::turnOn();
 
 
-    TRACE_DEBUG(0, TRACE_MAIN, "INIT BMP280\n");
-    bmp280::init();
-    TRACE_DEBUG(0, TRACE_MAIN, "BMP280 IS ON\n");
+
+    TRACE_DEBUG(0, TRACE_MAIN, "INIT DOF\n");
+    dof::init(true);
+    mpu9250::set_reference(
+        sensors_data.imu.rotation, sensors_data.imu.rotation_speed,
+        sensors_data.imu.accelerometer, sensors_data.imu.magnetometer);
+    TRACE_DEBUG(0, TRACE_MAIN, "DOF IS ON\n");
 
     TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR SIM868\n");
     // while (sim868::check_for_boot_long() == false) {
     //     sleep_ms(1000);
     // }
-    sim868::waitForBoot();
-    TRACE_DEBUG(0, TRACE_MAIN, "SIM868 IS ON\n");
+    // sim868::waitForBoot();
+    // TRACE_DEBUG(0, TRACE_MAIN, "SIM868 IS ON\n");
 
-    TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY\n");
-    {
-        bool is_charging = 0;
-        uint8_t bat_lev = 0;
-        uint16_t voltage = 0;
-        while(sim868::get_bat_level(is_charging, bat_lev, voltage) == false)
-        {
-            sleep_ms(500);
-        }
-        sensors_data.lipo.is_charging = is_charging;
-        sensors_data.lipo.level = bat_lev;
-        TRACE_DEBUG(1, TRACE_CORE_0,
-                    "bat info %d,%" PRIu8 ",%" PRIu16 "\n",
-                    is_charging, bat_lev, voltage);
-    }
-    TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY DONE\n");
+    // TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY\n");
+    // {
+    //     bool is_charging = 0;
+    //     uint8_t bat_lev = 0;
+    //     uint16_t voltage = 0;
+    //     while(sim868::get_bat_level(is_charging, bat_lev, voltage) == false)
+    //     {
+    //         sleep_ms(500);
+    //     }
+    //     sensors_data.lipo.is_charging = is_charging;
+    //     sensors_data.lipo.level = bat_lev;
+    //     TRACE_DEBUG(1, TRACE_CORE_0,
+    //                 "bat info %d,%" PRIu8 ",%" PRIu16 "\n",
+    //                 is_charging, bat_lev, voltage);
+    // }
+    // TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY DONE\n");
+
+    // mpu9250::init();
+    // float data[3];
 
 
 
@@ -412,6 +424,10 @@ int Data_Actor::loop_frame_update()
     cycle_get_slope();
 
 
+    sensors_data.imu.accel_hist.add_element((float)sensors_data.imu.rotation_speed.y);
+
+    // PRINTF("%f\n", (float)sensors_data.imu.rotation_speed.y);
+
 
 
 
@@ -558,8 +574,10 @@ static void cycle_print_heart_beat()
 {
     CYCLE_UPDATE_SIMPLE(true, HEART_BEAT_CYCLE_MS,
         {
-            float memory = (float)check_free_mem()/1000.0;
-            PRINTF("[HEART_BEAT] time since boot: %.3fs Avaible memory = %.3fkb/256kb\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0, memory);
+            // float memory = (float)check_free_mem()/1000.0;
+            // PRINTF("[HEART_BEAT] time since boot: %.3fs Avaible memory = %.3fkb/256kb\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0, memory);
+            PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
+
         });
 }
 
@@ -568,7 +586,7 @@ static void cycle_get_battery_status()
     bool is_charging = 0;
     uint8_t bat_lev = 0;
     uint16_t voltage = 0;
-    CYCLE_UPDATE_SIMPLE_SLOW_RERUN(sim868::get_bat_level(is_charging, bat_lev, voltage), BAT_LEV_CYCLE_MS, 500,
+    CYCLE_UPDATE_SIMPLE_SLOW_RERUN(sim868::get_bat_level(is_charging, bat_lev, voltage), BAT_LEV_CYCLE_MS, 3000,
                  {
 
                      sensors_data.lipo.is_charging = is_charging;

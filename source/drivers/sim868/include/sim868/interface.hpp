@@ -97,8 +97,8 @@ namespace sim868
     bool is_booted(void);
     bool is_on(void);
     void init(void);
-    void turnOn(void);
-    void turnOff(void);
+    void turn_on(void);
+    void turn_off(void);
     void reset(void);
     void waitForBoot(void);
 

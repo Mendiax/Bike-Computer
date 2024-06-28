@@ -94,24 +94,24 @@ if(PICO_PLATFORM MATCHES "rp2040")
     #################################### Console #####################################
     # TODO tests: https://stackoverflow.com/questions/13703647/how-to-properly-add-include-directories-with-cmake
 
-    message("PICO_GSM_CONSOLE_FILE=${PICO_GSM_CONSOLE_FILE}")
-    if( NOT PICO_GSM_CONSOLE_FILE )
-            SET(PICO_GSM_CONSOLE_FILE pico_gsm_console)
-            message("SET PICO_GSM_CONSOLE_FILE = ${PICO_GSM_CONSOLE_FILE}")
-    endif()
-    add_executable(${PICO_GSM_CONSOLE_FILE} source/app/gsm_console.cpp ${SD_CONFIG_SRC})
+#     message("PICO_GSM_CONSOLE_FILE=${PICO_GSM_CONSOLE_FILE}")
+#     if( NOT PICO_GSM_CONSOLE_FILE )
+#             SET(PICO_GSM_CONSOLE_FILE pico_gsm_console)
+#             message("SET PICO_GSM_CONSOLE_FILE = ${PICO_GSM_CONSOLE_FILE}")
+#     endif()
+#     add_executable(${PICO_GSM_CONSOLE_FILE} source/app/gsm_console.cpp ${SD_CONFIG_SRC})
 
-    pico_enable_stdio_usb(${PICO_GSM_CONSOLE_FILE} 1)
-    pico_enable_stdio_uart(${PICO_GSM_CONSOLE_FILE} 0)
+#     pico_enable_stdio_usb(${PICO_GSM_CONSOLE_FILE} 1)
+#     pico_enable_stdio_uart(${PICO_GSM_CONSOLE_FILE} 0)
 
-    pico_add_extra_outputs(${PICO_GSM_CONSOLE_FILE})
+#     pico_add_extra_outputs(${PICO_GSM_CONSOLE_FILE})
 
-    target_link_libraries( ${PICO_GSM_CONSOLE_FILE}
-            pico_stdlib
-            pico_multicore
-            Tools
-            Cores
-    )
+#     target_link_libraries( ${PICO_GSM_CONSOLE_FILE}
+#             pico_stdlib
+#             pico_multicore
+#             Tools
+#             Cores
+#     )
 
 else()
     add_definitions(-DBUILD_FOR_HOST)
@@ -129,7 +129,7 @@ else()
 
     # enable display emulation
     set(BUILD_MOCK_DISPLAY "BUILD")
-    set(BUILD_MOCK_BMP280 "BUILD")
+    set(BUILD_MOCK_DOF "BUILD")
     set(BUILD_MOCK_INTERRUPTS "BUILD")
     set(BUILD_MOCK_MULTICORE "BUILD")
 
@@ -147,7 +147,7 @@ add_subdirectory(source/lib/Parser)
 add_subdirectory(source/lib/Actors)
 add_subdirectory(source/lib/Filters)
 
-add_subdirectory(source/drivers/BMP280)
+add_subdirectory(source/drivers/DOF)
 add_subdirectory(source/drivers/display)
 add_subdirectory(source/lib/views)
 add_subdirectory(source/lib/gui)
@@ -161,6 +161,7 @@ add_subdirectory(source/drivers/interrupts)
 add_subdirectory(source/drivers/buttons)
 add_subdirectory(source/drivers/speedometer)
 add_subdirectory(source/drivers/cadence)
+
 
 add_subdirectory(source/lib/SD)
 

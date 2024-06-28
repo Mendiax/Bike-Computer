@@ -11,7 +11,7 @@
 
 #define DECLARE_FUNC(type) \
     void drawFormat_##type(const void *settings); \
-    drawFunc_p getDrawFunc(const type* var);
+    DrawFuncT getDrawFunc(const type* var);
 
 DECLARE_FUNC(int8_t)
 DECLARE_FUNC(uint8_t)
@@ -31,24 +31,24 @@ DECLARE_FUNC(Time_HourS)
 
 
 #undef DECLARE_FUNC
-drawFunc_p getDrawFunc(const mtime_t* var);
+DrawFuncT getDrawFunc(const mtime_t* var);
 void ValDrawTime(const void *settings);
 
 
 #define TIMES_LABEL_LENGTH 8
-drawFunc_p getDrawFunc(const TimeS* var);
+DrawFuncT getDrawFunc(const TimeS* var);
 void drawFormat_TimeS(const void *settings);
 
 
-drawFunc_p getDrawFunc(const void* var);
+DrawFuncT getDrawFunc(const void* var);
 void drawFormat_void(const void *settings);
 
 
-drawFunc_p getDrawFunc(const char* var);
+DrawFuncT getDrawFunc(const char* var);
 void drawFormat_char_p(const void *settings);
 
 #define BAT_LEVEL_LABEL_LENGTH 5
-drawFunc_p getDrawFunc(const Battery* var);
+DrawFuncT getDrawFunc(const Battery* var);
 void draw_battery_level(const void *settings);
 
 

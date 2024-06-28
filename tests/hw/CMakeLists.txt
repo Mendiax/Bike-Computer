@@ -32,7 +32,7 @@ target_link_libraries(${PICO_TEST_FILE}
     Common
     bcTest
     Display
-    BMP280
+    DOF
     SD
     Actors
     pico_test
@@ -67,7 +67,7 @@ target_link_libraries(${PICO_TEST_FILE}
     Common
     bcTest
     Display
-    BMP280
+    DOF
     SD
     Actors
     pico_test

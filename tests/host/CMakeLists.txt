@@ -11,7 +11,7 @@ function(add_test_executable test_name)
       MOCK_MULTICORE
       bcTest
       Parser
-      BMP280
+      DOF
       Display
       FatFs_SPI
       SD
@@ -22,6 +22,7 @@ function(add_test_executable test_name)
       IMGUI_SDL2
       MOCK_DISPLAY
       Actors
+      Views
       ) # move as param ?
 
     # Add the test to CTest
@@ -72,6 +73,8 @@ if(PICO_PLATFORM MATCHES "host")
   add_test_executable(test_sim868 test_sim868.cpp)
   # add_test_executable(test_imgui test_imgui.cpp)
   add_test_executable(test_actors test_actors.cpp)
+  add_test_executable(test_plot test_plot.cpp)
+
 
 
 
