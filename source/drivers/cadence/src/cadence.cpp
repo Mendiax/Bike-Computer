@@ -21,7 +21,9 @@ static volatile absolute_time_t speed_lastupdate;
 //[m/s]
 static volatile float current_cadence = 0.0f;
 // check if last value was read by cadence_update() function
-static volatile bool dataReady = false;
+static volatile bool data_ready = false;
+static uint8_t no_magnets = 1;
+
 
 // static declarations
 static void cadence_update();
@@ -29,7 +31,7 @@ static void cadence_update();
 static bool repeating_timer_callback(struct repeating_timer *t);
 
 static constexpr uint16_t cadence_to_ms(float speed);
-static constexpr float cadence_from_delta(float delta_time);
+static float cadence_from_delta(float delta_time);
 template<typename T>
 static constexpr T rps_to_rpm(T rps);
 
@@ -38,26 +40,30 @@ Interrupt interrupt_cadence = {PIN_CADENCE, cadence_update, GPIO_IRQ_EDGE_FALL};
 
 #define MAX_TIME (cadence_to_ms(MIN_CADENCE))
 
+void cadence::setup(uint8_t no_magnets) {
+    ::no_magnets = no_magnets;
+}
+
 /*returns last read speed [m/s]*/
 float cadence::get_cadence()
 {
-    absolute_time_t update_us = get_absolute_time();
-    absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
+    const absolute_time_t update_us = get_absolute_time();
+    const absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
 
     // copy to local buffer global
     auto current_cadence = ::current_cadence;
 
-    if(!dataReady) // data is not updated
+    if(!data_ready) // data is not updated
     {
-        int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
-        auto cadence = cadence_from_delta(delta_time);
+        const int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
+        const auto cadence = cadence_from_delta(delta_time);
         if(cadence < current_cadence)
         {
             current_cadence = cadence;
         }
     }
     // data is ready
-    dataReady = false;
+    data_ready = false;
     current_cadence = current_cadence >= MIN_CADENCE ? current_cadence : 0.0f;
 
     TRACE_DEBUG(3, TRACE_CADENCE, "current_cadence: %f\n", current_cadence);
@@ -65,7 +71,7 @@ float cadence::get_cadence()
     return current_cadence;
 }
 
-void cadence::emulate(float cadence)
+void cadence::emulate(const float cadence)
 {
     TRACE_DEBUG(1, TRACE_CADENCE, "Speed emulate add timer\n");
     static struct repeating_timer timer;
@@ -78,11 +84,11 @@ void cadence::emulate(float cadence)
 
 
 // speed in km/h
-constexpr static uint16_t cadence_to_ms(float cadence)
+constexpr static uint16_t cadence_to_ms(const float cadence)
 {
     // rpm -> ms/r
-    double rps = (cadence / 60.0);
-    double ms_per_rot = 1000.0/rps;
+    const double rps = (cadence / 60.0);
+    const double ms_per_rot = 1000.0/rps;
     return ms_per_rot;
 }
 
@@ -99,23 +105,23 @@ static constexpr T rps_to_rpm(T rps)
     return rps * (T)60;
 }
 
-static constexpr float cadence_from_delta(float delta_time)
+static float cadence_from_delta(const float delta_time)
 {
-    double rps = 1000.0 / (double)delta_time;
-    return rps_to_rpm(rps);
+    const double rps = 1000.0 / (double)delta_time;
+    return rps_to_rpm(rps) / (float)no_magnets;
 }
 static void cadence_update()
 {
-        absolute_time_t update_us = get_absolute_time();
-        absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
+    const absolute_time_t update_us = get_absolute_time();
+    const absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
 
-        int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
-        if (delta_time < cadence_to_ms(200.0))
-        {
-            return;
-        }
+    int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
+    if (delta_time < cadence_to_ms(200.0))
+    {
+        return;
+    }
 
-        current_cadence = cadence_from_delta(delta_time);
-        absolute_time_copy_to_volatile(speed_lastupdate, update_us);
-        dataReady = true;
+    current_cadence = cadence_from_delta(delta_time);
+    absolute_time_copy_to_volatile(speed_lastupdate, update_us);
+    data_ready = true;
 }

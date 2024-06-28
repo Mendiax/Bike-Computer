@@ -28,7 +28,7 @@ namespace speed
      *
      * @param wheel_diameter in meters
      */
-    void set_wheel(float wheel_diameter);
+    void setup(float wheel_diameter, uint8_t no_magnets);
 
     /**
      * @brief Get the time total

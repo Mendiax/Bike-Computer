@@ -50,6 +50,9 @@ Gear_S Gear_Iterator::get_gear()
 #define TIME_OFFSET_STR "TIME_OFFSET"
 #define CADENCE_MIN_STR "CAD_MIN"
 #define CADENCE_MAX_STR "CAD_MAX"
+#define NO_MAGNETS_CADENCE_STR "CADENCE_MAGNETS"
+#define NO_MAGNETS_SPEED_STR "SPEED_MAGNETS"
+
 
 
 
@@ -126,9 +129,15 @@ CAD_MAX:90
 */
 bool Bike_Config::from_string(const char* str)
 {
-    this->wheel_size = 0.0;
+    // defaults
+    this->wheel_size = 2.0;
     this->gear_front.clear();
     this->gear_rear.clear();
+    this->no_magnets_cadence = 1;
+    this->no_magnets_speed = 1;
+    this->cadence_max = 90;
+    this->cadence_min = 70;
+
 
     std::istringstream iss(str);
     std::string line;
@@ -172,6 +181,14 @@ bool Bike_Config::from_string(const char* str)
         else if(line_arr.at(0).compare(CADENCE_MIN_STR) == 0)
         {
             this->cadence_min = std::atoi(line_arr.at(1).c_str());
+        }
+        else if(line_arr.at(0).compare(NO_MAGNETS_CADENCE_STR) == 0)
+        {
+            this->no_magnets_cadence = std::atoi(line_arr.at(1).c_str());
+        }
+        else if(line_arr.at(0).compare(NO_MAGNETS_SPEED_STR) == 0)
+        {
+            this->no_magnets_speed = std::atoi(line_arr.at(1).c_str());
         }
     }
 

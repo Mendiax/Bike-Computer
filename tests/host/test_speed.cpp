@@ -11,7 +11,7 @@
 
 TEST_CASE_SUB_FUNCTION_DEF(sim_avg_test)
 {
-    speed::set_wheel(0.5); // small wheel for faster rotation
+    speed::setup(0.5, 1); // small wheel for faster rotation
 
     {
         const float target_speed = 20.0f;
