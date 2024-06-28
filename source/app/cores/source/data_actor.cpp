@@ -167,6 +167,7 @@ void Data_Actor::setup(void)
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
     TRACE_DEBUG(0, TRACE_MAIN, "INIT SIM868\n");
+
     // setup sim868
     sim868::init();
     sim868::turn_on();
@@ -501,7 +502,8 @@ static bool load_config_from_file(const char* config_str, const char* file_name)
         config.name = name.at(0);
     else
         config.name = "unknown";
-    speed::set_wheel(config.wheel_size);
+    cadence::setup(config.no_magnets_cadence);
+    speed::setup(config.wheel_size, config.no_magnets_speed);
 
     return success;
 }

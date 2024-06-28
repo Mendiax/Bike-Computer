@@ -45,6 +45,10 @@ struct Bike_Config
     int hour_offset;
     uint16_t cadence_min;
     uint16_t cadence_max;
+    uint8_t no_magnets_cadence;
+    uint8_t no_magnets_speed;
+
+
 
     constexpr static inline bool is_gear_null(const Gear_S& gear)
     {

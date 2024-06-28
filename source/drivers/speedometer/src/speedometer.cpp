@@ -44,6 +44,7 @@ static volatile uint_fast64_t speed_total_time = 0;
 static volatile bool dataReady = false;
 static bool increment_wheelCounter = 0;
 static float wheel_size = 2.0;
+static uint8_t no_magnets = 1;
 
 // static declarations
 static void speed_update();
@@ -159,7 +160,8 @@ bool repeating_timer_callback([[maybe_unused]] struct repeating_timer *t) {
 
 static float speed_velocity_from_delta(int64_t delta_time)
 {
-    return wheel_size / ((double)delta_time / 1000.0);
+    const auto speed =  wheel_size / ((double)delta_time / 1000.0) ;
+    return speed  / (float)no_magnets;
 }
 static void speed_update()
 {
@@ -211,9 +213,10 @@ float speed::get_distance_total_m(const bool reset)
     return dist;
 }
 
-void speed::set_wheel(float wheel_diameter)
+void speed::setup(float wheel_diameter, uint8_t no_magnets)
 {
     wheel_size = wheel_diameter;
+    ::no_magnets = no_magnets;
 }
 
 float speed::get_velocity_kph()

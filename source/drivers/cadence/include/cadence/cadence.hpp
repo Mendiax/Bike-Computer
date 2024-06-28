@@ -13,6 +13,7 @@
 
 namespace cadence
 {
+    void setup(uint8_t no_magnets);
     float get_cadence();
     void emulate(float cadence=80.0);
 };
