@@ -91,28 +91,6 @@ if(PICO_PLATFORM MATCHES "rp2040")
             FatFs_SPI
     )
 
-    #################################### Console #####################################
-    # TODO tests: https://stackoverflow.com/questions/13703647/how-to-properly-add-include-directories-with-cmake
-
-#     message("PICO_GSM_CONSOLE_FILE=${PICO_GSM_CONSOLE_FILE}")
-#     if( NOT PICO_GSM_CONSOLE_FILE )
-#             SET(PICO_GSM_CONSOLE_FILE pico_gsm_console)
-#             message("SET PICO_GSM_CONSOLE_FILE = ${PICO_GSM_CONSOLE_FILE}")
-#     endif()
-#     add_executable(${PICO_GSM_CONSOLE_FILE} source/app/gsm_console.cpp ${SD_CONFIG_SRC})
-
-#     pico_enable_stdio_usb(${PICO_GSM_CONSOLE_FILE} 1)
-#     pico_enable_stdio_uart(${PICO_GSM_CONSOLE_FILE} 0)
-
-#     pico_add_extra_outputs(${PICO_GSM_CONSOLE_FILE})
-
-#     target_link_libraries( ${PICO_GSM_CONSOLE_FILE}
-#             pico_stdlib
-#             pico_multicore
-#             Tools
-#             Cores
-#     )
-
 else()
     add_definitions(-DBUILD_FOR_HOST)
     add_definitions(-DBUILD_MOCK_INTERRUPTS)
