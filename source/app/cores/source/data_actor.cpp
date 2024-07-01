@@ -73,15 +73,15 @@
 // #------------------------------#
 // | global variables definitions |
 // #------------------------------#
+Bike_Config config;
+bool config_received = false;
+Sensor_Data sensors_data;
+Session_Data *session_p = 0;
 
 
 // #------------------------------#
 // | static variables definitions |
 // #------------------------------#
-static Bike_Config config;
-static bool config_received = false;
-static Sensor_Data sensors_data;
-static Session_Data *session_p = 0;
 
 
 // #------------------------------#
@@ -89,7 +89,6 @@ static Session_Data *session_p = 0;
 // #------------------------------#
 static void cycle_get_slope();
 static float calc_slope(const float distance, const float altitude);
-static bool load_config_from_file(const char* config_str, const char* file_name);
 
 static void update_total_stats();
 
@@ -270,131 +269,6 @@ int Data_Actor::loop(void)
     return 1;
 }
 
-void Data_Actor::handle_sig_set_config(const Signal &sig)
-{
-    const auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Set_Config*>();
-    config_received = load_config_from_file(payload->file_content.c_str(), payload->file_name.c_str());
-    if(!config_received)
-    {
-        // send msg to user
-
-        auto payload = new Display_Actor::Sig_Display_Actor_Show_Msg();
-        *payload = {
-            std::string("Cannot load bike config"),
-            {0xf,0xf,0xf},
-            0
-        };
-        Signal sig(actors_common::SIG_DISPLAY_ACTOR_SHOW_MSG, payload);
-        Display_Actor::get_instance().send_signal(sig);
-    }
-    else
-    {
-        config.to_string();
-    }
-    delete payload;
-}
-
-void Data_Actor::handle_sig_session_load(const Signal &sig)
-{
-    auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Load_Session*>();
-
-    if (session_p)
-        delete session_p;
-    session_p = new Session_Data(payload->session_string.c_str());
-    delete payload;
-}
-
-void Data_Actor::handle_sig_set_total(const Signal &sig)
-{
-    const auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Set_Total*>();
-
-    sensors_data.total_time_ridden = payload->ridden_time_total;
-    sensors_data.total_distance_ridden = payload->ridden_dist_total;
-    delete payload;
-}
-
-void Data_Actor::handle_sig_req_packet(const Signal &sig)
-{
-    auto payload = sig.get_payload<Data_Actor::Sig_Display_Actor_Req_Packet*>();
-    if(session_p)
-    {
-        *payload->packet_p = {sensors_data, *session_p};
-        {
-            Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
-            Display_Actor::get_instance().send_signal(sig);
-        }
-    }
-    else {
-        *payload->packet_p = {sensors_data, Session_Data()};
-        {
-            Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
-            Display_Actor::get_instance().send_signal(sig);
-        }
-    }
-}
-
-
-
-void Data_Actor::handle_sig_pause([[maybe_unused]] const Signal &sig)
-{
-    speed::stop();
-    session_p->pause();
-}
-void Data_Actor::handle_sig_continue([[maybe_unused]] const Signal &sig)
-{
-    session_p->cont();
-    speed::start();
-}
-
-
-void Data_Actor::handle_sig_session_start([[maybe_unused]] const Signal &sig)
-{
-    speed::stop();
-    speed::reset();
-    {
-        if(session_p != nullptr)
-            delete session_p;
-        session_p = new Session_Data();
-        session_p->start(sensors_data.current_time);
-        session_p->pause();
-    }
-}
-
-void Data_Actor::handle_sig_start([[maybe_unused]] const Signal &sig)
-{
-    session_p->pause();
-    speed::start(); // TODO popraw start
-
-}
-void Data_Actor::handle_sig_stop(const Signal &sig)
-{
-    speed::stop();
-
-    // sensors_data.current_state = SystemState::TURNED_ON;
-
-    if(session_p == nullptr)
-    {
-        return;
-    }
-
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_End_Sesion*>();
-
-    if(session_p->has_started())
-    {
-        session_p->end(sensors_data.current_time);
-        if(payload->save)
-        {
-            auto payload = new Display_Actor::Sig_Display_Actor_Save_Sesion();
-            payload->session = *session_p;
-            Signal sig(actors_common::SIG_DISPLAY_ACTOR_SAVE_SESSION, payload);
-            Display_Actor::get_instance().send_signal(sig);
-        }
-    }
-    if(session_p != nullptr)
-        delete session_p;
-    session_p = new Session_Data();
-}
-
 
 int Data_Actor::loop_frame_update()
 {
@@ -494,19 +368,7 @@ static float calc_slope(const float distance, const float altitude)
     return slope;
 }
 
-static bool load_config_from_file(const char* config_str, const char* file_name)
-{
-    bool success = config.from_string(config_str);
-    auto name = split_string(file_name, '.');
-    if(name.size() > 0)
-        config.name = name.at(0);
-    else
-        config.name = "unknown";
-    cadence::setup(config.no_magnets_cadence);
-    speed::setup(config.wheel_size, config.no_magnets_speed);
 
-    return success;
-}
 
 static void update_total_stats()
 {

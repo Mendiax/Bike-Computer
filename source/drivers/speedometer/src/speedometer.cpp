@@ -31,18 +31,18 @@
 
 
  // static variables definitions
-static volatile absolute_time_t speed_lastupdate_prev;
-static volatile absolute_time_t speed_lastupdate;
+static volatile absolute_time_t speed_last_update_prev;
+static volatile absolute_time_t speed_last_update;
 
 //[m/s]
 static volatile float speed_velocity = 0.0f;
-static volatile uint_fast64_t speed_wheelCounter = 0;
-static volatile uint_fast64_t speed_wheelCounter_total = 0;
+static volatile uint_fast64_t speed_wheel_counter = 0;
+static volatile uint_fast64_t speed_wheel_counter_total = 0;
 static volatile uint_fast64_t speed_total_time = 0;
 
 // check if last value was read by speed_getSpeed() function
-static volatile bool dataReady = false;
-static bool increment_wheelCounter = 0;
+static volatile bool data_ready = false;
+static bool increment_wheel_counter = 0;
 static float wheel_size = 2.0;
 static uint8_t no_magnets = 1;
 
@@ -84,12 +84,12 @@ float speed::get_velocity_kph_raw()
 static float speed_getSpeed(float last_speed)
 {
     absolute_time_t update_us = get_absolute_time();
-    absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
+    absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_last_update);
 
     int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
     float current_speed = 0;
 
-    if(!dataReady) // data is not updated
+    if(!data_ready) // data is not updated
     {
         auto speed = speed_velocity_from_delta(delta_time);
         if(speed < last_speed)
@@ -97,7 +97,7 @@ static float speed_getSpeed(float last_speed)
             last_speed = speed;
         }
     }
-    dataReady = false;
+    data_ready = false;
     DEBUG_SPEED("getSpeed : %ul speed : %f\n", to_ms_since_boot(update_us), current_speed);
     current_speed = last_speed >= speed_kph_to_mps(MIN_SPEED) ? last_speed : 0.0;
     return current_speed;
@@ -166,23 +166,23 @@ static float speed_velocity_from_delta(int64_t delta_time)
 static void speed_update()
 {
     absolute_time_t update_us = get_absolute_time();
-    absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_lastupdate);
+    absolute_time_t last_update_us = absolute_time_copy_volatile(&speed_last_update);
 
     int64_t delta_time = us_to_ms(absolute_time_diff_us(last_update_us, update_us));
     if (delta_time < speed_to_ms(99.0)) // max speed is not bigger than 99km/h
     {
         return;
     }
-    speed_wheelCounter += (increment_wheelCounter == 1);
-    speed_wheelCounter_total++;
+    speed_wheel_counter += (increment_wheel_counter == 1);
+    speed_wheel_counter_total++;
     speed_velocity = speed_velocity_from_delta(delta_time);
     // if speed > MIN add time to counter
     if(speed_velocity >= speed_kph_to_mps(MIN_SPEED))
     {
         speed_total_time += delta_time;
     }
-    absolute_time_copy_to_volatile(speed_lastupdate, update_us);
-    dataReady = true;
+    absolute_time_copy_to_volatile(speed_last_update, update_us);
+    data_ready = true;
 }
 
 float speed::get_time_total(const bool reset)
@@ -207,9 +207,9 @@ float speed::get_time_total_s(const bool reset)
 
 float speed::get_distance_total_m(const bool reset)
 {
-    const float dist = (float)speed_wheelCounter_total * wheel_size;
+    const float dist = (float)speed_wheel_counter_total * wheel_size;
     if(reset)
-        speed_wheelCounter_total = 0;
+        speed_wheel_counter_total = 0;
     return dist;
 }
 
@@ -226,7 +226,7 @@ float speed::get_velocity_kph()
 
 float speed::get_distance_m()
 {
-    return (float)speed_wheelCounter * wheel_size;
+    return (float)speed_wheel_counter * wheel_size;
 }
 
 float speed::kph_to_rpm(float kph)
@@ -237,16 +237,16 @@ float speed::kph_to_rpm(float kph)
 
 void speed::start()
 {
-    increment_wheelCounter = true;
+    increment_wheel_counter = true;
 }
 void speed::stop()
 {
-    increment_wheelCounter = false;
+    increment_wheel_counter = false;
 }
 
 void speed::reset()
 {
     stop();
-    speed_wheelCounter = 0;
+    speed_wheel_counter = 0;
 }
 

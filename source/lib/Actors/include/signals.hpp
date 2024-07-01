@@ -1,19 +1,18 @@
 #ifndef SIGNALS_HPP
 #define SIGNALS_HPP
+
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
-// pico includes
+// Pico includes
 
-// c/c++ includes
+// C/C++ includes
 #include <cstdint>
 #include <typeinfo>
-#include <inttypes.h>
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 
-
-// my includes
+// My includes
 
 // #-------------------------------#
 // |            macros             |
@@ -39,39 +38,44 @@ public:
     {
         this->payload = nullptr;
     }
+
     template<typename T>
     Signal(sig_id id, T* payload)
         : id{id}, payload_size{sizeof(T)}
     {
-        this->payload = (char *)payload;
+        this->payload = reinterpret_cast<char *>(payload);
     }
 
     sig_id get_sig_id() const
     {
         return this->id;
     }
+
     template <typename T>
-    inline T get_payload(void) const
+    inline T get_payload() const
     {
-        return (T)this->payload;
+        return *reinterpret_cast<T*>(this->payload);
     }
+
     inline void set_actor(void* actor)
     {
         actor_p = actor;
     }
+
     inline void* get_actor() const
     {
         return actor_p;
     }
 };
 
-
 // #-------------------------------#
 // | global variables declarations |
 // #-------------------------------#
+
+// No global variables declarations
 
 // #-------------------------------#
 // | global function declarations  |
 // #-------------------------------#
 
-#endif
+#endif // SIGNALS_HPP

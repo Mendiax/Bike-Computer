@@ -264,7 +264,7 @@ void Display_Actor::handle_sig_load_session(const Signal &sig)
         {
             return;
         }
-        content = last_save.read_line(id, SESION_DATA_CSV_LEN);
+        content = last_save.read_line(id, SESSION_DATA_CSV_LEN);
     }
 
     {
