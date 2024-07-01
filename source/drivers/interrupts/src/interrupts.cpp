@@ -76,7 +76,7 @@ void interrupt_add(Interrupt interrupt, INTERRUPT_CORE core, bool pullup)
         break;
     case CORE_1:
         setup_interrupt(interrupt, pullup, interrutpCallback_core1);
-        interrupts_core_0[interrupts_core_1_counter++] = interrupt;
+        interrupts_core_1[interrupts_core_1_counter++] = interrupt;
       break;
     }
 }
