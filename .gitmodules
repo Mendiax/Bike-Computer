@@ -1,9 +1,6 @@
 [submodule "source/external/no-OS-FatFS-SD-SPI-RPi-Pico"]
 	path = source/external/no-OS-FatFS-SD-SPI-RPi-Pico
 	url = https://github.com/carlk3/no-OS-FatFS-SD-SPI-RPi-Pico
-[submodule "pico-host-sdl"]
-	path = pico-host-sdl
-	url = https://github.com/raspberrypi/pico-host-sdl
 [submodule "source/external/pico-host-sdl"]
 	path = source/external/pico-host-sdl
 	url = https://github.com/raspberrypi/pico-host-sdl
@@ -13,3 +10,6 @@
 [submodule "source/external/imgui/imgui"]
 	path = source/external/imgui/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "source/external/FreeRTOS/FreeRTOS-Kernel"]
+	path = source/external/FreeRTOS/FreeRTOS-Kernel
+	url = git@github.com:FreeRTOS/FreeRTOS-Kernel.git

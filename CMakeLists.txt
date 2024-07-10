@@ -62,6 +62,8 @@ if(PICO_PLATFORM MATCHES "rp2040")
     add_definitions(-DBUILD_FOR_PICO) # build i2c interface
 
     add_subdirectory(source/drivers/I2C)
+    add_subdirectory(source/external/FreeRTOS)
+
 
 
     add_subdirectory(source/external/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
