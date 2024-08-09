@@ -74,7 +74,7 @@ void View_Session::action(void)
 void View_Session::action_long(void)
 {
     PRINT("end session save");
-    auto payload = new Display_Actor::Sig_Display_Actor_End_Sesion();
+    auto payload = new Display_Actor::Sig_Display_Actor_End_Session();
     payload->save = true;
     Signal sig(actors_common::SIG_DATA_ACTOR_STOP, payload);
     Data_Actor::get_instance().send_signal(sig);
@@ -84,7 +84,7 @@ void View_Session::action_long(void)
 void  View_Session::action_second_long(void)
 {
     PRINT("end session no save");
-    auto payload = new Display_Actor::Sig_Display_Actor_End_Sesion();
+    auto payload = new Display_Actor::Sig_Display_Actor_End_Session();
     payload->save = false;
     Signal sig(actors_common::SIG_DATA_ACTOR_STOP, payload);
     Data_Actor::get_instance().send_signal(sig);

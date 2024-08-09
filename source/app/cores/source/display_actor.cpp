@@ -72,7 +72,7 @@ void Display_Actor::run_thread(void)
 
 void Display_Actor::handle_sig_get_packet(const Signal &sig)
 {
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Get_Packet*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Get_Packet>();
 
     Display_Actor::get_instance().set_local_data(*payload->packet_p);
     {
@@ -83,7 +83,7 @@ void Display_Actor::handle_sig_get_packet(const Signal &sig)
 
 void Display_Actor::handle_sig_show_msg(const Signal &sig)
 {
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Show_Msg*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Show_Msg>();
 
     display::clear();
     Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
@@ -107,7 +107,7 @@ void Display_Actor::handle_sig_show_msg(const Signal &sig)
 
 void Display_Actor::handle_sig_log(const Signal &sig)
 {
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Log*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Log>();
     Sd_File config_file(payload->file_name);
     if(config_file.is_empty())
     {
@@ -125,7 +125,7 @@ void Display_Actor::handle_sig_total_update(const Signal &sig)
     // read from file dist and time
     get_total_data(time, dist);
     {
-        auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Total_Update*>();
+        auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Total_Update>();
 
         // update data
         dist += payload->ridden_dist;
@@ -162,14 +162,18 @@ void Display_Actor::setup(void)
     this->gui->render();
     this->gui->refresh();
 
-    TRACE_DEBUG(0, TRACE_CORE_1, "reading config file\n");
+    TRACE_DEBUG(0, TRACE_CORE_1, "reading config file %s\n", CONFIG_FILE_NAME);
     {
         Sd_File config_file(CONFIG_FILE_NAME);
         auto content = config_file.read_all();
+        TRACE_DEBUG(0, TRACE_CORE_1, "config file content:\n%s\n", content.c_str());
 
         auto payload = new Data_Actor::Sig_Data_Actor_Set_Config();
         payload->file_content = config_file.read_all();
-        payload->file_name = CONFIG_FILE_NAME;
+        payload->file_name = std::string(CONFIG_FILE_NAME);
+        TRACE_DEBUG(0, TRACE_CORE_1, "[config payload] pointer:%p\n",payload);
+        TRACE_DEBUG(0, TRACE_CORE_1, "[config payload] name:%s\n",payload->file_name.c_str());
+        TRACE_DEBUG(0, TRACE_CORE_1, "[config payload] content:%s\n",payload->file_content.c_str());
         Signal sig(actors_common::SIG_DATA_ACTOR_SET_CONFIG ,payload);
         Data_Actor::get_instance().send_signal(sig);
     }
@@ -200,7 +204,7 @@ void Display_Actor::setup(void)
 
 void Display_Actor::handle_sig_save_session(const Signal &sig)
 {
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Save_Sesion*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Save_Session>();
     auto& session_to_save = payload->session;
 
     display::clear();
@@ -252,7 +256,7 @@ void Display_Actor::handle_sig_save_session(const Signal &sig)
 
 void Display_Actor::handle_sig_load_session(const Signal &sig)
 {
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Load_Session*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Load_Session>();
     auto id = payload->session_id;
     delete payload;
     std::string content;

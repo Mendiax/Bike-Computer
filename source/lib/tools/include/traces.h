@@ -208,6 +208,8 @@ static inline void traces_init()
 
 }
 
+#ifdef ESC_ENABLE
+
 #define ESC "\x1b"
 
 #define ESC_RESET ESC "[0m"
@@ -215,8 +217,14 @@ static inline void traces_init()
 #define ESC_RED ESC "[1;31m"
 #define ESC_GREEN ESC "[1;32m"
 #define ESC_WHITE ESC "[1;37m"
+#else
+#define ESC             ""
+#define ESC_RESET ESC   ""
+#define ESC_RED ESC     ""
+#define ESC_GREEN ESC   ""
+#define ESC_WHITE ESC   ""
 
-
+#endif
 
 
 #define PRINTF(format, ...) \
@@ -252,5 +260,13 @@ static inline void traces_init()
 
 #define TRACE_ABNORMAL(name, __info, ...) \
     TRACE_DEBUG(0, name, ESC_RED "ABNORMAL " __info ESC_RESET,  ##__VA_ARGS__)
+
+#define TRACE_ASSERT(assert, name, __info, ...) \
+    do{ \
+        if(!(assert)) { \
+            TRACE_ABNORMAL(name, __info, ##__VA_ARGS__); \
+            assert(false); \
+        } \
+    } while(0)
 
 #endif

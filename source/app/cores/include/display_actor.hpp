@@ -59,14 +59,14 @@ public:
     /**
      * @brief Signal structure for ending a session.
      */
-    struct Sig_Display_Actor_End_Sesion {
+    struct Sig_Display_Actor_End_Session {
         bool save; ///< Flag indicating whether to save the session.
     };
 
     /**
      * @brief Signal structure for saving a session.
      */
-    struct Sig_Display_Actor_Save_Sesion {
+    struct Sig_Display_Actor_Save_Session {
         Session_Data session; ///< The session data to save.
     };
 

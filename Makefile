@@ -217,6 +217,9 @@ cw_tool:
 write_picotool:
 	picotool load -x ./$(PICO_MAIN_FILE_PATH_RELATIVE) -f || picotool load -x ./$(PICO_MAIN_FILE_PATH_RELATIVE) -F
 
+write_openocd:
+	openocd -s /home/bartek/pico/pico-sdk/../openocd/tcl -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" -c "program build/pico_main.elf verify reset exit"
+
 
 cwt_all:
 	cd tools && ./boot/boot.sh -o b && $(MAKE) test && $(MAKE) write_test && sleep 2 && ./serial.bat

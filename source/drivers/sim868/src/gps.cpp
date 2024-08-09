@@ -59,7 +59,7 @@ GpsRawData sim868::gps::get_gps_from_respond(const std::string& respond)
 
     if(data_arr.size() < 20)
     {
-        TRACE_ABNORMAL(TRACE_SIM868, " bad respond data_arr.size() = %zu out of 20\n", data_arr.size());
+        TRACE_ABNORMAL(TRACE_SIM868, " bad respond data_arr.size() = %zu out of 20\ndata:%s\n", data_arr.size(), respond.c_str());
         return data_from_gps;
     }
     data_from_gps.status = std::atoi(EXTRACT_DOC_IDX(data_arr, 1));

@@ -53,6 +53,8 @@
 
 // cycles times
 #define BAT_LEV_CYCLE_MS (29*1000)
+#define BAT_LEV_FAST_CYCLE_MS (5*1000)
+
 #define WEATHER_CYCLE_MS (100)
 #define HEART_BEAT_CYCLE_MS (10*1000)
 #define GPS_FETCH_CYCLE_MS (1*1000)
@@ -282,8 +284,8 @@ int Data_Actor::loop_frame_update()
 
     if(sim868::is_booted())
     {
-        cycle_get_gps_data();
         cycle_get_battery_status();
+        cycle_get_gps_data();
     }
     else
     {
@@ -448,9 +450,10 @@ static void cycle_print_heart_beat()
 static void cycle_get_battery_status()
 {
     bool is_charging = 0;
-    uint8_t bat_lev = 0;
+    static uint8_t bat_lev = 0;
     uint16_t voltage = 0;
-    CYCLE_UPDATE_SIMPLE_SLOW_RERUN(sim868::get_bat_level(is_charging, bat_lev, voltage), BAT_LEV_CYCLE_MS, 3000,
+    const uint32_t delay = (bat_lev > 0) ? BAT_LEV_CYCLE_MS : BAT_LEV_FAST_CYCLE_MS;
+    CYCLE_UPDATE_SIMPLE_SLOW_RERUN(sim868::get_bat_level(is_charging, bat_lev, voltage), delay, 3000,
                  {
 
                      sensors_data.lipo.is_charging = is_charging;

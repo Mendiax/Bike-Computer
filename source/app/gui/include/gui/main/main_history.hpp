@@ -39,7 +39,7 @@ private:
 public:
     // using View::View;
     Main_History(gui::View_List* p);
-    // Main_New_Sesion() = default;
+    // Main_New_Session() = default;
     /**
      * @brief render function that renders current view
      *

@@ -11,6 +11,7 @@
 
 // c/c++ includes
 #include <stdio.h>
+#include <string>
 #include <tuple>
 #include <inttypes.h>
 #include <string.h>
@@ -97,8 +98,24 @@ static bool load_config_from_file(const char* config_str, const char* file_name)
 
 void Data_Actor::handle_sig_set_config(const Signal &sig)
 {
-    const auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Set_Config*>();
-    config_received = load_config_from_file(payload->file_content.c_str(), payload->file_name.c_str());
+    TRACE_DEBUG(0, TRACE_CORE_0, "received config payload\n");
+    const auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Set_Config>();
+    // assert(payload != nullptr);
+    TRACE_DEBUG(0, TRACE_CORE_0, "received config pointer:%p\n",payload);
+    TRACE_DEBUG(0, TRACE_CORE_0, "received config payload:\ncontent:%s\n",payload->file_content.c_str());
+    TRACE_DEBUG(0, TRACE_CORE_0, "received config payload:\nname:%s\n",payload->file_name.c_str());
+    const std::string file_content = payload->file_content;
+    const std::string file_name = payload->file_name;
+    TRACE_DEBUG(0, TRACE_CORE_0, "received config payload:\nname:%s\ncontent:%s\n",
+        file_name.c_str(),
+        file_content.c_str()
+        );
+
+    // assert(file_content.length() > 0);
+    // assert(file_name.length() > 0);
+
+
+    config_received = load_config_from_file(file_content.c_str(), file_name.c_str());
     if(!config_received)
     {
         // send msg to user
@@ -121,7 +138,7 @@ void Data_Actor::handle_sig_set_config(const Signal &sig)
 
 void Data_Actor::handle_sig_session_load(const Signal &sig)
 {
-    auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Load_Session*>();
+    auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Load_Session>();
 
     if (session_p)
         delete session_p;
@@ -131,7 +148,7 @@ void Data_Actor::handle_sig_session_load(const Signal &sig)
 
 void Data_Actor::handle_sig_set_total(const Signal &sig)
 {
-    const auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Set_Total*>();
+    const auto payload = sig.get_payload<Data_Actor::Sig_Data_Actor_Set_Total>();
 
     sensors_data.total_time_ridden = payload->ridden_time_total;
     sensors_data.total_distance_ridden = payload->ridden_dist_total;
@@ -140,7 +157,7 @@ void Data_Actor::handle_sig_set_total(const Signal &sig)
 
 void Data_Actor::handle_sig_req_packet(const Signal &sig)
 {
-    auto payload = sig.get_payload<Data_Actor::Sig_Display_Actor_Req_Packet*>();
+    auto payload = sig.get_payload<Data_Actor::Sig_Display_Actor_Req_Packet>();
     if(session_p)
     {
         *payload->packet_p = {sensors_data, *session_p};
@@ -202,14 +219,14 @@ void Data_Actor::handle_sig_stop(const Signal &sig)
         return;
     }
 
-    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_End_Sesion*>();
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_End_Session>();
 
     if(session_p->has_started())
     {
         session_p->end(sensors_data.current_time);
         if(payload->save)
         {
-            auto payload = new Display_Actor::Sig_Display_Actor_Save_Sesion();
+            auto payload = new Display_Actor::Sig_Display_Actor_Save_Session();
             payload->session = *session_p;
             Signal sig(actors_common::SIG_DISPLAY_ACTOR_SAVE_SESSION, payload);
             Display_Actor::get_instance().send_signal(sig);

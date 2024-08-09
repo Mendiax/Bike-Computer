@@ -104,7 +104,7 @@ void Main_History::render()
     // this->all_log_files = dir::get_files("history");
     // unmount_drive();
 
-    // auto all_sessions = sessions.read_all_lines(SESION_DATA_CSV_LEN_NO_GEARS);
+    // auto all_sessions = sessions.read_all_lines(Session_DATA_CSV_LEN_NO_GEARS);
     // this->all_log_files.reserve(no_sessions);
     this->current_log_idx = 1;
 

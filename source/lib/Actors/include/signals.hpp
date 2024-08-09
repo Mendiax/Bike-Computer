@@ -52,9 +52,9 @@ public:
     }
 
     template <typename T>
-    inline T get_payload() const
+    inline T* get_payload() const
     {
-        return *reinterpret_cast<T*>(this->payload);
+        return reinterpret_cast<T*>(this->payload);
     }
 
     inline void set_actor(void* actor)
