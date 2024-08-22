@@ -33,14 +33,16 @@
 // #------------------------------#
 // | global function definitions  |
 // #------------------------------#
-void display_init(void)
-{
 
-}
-void display_display(uint8_t display_buffer[DISPLAY_BUFFER_SIZE])
-{
-    (void)display_buffer;
-}
+// Moved to test/host/mock
+// void display_init(void)
+// {
+
+// }
+// void display_display(uint8_t display_buffer[DISPLAY_BUFFER_SIZE])
+// {
+//     (void)display_buffer;
+// }
 
 // #------------------------------#
 // | static functions definitions |

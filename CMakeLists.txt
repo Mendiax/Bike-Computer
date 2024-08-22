@@ -112,7 +112,7 @@ else()
     set(BUILD_MOCK_MULTICORE "BUILD")
 
     add_subdirectory(tests/host/mock/multicore)
-    add_subdirectory(tests/host/mock/display)
+#     add_subdirectory(tests/host/mock/display)
     add_subdirectory(source/external/imgui)
 
 endif()

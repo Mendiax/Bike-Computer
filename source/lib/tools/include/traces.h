@@ -207,23 +207,24 @@ static inline void traces_init()
     TRACES_ON(1, TRACE_GUI); // history log data update
 
 }
-
+#ifndef ESCAPE_HPP
 #ifdef ESC_ENABLE
 
-#define ESC "\x1b"
+    #define ESC "\x1b"
 
-#define ESC_RESET ESC "[0m"
+    #define ESC_RESET ESC "[0m"
 
-#define ESC_RED ESC "[1;31m"
-#define ESC_GREEN ESC "[1;32m"
-#define ESC_WHITE ESC "[1;37m"
+    #define ESC_RED ESC "[1;31m"
+    #define ESC_GREEN ESC "[1;32m"
+    #define ESC_WHITE ESC "[1;37m"
 #else
-#define ESC             ""
-#define ESC_RESET ESC   ""
-#define ESC_RED ESC     ""
-#define ESC_GREEN ESC   ""
-#define ESC_WHITE ESC   ""
+    #define ESC             ""
+    #define ESC_RESET ESC   ""
+    #define ESC_RED ESC     ""
+    #define ESC_GREEN ESC   ""
+    #define ESC_WHITE ESC   ""
 
+#endif
 #endif
 
 

@@ -110,6 +110,9 @@ all: clean_tests_header
 main:
 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
 
+rebuild:
+	cmake --build ./build --parallel $(NPROCS) && echo "BUILD FINISHED"
+
 help:
 	@echo "\nFlags for \'make cmake\':"
 	@echo "D=1 -> cmake debug build"

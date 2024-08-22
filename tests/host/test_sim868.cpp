@@ -3,18 +3,12 @@
 #include "pico_test.hpp"
 #include "sim868/gps.hpp"
 #include "traces.h"
-#include <atomic>
 #include <cassert>
 #include <cmath>
-#include <stdio.h>
 #include <pico/stdlib.h>
-#include <iostream>
-#include <thread>
 #include "sim868/interface.hpp"
-#include <sstream>
 
 #include "mock_sim868.hpp"
-#include "mock_uart.hpp"
 
 
 TEST_CASE_SUB_FUNCTION_DEF(uart_test)

@@ -20,9 +20,10 @@ function(add_test_executable test_name)
       GSM
       MOCK_SIM868
       IMGUI_SDL2
-      MOCK_DISPLAY
+      # MOCK_DISPLAY
       Actors
       Views
+      Cores
       ) # move as param ?
 
     # Add the test to CTest
@@ -74,9 +75,30 @@ if(PICO_PLATFORM MATCHES "host")
   # add_test_executable(test_imgui test_imgui.cpp)
   add_test_executable(test_actors test_actors.cpp)
   add_test_executable(test_plot test_plot.cpp)
+  # add_test_executable(test_gps_display test_gps_display.cpp)
 
 
 
+  SET(PICO_GPS_MAIN_FILE gps_main)
+  message("PICO_GPS_MAIN_FILE=${PICO_GPS_MAIN_FILE}")
+  add_executable( ${PICO_GPS_MAIN_FILE} main_gps.cpp)
+  target_compile_definitions(${PICO_GPS_MAIN_FILE} PRIVATE PICO_MALLOC_PANIC=0)
+
+  pico_enable_stdio_usb( ${PICO_GPS_MAIN_FILE} 1)
+  pico_enable_stdio_uart( ${PICO_GPS_MAIN_FILE} 0)
+
+  pico_add_extra_outputs( ${PICO_GPS_MAIN_FILE})
+
+  target_link_libraries( ${PICO_GPS_MAIN_FILE}
+          # MOCK_DISPLAY
+          pico_stdlib
+          pico_multicore
+          Tools
+          Cores
+          FatFs_SPI
+          MOCK_SIM868
+          Display
+  )
 
 
 message("PICO_MAIN_FILE=${PICO_MAIN_FILE}")
@@ -100,7 +122,7 @@ target_link_libraries( ${PICO_MAIN_FILE}
         FatFs_SPI
         MOCK_SIM868
         Display
-        MOCK_DISPLAY
+        # MOCK_DISPLAY
 )
 
 

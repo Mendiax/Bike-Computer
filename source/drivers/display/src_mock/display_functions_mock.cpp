@@ -24,11 +24,11 @@
 
 
 // my includes
-#include "display_functions_mock.hpp"
+#include "display/mock/display_functions_mock.hpp"
 #include "traces.h"
 #include "hw_functions.hpp"
 // #include "speedometer/speedometer.hpp"
-#include "imgui_kernel.hpp"
+#include "display/mock/imgui_kernel.hpp"
 // #include "display/display_config.hpp"
 
 // #------------------------------#

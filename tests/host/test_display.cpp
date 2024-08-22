@@ -5,7 +5,7 @@
 #include "display/driver.hpp"
 #include "pico/time.h"
 
-#include "display_functions_mock.hpp"
+#include "display/mock/display_functions_mock.hpp"
 
 
 
