@@ -48,7 +48,7 @@ void I2C_Init(void)
 	bi_decl(bi_2pins_with_func(I2C_PIN_SDA, I2C_PIN_SCL, GPIO_FUNC_I2C));
 	//stdio_init_all();
 
-	i2c_init(i2c1, 100 * 1000);
+	i2c_init(i2c1, 400 * 1000);
   gpio_set_function(I2C_PIN_SDA, GPIO_FUNC_I2C);
   gpio_set_function(I2C_PIN_SCL, GPIO_FUNC_I2C);
   gpio_pull_up(I2C_PIN_SDA);
