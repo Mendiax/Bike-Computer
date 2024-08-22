@@ -34,6 +34,7 @@ typedef void (*btn_call)(void);
 class Button : public Button_Interface
 {
 private:
+    unsigned pin;                          ///< The pin number to which the button is connected.
     volatile bool pressed;                 ///< Flag indicating if the button is currently pressed.
     volatile uint32_t time_press;          ///< Timestamp of the button press event.
     volatile uint32_t time_release;        ///< Timestamp of the button release event.

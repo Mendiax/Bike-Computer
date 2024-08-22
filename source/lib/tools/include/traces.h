@@ -63,7 +63,7 @@ enum tracesE{
     TRACE_SPEED,
     TRACE_CADENCE,
     TRACE_BIKE_CONFIG,
-    BUTTONS,
+    TRACE_BUTTON,
     TRACE_VIEWS,
     TRACE_DISPLAY_PRINT,
     TRACE_VIEW,
@@ -96,7 +96,7 @@ static inline void traces_init()
         TRACES_ON(0, i);
     }
     TRACES_ON(0, TRACE_MAIN);
-    TRACES_ON_ALL(TRACE_SPEED);
+    // TRACES_ON_ALL(TRACE_SPEED);
 
     // ==================================================
     //                   VIEWS TRACES
@@ -116,12 +116,12 @@ static inline void traces_init()
     // ==================================================
     //                   CORE 0 TRACES
     // ==================================================
-    TRACES_ON(1,TRACE_CORE_0); // bat info
+    // TRACES_ON(1,TRACE_CORE_0); // bat info
     // TRACES_ON(2, TRACE_CORE_0); // data update time
     // TRACES_ON(3, TRACE_CORE_0); // gps update
     // TRACES_ON(4, TRACE_CORE_0); // BMP280 update
     // TRACES_ON(5, TRACE_CORE_0); // gear ratio
-    TRACES_ON(6, TRACE_CORE_0); // signal strength
+    // TRACES_ON(6, TRACE_CORE_0); // signal strength
 
 
 
@@ -138,8 +138,7 @@ static inline void traces_init()
     // ==================================================
     //                   BUTTONS TRACES
     // ==================================================
-    //TRACES_ON(0, BUTTONS);
-    //TRACES_ON(1, BUTTONS);
+    // TRACES_ON(1, TRACE_BUTTON); // button pressed and released (inside interrupts!!!)
 
     // ==================================================
     //                   DISPLAY TRACES
@@ -159,8 +158,8 @@ static inline void traces_init()
     // ==================================================
     //                   MPU9250 TRACES
     // ==================================================
-    TRACES_ON(1, TRACE_MPU9250); // mpu init
-    TRACES_ON(2, TRACE_MPU9250);  // reag gyro
+    // TRACES_ON(1, TRACE_MPU9250); // mpu init
+    // TRACES_ON(2, TRACE_MPU9250);  // reag gyro
     // TRACES_ON(3, TRACE_MPU9250);  // reag mag
     // TRACES_ON(4, TRACE_MPU9250);  // reag accel
 
@@ -183,7 +182,7 @@ static inline void traces_init()
     // ==================================================
     //                   CADENCE TRACES
     // ==================================================
-    TRACES_ON(1, TRACE_BIKE_CONFIG); // to str
+    // TRACES_ON(1, TRACE_BIKE_CONFIG); // to str
     // TRACES_ON(2, TRACE_BIKE_CONFIG); // min diff gear ratio
     // TRACES_ON(3, TRACE_BIKE_CONFIG); // add gear usage
 
@@ -192,8 +191,8 @@ static inline void traces_init()
     // ==================================================
     //                   SD TRACES
     // ==================================================
-    TRACES_ON(1, TRACE_SD);  // read file size
-    TRACES_ON(2, TRACE_SD);  // SD mount
+    // TRACES_ON(1, TRACE_SD);  // read file size
+    // TRACES_ON(2, TRACE_SD);  // SD mount
 
 
     // ==================================================
@@ -204,7 +203,7 @@ static inline void traces_init()
     // ==================================================
     //                   GUI TRACES
     // ==================================================
-    TRACES_ON(1, TRACE_GUI); // history log data update
+    // TRACES_ON(1, TRACE_GUI); // history log data update
 
 }
 

@@ -1,7 +1,7 @@
 
 #include "buttons/buttons.h"
 #include <stdio.h>
-
+#include "traces.h"
 
 // static declarations
 
@@ -21,12 +21,14 @@ static void blank()
 
 void Button::on_call_press(void)
 {
-    uint32_t current_time = to_ms_since_boot(get_absolute_time());
-    if(current_time - this->time_press < PRESS_TIMEOUT)
+    const uint32_t current_time = to_ms_since_boot(get_absolute_time());
+
+    if(this->pressed || (current_time - this->time_press) < PRESS_TIMEOUT)
     {
         // too fast press -> error or unwanted press
         return;
     }
+    TRACE_DEBUG(1, TRACE_BUTTON, "[%d] Button pressed\n", this->pin);
     this->time_press = current_time;
 
     // run callback if exist
@@ -35,12 +37,13 @@ void Button::on_call_press(void)
 
 void Button::on_call_release(void)
 {
-    uint32_t current_time = to_ms_since_boot(get_absolute_time());
-    if(current_time - this->time_release < PRESS_TIMEOUT)
+    const uint32_t current_time = to_ms_since_boot(get_absolute_time());
+    if(!this->pressed || (current_time - this->time_release) < PRESS_TIMEOUT)
     {
         // too fast press -> error or unwanted press
         return;
     }
+    TRACE_DEBUG(1, TRACE_BUTTON, "[%d] Button released\n", this->pin);
     this->time_release = current_time;
 
     if(this->pressed)
@@ -61,6 +64,10 @@ void Button::on_call_release(void)
 
 Button::Button(unsigned pin)
 {
+    this->pin = pin;
+    this->pressed = false;
+    this->was_pressed = false;
+    this->was_pressed_long = false;
     this->time_press = to_ms_since_boot(get_absolute_time());
     this->time_release = this->time_press;
 
