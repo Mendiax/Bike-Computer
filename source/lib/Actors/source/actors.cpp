@@ -124,6 +124,14 @@ bool Actor::is_queue_empty()
 //     printf("default :(\n");
 // }
 
+void Actor::clear_queue()
+{
+    mutex_enter_blocking(&mutex_queue);
+    // this->sig_queue.clear();
+    mutex_exit(&mutex_queue);
+}
+
+
 // #------------------------------#
 // | static functions definitions |
 // #------------------------------#

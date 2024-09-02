@@ -4,6 +4,7 @@
 // pico includes
 #include "pico/time.h"
 #include "pico/sem.h"
+#include "hardware/watchdog.h"
 
 // c/c++ includes
 #include <string>

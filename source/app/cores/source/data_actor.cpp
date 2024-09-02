@@ -8,6 +8,7 @@
 #include "display/driver.hpp"
 #include "pico/time.h"
 #include "pico/util/datetime.h"
+#include "hardware/watchdog.h"
 
 // c/c++ includes
 #include <stdio.h>
@@ -163,6 +164,11 @@ static void send_speed_comp(float raw, float filtered)
 // #------------------------------#
 void Data_Actor::setup(void)
 {
+    if(watchdog_enable_caused_reboot())
+    {
+        watchdog_enable(5000, 1);
+        return;
+    }
     sensors_data.imu.accel_hist.set_length(100);
 
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
@@ -204,10 +210,10 @@ void Data_Actor::setup(void)
 
     gear_suggestion_calc = new Gear_Suggestion_Calculator(config);
 
-    //turn of power led
-    gpio_init(25); //power led
-    gpio_set_dir(25, GPIO_OUT);
-    gpio_put(25, 0);
+    // //turn of power led
+    // gpio_init(25); //power led
+    // gpio_set_dir(25, GPIO_OUT);
+    // gpio_put(25, 0);
 
 
 
@@ -253,10 +259,13 @@ void Data_Actor::setup(void)
     //     cycle_get_gps_data();
     // }
     // TRACE_DEBUG(0, TRACE_MAIN, "TIME RECEIVED\n");
+
+    watchdog_enable(5000, 1);
 }
 
 int Data_Actor::loop(void)
 {
+    watchdog_update();
     absolute_time_t frameStart = get_absolute_time();
 
     // data update
