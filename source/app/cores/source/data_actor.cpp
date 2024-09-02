@@ -529,6 +529,11 @@ static void cycle_get_gps_data()
                 t = current_time.to_date_time();
                 change_time_by_hour(&t, config.hour_offset);
                 rtc_set_datetime(&t);
+                if(session_p->has_started() && !session_p->get_start_time().is_valid()) {
+                    TimeS time_start = current_time;
+                    time_start.substract_ms(sensors_data.current_time.to_ms());
+                    session_p->time_start = time_start;
+                }
                 sensors_data.current_time = current_time;
             }
             if(last_signal_strength != sensors_data.gps_data.sat ||
@@ -560,15 +565,15 @@ static void cycle_get_weather_data()
                     std::tie(temp, press) = bmp280::get_temp_press();
                     // set as base third read from sensor
                     static float start_press = 0.0;
-                    //  static uint8_t req_id = 0;
-                    if (start_press == 0.0)
+                     static uint8_t req_id = 0;
+                    if (req_id < 100)
                     {
                         start_press = press;
                     }
                     altitude = bmp280::get_height(start_press,
                                                 (float)press,
                                                 temp);
-                     sensors_data.weather.temperature = temp;
+                     sensors_data.weather.temperature = temp - 3;
                      sensors_data.weather.pressure = press;
                      sensors_data.altitude = altitude;
                      TRACE_DEBUG(4, TRACE_CORE_0,

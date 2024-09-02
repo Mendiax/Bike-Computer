@@ -70,6 +70,7 @@ struct TimeS
     absolute_time_t time_stamp;
     void update_time(absolute_time_t current); // not used
     void substract_ms(uint32_t ms);
+    uint32_t to_ms() const;
     void from_date_time(const datetime_t& date);
     datetime_t to_date_time() const;
 

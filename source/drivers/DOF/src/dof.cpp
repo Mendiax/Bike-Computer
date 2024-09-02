@@ -36,8 +36,8 @@ static void interrupt_dof_callback();
 
 void dof::init(bool interrupt)
 {
-    mpu9250::init();
     bmp280::init();
+    mpu9250::init();
 
     if(interrupt)
     {
@@ -47,8 +47,8 @@ void dof::init(bool interrupt)
 }
 void dof::update()
 {
-    mpu9250::update();
     bmp280::update();
+    mpu9250::update();
 }
 
 // #------------------------------#

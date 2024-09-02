@@ -62,7 +62,7 @@ void bmp280::init()
     bmp280_init();
 
     // get some init data
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < BUFFER_LEN; i++)
     {
         bmp280::get_temp_press();
         sleep_ms(10);

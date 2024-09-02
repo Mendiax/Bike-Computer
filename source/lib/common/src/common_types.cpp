@@ -102,6 +102,17 @@ uint32_t extract_hours(Time_HourS& time)
     return (uint32_t)ms;
 }
 
+uint32_t TimeS::to_ms() const
+{
+    TimeS copy = *this;
+    uint64_t ms = 0;
+    ms +=extract_seconds(copy.hours);
+    ms += extract_minutes(copy.hours);
+    ms += extract_hours(copy.hours);
+    return ms;
+}
+
+
 void TimeS::substract_ms(uint32_t ms)
 {
     uint64_t ms_to_add = 0;
