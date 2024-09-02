@@ -17,7 +17,7 @@ set(required_libraries pico_stdlib Tools)
 
 # add hw libs only if needed
 if (NOT BUILD_MOCK_DISPLAY)
-    list(APPEND required_libraries hardware_spi hardware_pwm)
+    list(APPEND required_libraries hardware_spi hardware_pwm hardware_dma)
 else()
     # list(APPEND required_libraries MOCK_DISPLAY)
 endif()

@@ -43,7 +43,6 @@ namespace display
 {
     const size_t width = DISPLAY_WIDTH;
     const size_t height = DISPLAY_HEIGHT;
-    extern uint8_t display_buffer[];
 
     struct DisplayColor
     {

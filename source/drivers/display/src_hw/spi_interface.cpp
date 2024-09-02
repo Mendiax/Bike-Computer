@@ -6,6 +6,7 @@
 #include "hardware/spi.h"
 #include "hardware/pwm.h"
 #include "pico/stdlib.h"
+#include "hardware/dma.h"
 
 
 // c/c++ includes
@@ -91,7 +92,7 @@ void spi::set_brightness(uint8_t Value)
     }
 }
 
-void spi::writeRegister(uint8_t Reg)
+void spi::write_register(uint8_t Reg)
 {
     gpio_put(DC, 0);
     gpio_put(CS, 0);
@@ -99,7 +100,7 @@ void spi::writeRegister(uint8_t Reg)
     gpio_put(CS, 1);
 }
 
-void spi::writeData(uint8_t Data)
+void spi::write_data(uint8_t Data)
 {
     gpio_put(DC, 1);
     gpio_put(CS, 0);
@@ -107,12 +108,33 @@ void spi::writeData(uint8_t Data)
     gpio_put(CS, 1);
 }
 
-void spi::writeDataBuffer(const uint8_t *Data, size_t length)
+void spi::write_data_buffer(const uint8_t *Data, size_t length)
 {
     gpio_put(DC, 1);
     gpio_put(CS, 0);
     spi_write_blocking(SPI_PORT, Data, length);
     gpio_put(CS, 1);
+}
+
+void spi::write_data_buffer_dma(uint dma_tx, const uint8_t *Data, size_t length)
+{
+    gpio_put(DC, 1);
+    gpio_put(CS, 0);
+    static bool first_time = true;
+    static dma_channel_config c;
+    if (first_time)
+    {
+        c = dma_channel_get_default_config(dma_tx);
+        channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
+        channel_config_set_dreq(&c, spi_get_dreq(SPI_PORT, true));
+        dma_channel_configure(dma_tx, &c,
+                            &spi_get_hw(SPI_PORT)->dr, // write address
+                            Data, // read address
+                            length, // element count (each element is of size transfer_data_size)
+                            false); // start
+        first_time = false;
+    }
+    dma_channel_set_read_addr(dma_tx, Data, true);
 }
 
 void spi::reset(void)

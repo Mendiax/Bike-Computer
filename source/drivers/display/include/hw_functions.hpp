@@ -31,5 +31,6 @@
 // #-------------------------------#
 void display_init(void);
 void display_display(uint8_t display_buffer[DISPLAY_BUFFER_SIZE]);
+void display_sync(void);
 
 #endif

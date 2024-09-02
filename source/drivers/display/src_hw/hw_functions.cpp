@@ -4,13 +4,15 @@
 // #------------------------------#
 // pico includes
 #include "pico/stdlib.h"
+#include "hardware/dma.h"
+#include "pico/time.h"
 
 
 // c/c++ includes
 
 // my includes
+#include "traces.h"
 #include "hw_functions.hpp"
-#include "pico/time.h"
 #include "spi_interface.hpp"
 
 
@@ -29,6 +31,7 @@
 // #------------------------------#
 // | static variables definitions |
 // #------------------------------#
+static uint dma_tx;
 
 // #------------------------------#
 // | static functions declarations|
@@ -56,23 +59,30 @@ void display_init(void)
     spi::reset();
 
     // Set the read / write scan direction of the frame memory
-    spi::writeRegister(0x36);  // MX, MY, RGB mode
+    spi::write_register(0x36);  // MX, MY, RGB mode
 #if 1                     // Horizontal
-    spi::writeData(0X70); // 0x08 set RGB
+    spi::write_data(0X70); // 0x08 set RGB
 #else
-    spi::writeData(0X00); // 0x08 set RGB
+    spi::write_data(0X00); // 0x08 set RGB
 #endif
 
     // Set the initialization register
     init_regs();
     sleep_ms(200);
+    // setup dma for writing buffer
+    dma_tx = dma_claim_unused_channel(true);
+    set_window(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT); // DISPLAY_HEIGHT
 }
 void display_display(uint8_t display_buffer[DISPLAY_BUFFER_SIZE])
 {
-    set_window(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT); // DISPLAY_HEIGHT
-    spi::writeRegister(0x2C); // memory write
-    spi::writeDataBuffer(display_buffer, DISPLAY_BUFFER_SIZE);
-    spi::writeRegister(0x29);
+    spi::write_register(0x2C); // memory write
+    spi::write_data_buffer_dma(dma_tx, display_buffer, DISPLAY_BUFFER_SIZE);
+}
+
+void display_sync(void)
+{
+    // wait for dma_tx to finish
+    dma_channel_wait_for_finish_blocking(dma_tx);
 }
 
 static void init_regs(void)
@@ -99,7 +109,7 @@ static void init_regs(void)
     //     “1” = LCD Refresh Right to Left (When MADCTL D2=”1”)
 
 
-    spi::writeRegister(0x36);
+    spi::write_register(0x36);
     const uint8_t glob = 0x0
         | (MY << 7)
         | (MX << 6)
@@ -107,93 +117,93 @@ static void init_regs(void)
         | (ML << 4)
         | (RGB_ << 3)
         | (MH << 2);
-    spi::writeData(glob);
+    spi::write_data(glob);
 
-    spi::writeRegister(0x3A);     // rgb mode 0
-    spi::writeData(REG_3Ah); // 0b101
+    spi::write_register(0x3A);     // rgb mode 0
+    spi::write_data(REG_3Ah); // 0b101
 
-    spi::writeRegister(0x21);
+    spi::write_register(0x21);
 
-    spi::writeRegister(0x2A);
-    spi::writeData(0x00);
-    spi::writeData(0x00);
-    spi::writeData(0x01);
-    spi::writeData(0x3F);
+    spi::write_register(0x2A);
+    spi::write_data(0x00);
+    spi::write_data(0x00);
+    spi::write_data(0x01);
+    spi::write_data(0x3F);
 
-    spi::writeRegister(0x2B);
-    spi::writeData(0x00);
-    spi::writeData(0x00);
-    spi::writeData(0x00);
-    spi::writeData(0xEF);
+    spi::write_register(0x2B);
+    spi::write_data(0x00);
+    spi::write_data(0x00);
+    spi::write_data(0x00);
+    spi::write_data(0xEF);
 
-    spi::writeRegister(0xB2);
-    spi::writeData(0x0C);
-    spi::writeData(0x0C);
-    spi::writeData(0x00);
-    spi::writeData(0x33);
-    spi::writeData(0x33);
+    spi::write_register(0xB2);
+    spi::write_data(0x0C);
+    spi::write_data(0x0C);
+    spi::write_data(0x00);
+    spi::write_data(0x33);
+    spi::write_data(0x33);
 
-    spi::writeRegister(0xB7);
-    spi::writeData(0x35);
+    spi::write_register(0xB7);
+    spi::write_data(0x35);
 
-    spi::writeRegister(0xBB);
-    spi::writeData(0x1F);
+    spi::write_register(0xBB);
+    spi::write_data(0x1F);
 
-    spi::writeRegister(0xC0); //  LCM Control
-    spi::writeData(0x2C);
+    spi::write_register(0xC0); //  LCM Control
+    spi::write_data(0x2C);
 
-    spi::writeRegister(0xC2);
-    spi::writeData(0x01);
+    spi::write_register(0xC2);
+    spi::write_data(0x01);
 
-    spi::writeRegister(0xC3);
-    spi::writeData(0x12);
+    spi::write_register(0xC3);
+    spi::write_data(0x12);
 
-    spi::writeRegister(0xC4);
-    spi::writeData(0x20);
+    spi::write_register(0xC4);
+    spi::write_data(0x20);
 
-    spi::writeRegister(0xC6);  // Frame Rate Control in Normal Mode
-    spi::writeData(0x0F); // column inversion.
+    spi::write_register(0xC6);  // Frame Rate Control in Normal Mode
+    spi::write_data(0x0F); // column inversion.
 
-    spi::writeRegister(0xD0); //  Power Control 1
-    spi::writeData(0xA4);
-    spi::writeData(0xA1);
+    spi::write_register(0xD0); //  Power Control 1
+    spi::write_data(0xA4);
+    spi::write_data(0xA1);
 
-    spi::writeRegister(0xE0); //  Positive Voltage Gamma Control
-    spi::writeData(0xD0);
-    spi::writeData(0x08);
-    spi::writeData(0x11);
-    spi::writeData(0x08);
-    spi::writeData(0x0C);
-    spi::writeData(0x15);
-    spi::writeData(0x39);
-    spi::writeData(0x33);
-    spi::writeData(0x50);
-    spi::writeData(0x36);
-    spi::writeData(0x13);
-    spi::writeData(0x14);
-    spi::writeData(0x29);
-    spi::writeData(0x2D);
+    spi::write_register(0xE0); //  Positive Voltage Gamma Control
+    spi::write_data(0xD0);
+    spi::write_data(0x08);
+    spi::write_data(0x11);
+    spi::write_data(0x08);
+    spi::write_data(0x0C);
+    spi::write_data(0x15);
+    spi::write_data(0x39);
+    spi::write_data(0x33);
+    spi::write_data(0x50);
+    spi::write_data(0x36);
+    spi::write_data(0x13);
+    spi::write_data(0x14);
+    spi::write_data(0x29);
+    spi::write_data(0x2D);
 
-    spi::writeRegister(0xE1); // Negative Voltage Gamma Control
-    spi::writeData(0xD0);
-    spi::writeData(0x08);
-    spi::writeData(0x10);
-    spi::writeData(0x08);
-    spi::writeData(0x06);
-    spi::writeData(0x06);
-    spi::writeData(0x39);
-    spi::writeData(0x44);
-    spi::writeData(0x51);
-    spi::writeData(0x0B);
-    spi::writeData(0x16);
-    spi::writeData(0x14);
-    spi::writeData(0x2F);
-    spi::writeData(0x31);
-    spi::writeRegister(0x21);
+    spi::write_register(0xE1); // Negative Voltage Gamma Control
+    spi::write_data(0xD0);
+    spi::write_data(0x08);
+    spi::write_data(0x10);
+    spi::write_data(0x08);
+    spi::write_data(0x06);
+    spi::write_data(0x06);
+    spi::write_data(0x39);
+    spi::write_data(0x44);
+    spi::write_data(0x51);
+    spi::write_data(0x0B);
+    spi::write_data(0x16);
+    spi::write_data(0x14);
+    spi::write_data(0x2F);
+    spi::write_data(0x31);
+    spi::write_register(0x21);
 
-    spi::writeRegister(0x11);
+    spi::write_register(0x11);
 
-    spi::writeRegister(0x29); // turn on
+    spi::write_register(0x29); // turn on
 }
 
 void set_brightnes(uint8_t value)
@@ -224,24 +234,24 @@ void set_window(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend)
     #endif
 
     // set the X coordinates
-    spi::writeRegister(0x2A); // column set address
+    spi::write_register(0x2A); // column set address
 
     // x start
-    spi::writeData(Xstart >> 8);
-    spi::writeData(Xstart & 0xff);
+    spi::write_data(Xstart >> 8);
+    spi::write_data(Xstart & 0xff);
 
     // x end
-    spi::writeData((Xend - 1) >> 8);
-    spi::writeData((Xend - 1) & 0xFF);
+    spi::write_data((Xend - 1) >> 8);
+    spi::write_data((Xend - 1) & 0xFF);
 
     // set the Y coordinates
-    spi::writeRegister(0x2B);
+    spi::write_register(0x2B);
     // y start
-    spi::writeData(Ystart >> 8);
-    spi::writeData(Ystart & 0xff);
+    spi::write_data(Ystart >> 8);
+    spi::write_data(Ystart & 0xff);
     // y end
-    spi::writeData((Yend - 1) >> 8);
-    spi::writeData((Yend - 1) & 0xff);
+    spi::write_data((Yend - 1) >> 8);
+    spi::write_data((Yend - 1) & 0xff);
 }
 
 // #------------------------------#

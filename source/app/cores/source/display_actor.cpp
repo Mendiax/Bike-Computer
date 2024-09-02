@@ -294,13 +294,21 @@ int Display_Actor::loop(void)
         if(Display_Actor::get_instance().get_local_data().session.get_status() == Session_Data::Status::PAUSED)
         {
             TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label\n");
-            Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
-            const sFONT* font = 0;
-            uint8_t scale;
-            auto label = "PAUSED";
-            auto width_char = pause_label.width / strlen(label);
-            getFontSize(width_char, pause_label.height, &font, &scale);
-            display::println(pause_label.x, pause_label.y, label, font, {0xf,0x0,0x0}, scale);
+            // Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
+            // const sFONT* font = 0;
+            // uint8_t scale;
+            // auto label = "PAUSED";
+            // auto width_char = pause_label.width / strlen(label);
+            // getFontSize(width_char, pause_label.height, &font, &scale);
+            // display::println(pause_label.x, pause_label.y, label, font, {0xf,0x0,0x0}, scale);
+            // draw red frame
+            const uint8_t frame_scale = 1;
+            display::draw_line(0, 0, DISPLAY_WIDTH - 1, 0, {0xf, 0x0, 0x0}, frame_scale);
+            display::draw_line(0, DISPLAY_HEIGHT - 1, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, {0xf, 0x0, 0x0}, frame_scale);
+
+            display::draw_line(0, 0, 0, DISPLAY_HEIGHT - 1, {0xf, 0x0, 0x0}, frame_scale);
+            display::draw_line(DISPLAY_WIDTH - 1, 0, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, {0xf, 0x0, 0x0}, frame_scale);
+
         }
         display::display();
     }

@@ -41,7 +41,10 @@ void display_display(uint8_t display_buffer[DISPLAY_BUFFER_SIZE])
 {
     (void)display_buffer;
 }
+void display_sync(void)
+{
 
+}
 // #------------------------------#
 // | static functions definitions |
 // #------------------------------#

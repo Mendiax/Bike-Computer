@@ -108,6 +108,8 @@ void display::setPixel(const uint_fast32_t idx, const display::DisplayColor colo
  */
 void display::clear(void)
 {
+    // wait for buffer to flush
+    display_sync();
     memset(::display_buffer, 0x0, DISPLAY_BUFFER_SIZE);
 }
 
