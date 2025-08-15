@@ -542,7 +542,11 @@ static void cycle_get_gps_data()
             if(!sensors_data.current_time.is_valid() && current_time.is_valid())
             {
                 t = current_time.to_date_time();
-                change_time_by_hour(&t, config.hour_offset);
+                auto offset = poland_utc_offset_hours(t);
+                change_time_by_hour(&t, offset);
+                TRACE_DEBUG(3, TRACE_CORE_0,
+                            "set time to %d-%d-%d %d:%d:%d offset=%.2f\n",
+                            t.year, t.month, t.day, t.hour, t.min, t.sec, offset);
                 rtc_set_datetime(&t);
                 if(session_p->has_started() && !session_p->get_start_time().is_valid()) {
                     TimeS time_start = current_time;

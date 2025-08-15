@@ -172,6 +172,7 @@ typedef struct Sensor_Data
 // #-------------------------------#
 // | global function declarations  |
 // #-------------------------------#
+double poland_utc_offset_hours(const datetime_t& t);
 
 // #-------------------------------#
 // |  global function definitions  |

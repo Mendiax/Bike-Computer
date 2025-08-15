@@ -1,7 +1,57 @@
 #include "common_types.h"
-
-
 #include <math.h>
+#include <stdio.h>
+#include <time.h>
+
+int day_of_week(int year, int month, int day) {
+    if (month < 3) {
+        month += 12;
+        year -= 1;
+    }
+    int K = year % 100;
+    int J = year / 100;
+    int h = (day + (13 * (month + 1)) / 5 + K + K / 4 + J / 4 + 5 * J) % 7;
+    return ((h + 6) % 7); // convert to 0=Sunday
+}
+
+// Find last Sunday of a month
+int last_sunday(int year, int month) {
+    int last_day;
+    if (month == 4 || month == 6 || month == 9 || month == 11)
+        last_day = 30;
+    else if (month == 2) {
+        bool leap = (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+        last_day = leap ? 29 : 28;
+    } else {
+        last_day = 31;
+    }
+    int dow = day_of_week(year, month, last_day);
+    return last_day - dow; // Sunday = 0, so subtract to get Sunday
+}
+
+// Returns UTC offset in hours for Poland
+int poland_offset_hours(int year, int month, int day, int hour) {
+    int start_day = last_sunday(year, 3);  // last Sunday in March
+    int end_day   = last_sunday(year, 10); // last Sunday in October
+
+    bool in_summer = false;
+
+    if (month > 3 && month < 10) {
+        in_summer = true;
+    } else if (month == 3) {
+        if (day > start_day || (day == start_day && hour >= 2))
+            in_summer = true;
+    } else if (month == 10) {
+        if (day < end_day || (day == end_day && hour < 3))
+            in_summer = true;
+    }
+
+    return in_summer ? 2 : 1;
+}
+
+double poland_utc_offset_hours(const datetime_t& t) {
+    return poland_offset_hours(t.year, t.month, t.day, t.hour);
+}
 
 bool TimeS::is_valid() const
 {
