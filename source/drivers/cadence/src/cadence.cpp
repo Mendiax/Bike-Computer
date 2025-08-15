@@ -2,6 +2,7 @@
 #include <interrupts/interrupts.hpp>
 #include "traces.h"
 #include "utils.hpp"
+#include "filtermovingavg.hpp"
 
 #if BUILD_FOR_HOST
 // simulate timers for cadence sim
@@ -40,6 +41,9 @@ Interrupt interrupt_cadence = {PIN_CADENCE, cadence_update, GPIO_IRQ_EDGE_FALL};
 
 #define MAX_TIME (cadence_to_ms(MIN_CADENCE))
 
+
+static Filter_Moving_Avg<double> filter_cadence(4);
+
 void cadence::setup(uint8_t no_magnets) {
     ::no_magnets = no_magnets;
 }
@@ -68,7 +72,7 @@ float cadence::get_cadence()
 
     TRACE_DEBUG(3, TRACE_CADENCE, "current_cadence: %f\n", current_cadence);
 
-    return current_cadence;
+    return filter_cadence.apply(current_cadence);
 }
 
 void cadence::emulate(const float cadence)
