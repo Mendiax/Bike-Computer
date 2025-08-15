@@ -164,11 +164,11 @@ static void send_speed_comp(float raw, float filtered)
 // #------------------------------#
 void Data_Actor::setup(void)
 {
-    if(watchdog_enable_caused_reboot())
-    {
-        watchdog_enable(5000, 1);
-        return;
-    }
+    // if(watchdog_enable_caused_reboot())
+    // {
+    //     watchdog_enable(5000, 1);
+    //     return;
+    // }
     sensors_data.imu.accel_hist.set_length(100);
 
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
@@ -260,12 +260,12 @@ void Data_Actor::setup(void)
     // }
     // TRACE_DEBUG(0, TRACE_MAIN, "TIME RECEIVED\n");
 
-    watchdog_enable(5000, 1);
+    // watchdog_enable(5000, 1);
 }
 
 int Data_Actor::loop(void)
 {
-    watchdog_update();
+    // watchdog_update();
     absolute_time_t frameStart = get_absolute_time();
 
     // data update
@@ -453,6 +453,12 @@ static void cycle_print_heart_beat()
             // PRINTF("[HEART_BEAT] time since boot: %.3fs Avaible memory = %.3fkb/256kb\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0, memory);
             PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
 
+        });
+    CYCLE_UPDATE_SIMPLE_SLOW_RERUN(
+        sim868::check_for_boot(), HEART_BEAT_CYCLE_MS, HEART_BEAT_CYCLE_MS,
+        {
+          PRINTF("[HEART_BEAT] SIM868 is on: %d, is booted: %d \n",
+                sim868::is_on(), sim868::is_booted());
         });
 }
 

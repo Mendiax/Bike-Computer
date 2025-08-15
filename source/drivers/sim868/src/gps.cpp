@@ -15,6 +15,8 @@ static GpsRawData gps_last_data;
 static bool gps_has_correct_data;
 static bool gps_has_correct_date;
 
+static GpsCounter gps_counter;
+
 
 
 
@@ -78,7 +80,7 @@ GpsRawData sim868::gps::get_gps_from_respond(const std::string& respond)
 
 void sim868::gps::turn_on()
 {
-    static uint64_t id;
+    static uint64_t id = 0;
     if(check_response(id)) // it will return false if id == 0
     {
         auto respond = get_respond(id);
@@ -96,7 +98,7 @@ void sim868::gps::turn_on()
 
 void sim868::gps::turn_off()
 {
-    static uint64_t id;
+    static uint64_t id = 0;
     if(check_response(id)) // it will return false if id == 0
     {
         auto respond = get_respond(id);
@@ -135,31 +137,35 @@ bool sim868::gps::fetch_data()
       gps_current_state = GpsState::NO_RESPOND;
       if (gps_data.status == 1) {
         gps_current_state = GpsState::NO_SIGNAL;
+        gps_counter.no_signal++;
       }
       if (gps_data.utc_date_time.is_valid()) {
-        gps_current_state = GpsState::DATA_AVAIBLE;
+        gps_current_state = GpsState::DATA_AVAILABLE;
         gps_last_data = gps_data;
         gps_has_correct_date = true;
+        gps_counter.data_available++;
       }
       if (gps_data.latitude != 0 && gps_data.latitude != 0) {
         // signal ok
         gps_last_correct_data = gps_data;
         gps_has_correct_data = true;
-        gps_current_state = GpsState::POSITION_AVAIBLE;
+        gps_current_state = GpsState::POSITION_AVAILABLE;
+        gps_counter.position_available++;
       }
     } else {
       gps_current_state = GpsState::NO_RESPOND;
     }
-    if (gps_current_state != GpsState::POSITION_AVAIBLE) {
-      fail_counter++;
-      if (fail_counter >= 20) {
-        gps_current_state = GpsState::RESTARTING;
-      }
+    if (gps_current_state != GpsState::POSITION_AVAILABLE) {
+      // fail_counter++;
+      // if (fail_counter >= 20) {
+      //   gps_current_state = GpsState::RESTARTING;
+      // }
     }
     id = 0;
     return true;
   } else if (id == 0) {
     id = send_request("AT+CGNSINF", 3000);
+    gps_counter.no_req_sent++;
   }
   return false;
 }

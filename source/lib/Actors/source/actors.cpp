@@ -119,17 +119,7 @@ bool Actor::is_queue_empty()
     mutex_exit(&mutex_queue);
     return is_empty;
 }
-// void Actor::handler_setup()
-// {
-//     printf("default :(\n");
-// }
 
-void Actor::clear_queue()
-{
-    mutex_enter_blocking(&mutex_queue);
-    // this->sig_queue.clear();
-    mutex_exit(&mutex_queue);
-}
 
 
 // #------------------------------#

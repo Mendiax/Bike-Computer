@@ -29,8 +29,8 @@ enum class GpsState
     OFF,             ///< GPS is turned off.
     NO_RESPOND,      ///< No response from the SIM868 module.
     NO_SIGNAL,       ///< No connection to satellites (or not enough).
-    DATA_AVAIBLE,    ///< Data is available to be read.
-    POSITION_AVAIBLE,///< Position data is available.
+    DATA_AVAILABLE,    ///< Data is available to be read.
+    POSITION_AVAILABLE,///< Position data is available.
     RESTARTING       ///< GPS is restarting.
 };
 
@@ -49,6 +49,16 @@ struct GpsRawData
     uint8_t gnss_satelites;      ///< Number of GNSS satellites in view.
     uint8_t glonass_satelites;   ///< Number of GLONASS satellites in view.
     absolute_time_t data_time_stamp; ///< Timestamp of the data.
+};
+
+struct GpsCounter
+{
+    uint64_t no_req_sent;
+    uint64_t no_respond;
+    uint64_t no_signal;
+    uint64_t data_available;
+    uint64_t position_available;
+    uint64_t restarting;
 };
 
 // #-------------------------------#

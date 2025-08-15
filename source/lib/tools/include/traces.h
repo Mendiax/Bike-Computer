@@ -118,7 +118,7 @@ static inline void traces_init()
     // ==================================================
     // TRACES_ON(1,TRACE_CORE_0); // bat info
     // TRACES_ON(2, TRACE_CORE_0); // data update time
-    // TRACES_ON(3, TRACE_CORE_0); // gps update
+    TRACES_ON(3, TRACE_CORE_0); // gps update
     // TRACES_ON(4, TRACE_CORE_0); // BMP280 update
     // TRACES_ON(5, TRACE_CORE_0); // gear ratio
     // TRACES_ON(6, TRACE_CORE_0); // signal strength
@@ -130,7 +130,7 @@ static inline void traces_init()
     // ==================================================
     //                   CORE 1 TRACES
     // ==================================================
-    // TRACES_ON(1,TRACE_CORE_1); // render time for scree
+    // TRACES_ON(1,TRACE_CORE_1); // render time for screen
     // TRACES_ON(2,TRACE_CORE_1); // pause btn
 
 
