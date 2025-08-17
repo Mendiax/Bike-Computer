@@ -16,19 +16,43 @@ Sd_File::Sd_File(const std::string& file_name)
     }
     FIL file_p;
     FRESULT res;
-FILE_OPEN:
-    res = f_open(&file_p, file_name.c_str(),  FA_READ | FA_WRITE | FA_OPEN_APPEND);
-    if (res != FR_OK)
-    {
-        // failed
-        //try to mount drive if it is not mounted
-        mount_drive();
-        TRACE_ABNORMAL(TRACE_SD, "Could not open the file %s\n", file_name.c_str());
+    FILINFO fno;
 
-        sleep_ms(10000);
-        goto FILE_OPEN;
+    while(true)
+    {
+        res = f_stat(file_name.c_str(), &fno);
+        if (res == FR_OK)
+        {
+            // file exists
+            TRACE_DEBUG(1, TRACE_SD, "File %s already exists\n", file_name.c_str());
+            last_result = F_OK;
+            return;
+        }
+        else {
+            // failed
+            TRACE_ABNORMAL(TRACE_SD, "File %s does not exist!\n", file_name.c_str());
+            auto all_files = dir::get_files(".");
+            std::string all_files_str;
+            for (const auto& f : all_files) {
+                all_files_str += f + " ";
+            }
+            TRACE_ABNORMAL(TRACE_SD, "Files in the current directory: %s\n", all_files_str.c_str());
+        }
+        res = f_open(&file_p, file_name.c_str(),  FA_READ | FA_WRITE | FA_OPEN_APPEND);
+        if (res != FR_OK)
+        {
+            // failed
+            //try to mount drive if it is not mounted
+            mount_drive();
+            TRACE_ABNORMAL(TRACE_SD, "Could not open the file %s\n", file_name.c_str());
+
+            sleep_ms(10000);
+        }
+        else {
+            f_close(&file_p);
+            break;
+        }
     }
-    f_close(&file_p);
 }
 
 Sd_File::~Sd_File()

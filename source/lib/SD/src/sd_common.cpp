@@ -27,13 +27,13 @@ void mount_drive()
     }
     TRACE_DEBUG(2, TRACE_SD, "Mounting drive " SD_DRIVE_NAME "\n");
     // Mount drive
-    auto fr = f_mount(&fs, SD_DRIVE_NAME, 1);
+    const auto fr = f_mount(&fs, SD_DRIVE_NAME, 1);
     sd_mounted = (fr == FR_OK);
     TRACE_DEBUG(2, TRACE_SD, "Drive mounted " SD_DRIVE_NAME "\n");
 
     if(!sd_mounted)
     {
-        TRACE_ABNORMAL(TRACE_SD, "cannot mount drive " SD_DRIVE_NAME " \n");
+        TRACE_ABNORMAL(TRACE_SD, "cannot mount drive " SD_DRIVE_NAME " Error %d\n", fr);
     }
 }
 
