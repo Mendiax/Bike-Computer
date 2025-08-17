@@ -43,5 +43,7 @@ namespace dir{
     std::vector<std::string> get_files(const char* path);
 }
 
+std::string toString(FRESULT res);
+
 
 #endif

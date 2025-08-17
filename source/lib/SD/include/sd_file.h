@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "ff.h"
 
 class Sd_File
 {
@@ -16,6 +17,8 @@ private:
     // positions of lines after get_no_of_lines()
     std::vector<size_t> lines_pos;
     bool correct_lines_pos;
+
+    FIL append_file{};
 public:
     Sd_File(const std::string& file_name);
     ~Sd_File();
@@ -25,7 +28,7 @@ public:
         return last_result;
     }
     inline const char* get_file_name(){return this->file_name.c_str();}
-    Result append(const char* string);
+    Result append(const char* string, bool reset = true);
     bool is_empty();
     size_t get_size();
     Result clear();

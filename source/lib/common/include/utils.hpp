@@ -119,19 +119,22 @@ void time_print(const TimeS& time);
 
 static inline absolute_time_t absolute_time_copy_volatile(volatile absolute_time_t* time)
 {
-    #ifdef NDEBUG
+    // #ifdef NDEBUG
     return *time;
-    #else
-    return {time->_private_us_since_boot};
-    #endif
+    // #else
+    // absolute_time_t result = {0};
+    // *((uint64_t*)&result) = *((volatile uint64_t*)time);
+    // return result;
+    // #endif
 }
 static inline void absolute_time_copy_to_volatile(volatile absolute_time_t& time, absolute_time_t timeToCopy)
 {
-    #ifdef NDEBUG
+    // #ifdef NDEBUG
     time = timeToCopy;
-    #else
-    time._private_us_since_boot = timeToCopy._private_us_since_boot;
-    #endif
+    // #else
+    // // time._private_us_since_boot = timeToCopy._private_us_since_boot;
+    // *((volatile uint64_t*)&time) = *((volatile uint64_t*)timeToCopy);
+    // #endif
 }
 
 /**

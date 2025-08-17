@@ -68,20 +68,38 @@ void Sd_File::remove()
 
 
 
-Sd_File::Result Sd_File::append(const char* string)
+Sd_File::Result Sd_File::append(const char* string, bool reset)
 {
-    FIL file_p;
     FRESULT res;
-    res = f_open(&file_p, file_name.c_str(),  FA_WRITE | FA_OPEN_APPEND);
-    if (res != FR_OK)
-    {
-        //try to mount drive if it is not mounted
-        mount_drive();
-        return (last_result = F_ERROR);
+    auto time_start_open = get_absolute_time();
+    if(reset || append_file.fptr == 0) {
+        res = f_open(&append_file, file_name.c_str(),  FA_WRITE | FA_OPEN_APPEND);
+        if (res != FR_OK)
+        {
+            //try to mount drive if it is not mounted
+            mount_drive();
+            return (last_result = F_ERROR);
+        }
     }
     correct_lines_pos = false;
-    auto ret = f_puts(string, &file_p);
-    f_close(&file_p);
+    auto time_end_open = get_absolute_time();
+
+    auto time_start_write = get_absolute_time();
+    auto ret = f_puts(string, &append_file);
+    auto time_end_write = get_absolute_time();
+
+    auto time_start_close = get_absolute_time();
+    if(reset) {
+        f_close(&append_file);
+        memset(&append_file, 0, sizeof(FIL)); // reset file pointer
+    }
+    auto time_end_close = get_absolute_time();
+
+    TRACE_DEBUG(3, TRACE_SD, "append file %s open time: %" PRIu64 " us, write time: %" PRIu64 " us, close time: %" PRIu64 " us\n",
+                   file_name.c_str(),
+                   absolute_time_diff_us(time_start_open, time_end_open),
+                   absolute_time_diff_us(time_start_write, time_end_write),
+                   absolute_time_diff_us(time_start_close, time_end_close));
     if (ret < 0)
     {
         TRACE_ABNORMAL(TRACE_SD, "Could not write to file %s (%d)\n", string,  ret);

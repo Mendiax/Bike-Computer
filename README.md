@@ -9,6 +9,13 @@ the ratio of the rotation of the pedals to the rotation of the wheel.
 Also contains velocity approximations for a decelerating bicycle. The speed approximation functionality has been tested and works correctly and the gear indication works satisfactorily.
 
 
+## Technology Highlights
+
+- Display Control via DMA: Efficient display updates using Direct Memory Access (DMA).
+- Cross-Platform Testing: Utilized mocks for testing on x86 architecture.
+- Sensor Integration: Employed interrupts for sensors and asynchronous communication with modules Sim868, MPU9250, BMP280.
+- Multithreaded Processing: Implemented a multithreaded workflow for optimal performance.
+
 
 ## Measured Data
 Measured and Displayed Data:

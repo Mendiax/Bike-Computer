@@ -51,6 +51,9 @@ message("[INFO] [CMAKE] C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
 
 
 add_definitions(-DPICO_DISABLE_SHARED_IRQ_HANDLERS=1)
+add_definitions(-DPICO_INCLUDE_RTC_DATETIME=1)
+
+
 
 
 

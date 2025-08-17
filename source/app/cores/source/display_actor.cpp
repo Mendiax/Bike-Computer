@@ -4,12 +4,13 @@
 // pico includes
 #include "pico/time.h"
 #include "pico/sem.h"
-#include "hardware/watchdog.h"
+// #include "hardware/watchdog.h"
 
 // c/c++ includes
 #include <string>
 #include <iostream>
 #include <stdio.h>
+#include <memory>
 
 // my includes
 #include "display_actor.hpp"
@@ -108,15 +109,44 @@ void Display_Actor::handle_sig_show_msg(const Signal &sig)
 
 void Display_Actor::handle_sig_log(const Signal &sig)
 {
+    static std::unique_ptr<Sd_File> config_file_ptr;
+    auto time_start = get_absolute_time();
     auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Log>();
-    Sd_File config_file(payload->file_name);
-    if(config_file.is_empty())
-    {
-        config_file.append(payload->header.c_str());
-    }
-    config_file.append(payload->line.c_str());
 
+    auto time_start_check = get_absolute_time();
+    absolute_time_t time_start_header = 0;
+    absolute_time_t time_end_header = 0;
+    if(!config_file_ptr ||  payload->file_name != config_file_ptr->get_file_name())
+    {
+        // if file name is different, create new file
+        TRACE_DEBUG(3, TRACE_CORE_1, "creating new file %s\n", payload->file_name.c_str());
+        config_file_ptr = std::make_unique<Sd_File>(payload->file_name);
+        time_start_header = get_absolute_time();
+        if(config_file_ptr->is_empty())
+        {
+            config_file_ptr->append(payload->header.c_str());
+        }
+        time_end_header = get_absolute_time();
+    }
+    auto time_end_check = get_absolute_time();
+
+
+
+    auto time_start_append = get_absolute_time();
+    config_file_ptr->append(payload->line.c_str(), false);
+    auto time_end_append = get_absolute_time();
+
+    auto time_start_del = get_absolute_time();
     delete payload;
+    auto time_end = get_absolute_time();
+    auto time_diff = absolute_time_diff_us(time_start, time_end);
+    TRACE_DEBUG(3, TRACE_CORE_1, "log file written in %" PRIu64 " us"
+                   " check time: %" PRIu64 " us, header time: %" PRIu64 " us, append time: %" PRIu64 " us, delete time: %" PRIu64 " us\n",
+                   time_diff,
+                   absolute_time_diff_us(time_start_check, time_end_check),
+                   absolute_time_diff_us(time_start_header, time_end_header),
+                   absolute_time_diff_us(time_start_append, time_end_append),
+                   absolute_time_diff_us(time_start_del, time_end));
 }
 
 
@@ -283,8 +313,9 @@ void Display_Actor::handle_sig_load_session(const Signal &sig)
 
 int Display_Actor::loop(void)
 {
-    absolute_time_t frameStart = get_absolute_time();
+    const absolute_time_t frameStart = get_absolute_time();
     Display_Actor::get_instance().handle_all();
+    const absolute_time_t timeAferHandlers = get_absolute_time();
     // frame update
     {
         this->gui->handle_buttons();
@@ -295,15 +326,15 @@ int Display_Actor::loop(void)
         if(Display_Actor::get_instance().get_local_data().session.get_status() == Session_Data::Status::PAUSED)
         {
             TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label\n");
-            // Frame pause_label = {0, DISPLAY_HEIGHT / 4, DISPLAY_WIDTH, DISPLAY_HEIGHT / 2};
-            // const sFONT* font = 0;
-            // uint8_t scale;
-            // auto label = "PAUSED";
-            // auto width_char = pause_label.width / strlen(label);
-            // getFontSize(width_char, pause_label.height, &font, &scale);
-            // display::println(pause_label.x, pause_label.y, label, font, {0xf,0x0,0x0}, scale);
+            Frame pause_label = {DISPLAY_WIDTH / 10, DISPLAY_HEIGHT / 3, DISPLAY_WIDTH, DISPLAY_HEIGHT / 4};
+            const sFONT* font = 0;
+            uint8_t scale;
+            auto label = "PAUSED";
+            auto width_char = pause_label.width / strlen(label);
+            getFontSize(width_char, pause_label.height, &font, &scale);
+            display::println(pause_label.x, pause_label.y, label, font, {0xf,0x0,0x0}, scale);
             // draw red frame
-            const uint8_t frame_scale = 1;
+            const uint8_t frame_scale = 3;
             display::draw_line(0, 0, DISPLAY_WIDTH - 1, 0, {0xf, 0x0, 0x0}, frame_scale);
             display::draw_line(0, DISPLAY_HEIGHT - 1, DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, {0xf, 0x0, 0x0}, frame_scale);
 
@@ -313,12 +344,15 @@ int Display_Actor::loop(void)
         }
         display::display();
     }
+    const absolute_time_t frameEnd = get_absolute_time();
 
-    absolute_time_t frameEnd = get_absolute_time();
-    auto frameTimeUs = absolute_time_diff_us(frameStart, frameEnd);
-    int64_t timeToSleep = fpsToUs(FRAME_PER_SECOND) - frameTimeUs;
-    TRACE_DEBUG(1, TRACE_CORE_1, "frame took %" PRIi64 " should be %" PRIi64 " delta %" PRIi64 "\n",
-                   frameTimeUs, fpsToUs(FRAME_PER_SECOND), timeToSleep);
+    const auto handlersTime = absolute_time_diff_us(frameStart, timeAferHandlers);
+    const auto displayTime = absolute_time_diff_us(timeAferHandlers, frameEnd);
+    const auto frameTimeUs = absolute_time_diff_us(frameStart, frameEnd);
+
+    const int64_t timeToSleep = fpsToUs(FRAME_PER_SECOND) - frameTimeUs;
+    TRACE_DEBUG(1, TRACE_CORE_1, "frame took %" PRIi64 " [handlers: %" PRIi64 ", render: %" PRIi64 " ] should be %" PRIi64 " delta %" PRIi64 "\n",
+        frameTimeUs, handlersTime, displayTime, fpsToUs(FRAME_PER_SECOND), timeToSleep);
     sleep_us(std::max(timeToSleep, (int64_t)0));
 
     return 1;

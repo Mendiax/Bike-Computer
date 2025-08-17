@@ -8,7 +8,7 @@
 #include "display/driver.hpp"
 #include "pico/time.h"
 #include "pico/util/datetime.h"
-#include "hardware/watchdog.h"
+// #include "hardware/watchdog.h"
 
 // c/c++ includes
 #include <stdio.h>
@@ -58,7 +58,7 @@
 
 #define WEATHER_CYCLE_MS (100)
 #define HEART_BEAT_CYCLE_MS (10*1000)
-#define GPS_FETCH_CYCLE_MS (1*1000)
+#define GPS_FETCH_CYCLE_MS (3*1000)
 #define TIME_FETCH_CYCLE_MS (10*1000)
 // http requests per 10min
 #define GSM_FETCH_CYCLE_MS (10*60*1000)
@@ -197,7 +197,7 @@ void Data_Actor::setup(void)
     while(!config_received)
     {
         Data_Actor::get_instance().handle_all();
-        sleep_ms(10);
+        sleep_ms(100);
     }
     TRACE_DEBUG(0, TRACE_MAIN, "CONFIG RECIVED\n");
     config.to_string();
@@ -489,11 +489,11 @@ static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const 
     std::stringstream ss;
     ss << FOLDER_LOG_DATA "gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
     payload->file_name = ss.str();
-    payload->header = "time;latitude;longitude;velocity_gps;velocity_gpio;altitude_gps;altitude_press;slope;cadence;gear\n";
+    payload->header = "time;latitude;longitude;velocity;altitude;slope;cadence\n";
 
     char buffer[200] = {0};
-    sprintf(buffer, "%s;%f;%f;%f;%f;%f;%f;%f;%f;%d\n",
-        time_to_str(time).c_str(), gps.lat, gps.lon, gps.speed, sensor_data.velocity, gps.msl, sensor_data.altitude, sensor_data.slope, sensor_data.cadence, (int)sensor_data.gear.rear);
+    sprintf(buffer, "%s;%f;%f;%.1f;%.1f;%.1f;%.1f\n",
+        time_to_str(time).c_str(), gps.lat, gps.lon, sensor_data.velocity, sensor_data.altitude, sensor_data.slope, sensor_data.cadence);
     payload->line = buffer;
 
     Signal sig(actors_common::SIG_DISPLAY_ACTOR_LOG, payload);

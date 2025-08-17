@@ -140,11 +140,12 @@ static inline constexpr int64_t fpsToUs(T fps)
 
 static inline bool is_absolute_time_zero(absolute_time_t time)
 {
-#ifdef NDEBUG
     return time == 0;
-#else
-    return time._private_us_since_boot == 0;
-#endif
+// #ifdef NDEBUG
+//     return time == 0;
+// #else
+//     return time._private_us_since_boot == 0;
+// #endif
 }
 
 #endif // CORE_UTILS_HPP

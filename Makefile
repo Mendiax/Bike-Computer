@@ -2,8 +2,20 @@
 #                                      setup                                   #
 ################################################################################
 
+ifeq ($(H),1)
+    BUILD_TARGET = host
+else
+    BUILD_TARGET = rp2040
+endif
+
+ifeq ($(D),1)
+    BUILD_TYPE = Debug
+else
+    BUILD_TYPE = Release
+endif
+
 PICODIR := ./pico #/mnt/h
-BUILD := build
+BUILD := build/$(BUILD_TARGET)/$(BUILD_TYPE)
 BUILD_LOG := $(BUILD)/build.log
 PICO_MAIN_FILE := pico_main
 PICO_TEST_FILE := target_test
@@ -23,9 +35,9 @@ $(info [INFO] using $(NPROCS) threads)
 ### WSL ###
 WSL = $(grep wsl -i /proc/version)
 ifeq ($(WSL),)
-	PICO_DRIVE_LETTER := H
-	PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(PICO_MAIN_FILE_PATH_RELATIVE).uf2)
-	PICO_TEST_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_TEST_FILE).uf2)
+	PICO_DRIVE_LETTER := E
+	PICO_MAIN_FILE_PATH:=$(shell wslpath -w $(PICO_MAIN_FILE_PATH_RELATIVE))
+	PICO_TEST_FILE_PATH:=$(shell wslpath -w $(BUILD)/$(PICO_TEST_FILE))
 $(info [INFO] Running WSL)
 $(info [INFO] [WSL] pico letter $(PICO_DRIVE_LETTER))
 endif
@@ -48,18 +60,6 @@ ifneq ($(V),1)
 else
     CMAKE_VERBOSE_MAKEFILE = 1
 $(info [INFO] [CMAKE] Veroose flag on $(CMAKE_VERBOSE_MAKEFILE))
-endif
-
-ifeq ($(H),1)
-    BUILD_TARGET = host
-else
-    BUILD_TARGET = rp2040
-endif
-
-ifeq ($(D),1)
-    BUILD_TYPE = Debug
-else
-    BUILD_TYPE = Release
 endif
 
 ifeq ($(L),1)
@@ -100,15 +100,15 @@ endef
 
 
 full_build: clean cmake
-	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
+	cmake --build $(BUILD) --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
 all: clean_tests_header
-	cmake --build ./build --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
+	cmake --build $(BUILD) --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
 main:
-	cmake --build ./build --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
+	cmake --build $(BUILD) --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
 
 help:
 	@echo "\nFlags for \'make cmake\':"
@@ -141,7 +141,7 @@ help:
 
 
 ctest:
-	cd $(BUILD) && ctest --output-on-failure -V
+	cd $(BUILD) && ctest --output-on-failure -V -j $(NPROCS)
 
 ctest_all: all
 	$(MAKE) ctest
@@ -179,11 +179,12 @@ CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ \
 cmake: clean folder parser
 	cmake $(CMAKE_ARGS)
 
-cmaker: clean folder parser
-	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Release
+# -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DPICO_PLATFORM=$(BUILD_TARGET)
+# cmaker: clean folder parser
+# 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Release
 
-cmake_host: clean folder parser
-	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Debug -DPICO_PLATFORM=host
+# cmake_host: clean folder parser
+# 	cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Debug -DPICO_PLATFORM=host
 
 # -DPICO_SDK_PRE_LIST_DIRS=$(PROJ_DIR)/source/external/pico-host-sdl
 
@@ -235,8 +236,8 @@ restart:
 w: write_main
 wt: write_test
 write_main:
-	# ./tools/boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
-	picotool load -v -x $(PICO_MAIN_FILE_PATH) -f
+	./tools/boot/upload.sh -p '$(PICO_MAIN_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
+	# picotool load -v -x $(PICO_MAIN_FILE_PATH) -f
 
 write_test: boot
 	./boot/upload.sh -p '$(PICO_TEST_FILE_PATH)' -d $(PICO_DRIVE_LETTER)

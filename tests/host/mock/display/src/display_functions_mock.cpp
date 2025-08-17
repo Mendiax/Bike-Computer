@@ -64,6 +64,12 @@ void display_init(void)
     memset(imgui_display_data.imgui_display_buffer, 0, sizeof(imgui_display_data.imgui_display_buffer));
     Imgui_Display::start();
 }
+
+void display_sync(void)
+{
+
+}
+
 // function from display driver
 void display_display(uint8_t display_buffer[DISPLAY_BUFFER_SIZE])
 {
