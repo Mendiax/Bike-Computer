@@ -5,13 +5,15 @@
 // pico includes
 
 // c/c++ includes
-#include <cstring>
 #include <tuple>
+#include <inttypes.h>
 
 // my includes
-#include "display/driver.hpp"
+#include "gui/view_boot.hpp"
 #include "views/view.hpp"
-#include "gui/view_sensors_plots.hpp"
+#include "traces.h"
+#include "common_actors.hpp"
+#include "gui/structure.hpp"
 
 // #------------------------------#
 // |           macros             |
@@ -20,26 +22,30 @@
 // #------------------------------#
 // | global variables definitions |
 // #------------------------------#
-void View_Sensors_Plots::render(void)
+
+View_Boot::View_Boot(const Sensor_Data& data, const Session_Data& session, gui::View_List* next)
+    : gui::View(next), data{data}, session{session}
+{
+
+}
+
+void View_Boot::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
     auto frame = creator->setup_bar(&this->data);
-    // static float val_min=0;
-    // static float val_max=0;
 
-    static PlotSettings settings = {
-        .frame = frame,
-        .auto_max=true,
-        .auto_min=true,
-        .min = nullptr,
-        .max = nullptr,
-        .data = &this->data.imu.accel_hist,
-        .len = 100,
-        .color = COLOR_WHITE
-    };
-    creator->add_plot_ring<float>(settings);
+    auto frames = View_Creator::split_horizontal_arr(frame, 3);
+    creator->add_value("rtc %f", 5, &data.boot.rtc, frames[0], Align::LEFT);
+    creator->add_value("cfg %f", 5, &data.boot.config, frames[1], Align::LEFT);
+    creator->add_value("sim %f", 5, &data.boot.sim868, frames[2], Align::LEFT);
+}
 
+void View_Boot::action(void)
+{
+    PRINTF("View_Boot action\n");
+    auto gui = Gui::get_gui();
+    gui->enter();
 }
 // #------------------------------#
 // | static variables definitions |

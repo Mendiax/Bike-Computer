@@ -196,6 +196,25 @@ std::tuple<Frame, Frame> View_Creator::split_vertical(const Frame& frame, uint8_
     return std::make_tuple(f1,f2);
 }
 
+std::tuple<Frame, Frame> View_Creator::split_vertical_f(const Frame& frame, float ratio)
+{
+    if(ratio < 0.0f || ratio > 1.0f)
+    {
+        massert(false, "ratio should be between 0 and 1, got %f\n", ratio);
+        ratio = 0.5f; // default to 50% if ratio is invalid
+    }
+    const uint16_t width_split = frame.width * (uint16_t)ratio;
+    const uint16_t f1_w = (uint16_t)((float)frame.width * ratio);
+    const uint16_t f2_w = frame.width - f1_w;
+
+    const uint16_t next_x = frame.x + f1_w;
+
+    const Frame f1 = {frame.x, frame.y, f1_w, frame.height};
+    const Frame f2 = {next_x, frame.y, f2_w, frame.height};
+    return std::make_tuple(f1,f2);
+}
+
+
 std::vector<Frame> View_Creator::split_vertical_arr(const Frame &frame, const uint8_t cnt)
 {
     const uint16_t width = frame.width / cnt;
@@ -244,17 +263,25 @@ std::vector<Frame> View_Creator::split_horizontal_arr(const Frame &frame, const 
 }
 
 
-void View_Creator::top_bar(const Time_HourS *hours, const Battery *lipo)
+void View_Creator::top_bar(const Time_HourS *hours, const Battery *lipo, const GpsDataS* gps)
 {
     Frame bar_frame = {0, 0, DISPLAY_WIDTH, TOP_BAR_HEIGHT};
-    auto [frame_hour, frame_battery] = split_vertical(bar_frame);
-    add_value("/\\%3d" PRIu8, BAT_LEVEL_LABEL_LENGTH, lipo, frame_battery, Align::RIGHT);
-    add_value("", TIMES_LABEL_LENGTH, hours, frame_hour, Align::LEFT);
+    auto [frame_hour, frame_status] = split_vertical_f(bar_frame, 8.f/(18.f));
+    add_value("", TIMES_LABEL_LENGTH, hours, frame_hour, Align::LEFT); // 8
+
+    auto [frame_gps, frame_battery] = split_vertical_f(frame_status, 7.f/10.f);
+    add_value("100" PRIu8, BAT_LEVEL_LABEL_LENGTH, lipo, frame_battery, Align::RIGHT); // 3
+
+    auto [frame_gps_sat1, frame_gps_sat2] = split_vertical(frame_gps);
+    add_value("%2" PRIu8, 2, &gps->sat, frame_gps_sat1, Align::RIGHT); // 6
+    add_value("%2" PRIu8, 2, &gps->sat2, frame_gps_sat2, Align::LEFT); // 2
+
+
 }
 
-Frame View_Creator::setup_bar(const Time_HourS* hours, const Battery* lipo)
+Frame View_Creator::setup_bar(const Sensor_Data* data)
 {
-    top_bar(hours, lipo);
+    top_bar(&data->current_time.hours, &data->lipo, &data->gps_data);
     return get_frame_bar();
 }
 

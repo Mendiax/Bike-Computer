@@ -1,5 +1,5 @@
-#ifndef __session_VIEW_SESSION_HPP__
-#define __session_VIEW_SESSION_HPP__
+#ifndef __VIEW_BOOT_HPP__
+#define __VIEW_BOOT_HPP__
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
@@ -8,11 +8,7 @@
 // c/c++ includes
 
 // my includes
-#include "gui_common.hpp"
-#include "views/view.hpp"
-#include "common_types.h"
-#include "session.hpp"
-
+#include "view_session.hpp"
 
 // #-------------------------------#
 // |            macros             |
@@ -21,27 +17,22 @@
 // #-------------------------------#
 // | global types declarations     |
 // #-------------------------------#
-/**
- * @brief class that display data of current session
- *
- */
-class View_Session : public gui::View
+
+class View_Boot : public gui::View
 {
 protected:
     const Sensor_Data& data;
     const Session_Data& session;
-public:
-    View_Session(const Sensor_Data& data, const Session_Data& session);
-    ~View_Session();
 
-    // start/pause
+public:
+    View_Boot(const Sensor_Data& data, const Session_Data& session, gui::View_List* next);
+    /**
+     * @brief render function that renders current view
+     *
+     */
+    virtual void render(void);
     virtual void action(void);
-    // end session with save
-    virtual void action_long(void);
-    // Base action_second implementation
-    // virtual void action_second(void);
-    // end session no save
-    virtual void action_second_long(void);
+
 };
 
 // #-------------------------------#

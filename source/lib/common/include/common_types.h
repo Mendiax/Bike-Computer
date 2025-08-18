@@ -150,6 +150,11 @@ struct Gear_Suggestions
  */
 typedef struct Sensor_Data
 {
+    struct {
+        float rtc{0};
+        float sim868{0};
+        float config{0};
+    } boot;
     TimeS current_time;
     Weather_BMP280_S weather;
     GpsDataS gps_data;

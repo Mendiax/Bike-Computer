@@ -39,7 +39,7 @@ void Main_New_Session::render()
     auto creator = View_Creator::get_view();
     creator->reset();
     auto gui = Gui::get_gui();
-    auto frame = creator->setup_bar(&gui->data->current_time.hours, &gui->data->lipo);
+    auto frame = creator->setup_bar(gui->data);
     auto [label, empty] = View_Creator::split_horizontal(frame, 3, true);
     auto [top, bot] = View_Creator::split_horizontal(label);
 

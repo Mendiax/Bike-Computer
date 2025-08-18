@@ -78,7 +78,7 @@
 // #------------------------------#
 Bike_Config config;
 bool config_received = false;
-Sensor_Data sensors_data;
+Sensor_Data sensors_data{};
 Session_Data *session_p = 0;
 
 
@@ -192,6 +192,7 @@ void Data_Actor::setup(void)
         .sec   = 00
     };
     rtc_set_datetime(&t);
+    sensors_data.boot.rtc = 1;
     TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR CONFIG\n");
     // wait for config
     while(!config_received)
@@ -200,6 +201,7 @@ void Data_Actor::setup(void)
         sleep_ms(100);
     }
     TRACE_DEBUG(0, TRACE_MAIN, "CONFIG RECIVED\n");
+    sensors_data.boot.config = 1;
     config.to_string();
 
     // for testing purpose
@@ -226,12 +228,14 @@ void Data_Actor::setup(void)
     TRACE_DEBUG(0, TRACE_MAIN, "DOF IS ON\n");
 
     TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR SIM868\n");
-    // while (sim868::check_for_boot_long() == false) {
-    //     sleep_ms(1000);
-    // }
+    while (sim868::check_for_boot_long() == false) {
+        sleep_ms(1000);
+        sensors_data.boot.sim868 += 1;
+    }
     // sim868::waitForBoot();
-    // TRACE_DEBUG(0, TRACE_MAIN, "SIM868 IS ON\n");
+    TRACE_DEBUG(0, TRACE_MAIN, "SIM868 IS ON\n");
 
+    Gui::get_gui()->enter();
     // TRACE_DEBUG(0, TRACE_MAIN, "GET BATTERY\n");
     // {
     //     bool is_charging = 0;

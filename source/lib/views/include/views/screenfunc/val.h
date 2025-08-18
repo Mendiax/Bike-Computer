@@ -47,7 +47,7 @@ void drawFormat_void(const void *settings);
 DrawFuncT getDrawFunc(const char* var);
 void drawFormat_char_p(const void *settings);
 
-#define BAT_LEVEL_LABEL_LENGTH 5
+#define BAT_LEVEL_LABEL_LENGTH 3
 DrawFuncT getDrawFunc(const Battery* var);
 void draw_battery_level(const void *settings);
 

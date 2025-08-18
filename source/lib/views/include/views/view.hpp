@@ -121,9 +121,10 @@ public:
      * @return constexpr std::tuple<Frame, Frame>
      */
     static std::tuple<Frame, Frame> split_vertical(const Frame &frame, uint8_t ratio = 2, bool invert = false);
+    static std::tuple<Frame, Frame> split_vertical_f(const Frame& frame, float ratio);
+
     static std::vector<Frame> split_vertical_arr(const Frame &frame, uint8_t cnt);
 
-    // std::tuple<Frame, Frame> split_vertical(const Frame& frame, float ratio);
 
     /**
      * @brief splits frame into 2 frames with half of height
@@ -149,7 +150,7 @@ public:
                                 const Frame &frame,
                                 Align align = Align::LEFT, bool alignRight = true);
 
-    void top_bar(const Time_HourS *hours, const Battery *lipo);
+    void top_bar(const Time_HourS *hours, const Battery *lipo, const GpsDataS* gps);
 
     // static constexpr Frame get_frame_bar();
     static inline Frame get_frame_bar()
@@ -161,7 +162,7 @@ public:
      *
      * @return Frame
      */
-    Frame setup_bar(const Time_HourS *hours, const Battery *lipo);
+    Frame setup_bar(const Sensor_Data* data);
 
     static inline uint16_t get_frame_top_y(const Frame frame)
     {

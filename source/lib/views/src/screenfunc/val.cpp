@@ -189,15 +189,15 @@ void draw_battery_level(const void *settings)
 
     const size_t max_str_len = 6;
     static char buffer[max_str_len + 1];
-    static int_fast8_t last_bat;
+    static int_fast8_t last_bat = -1;
 
     if(__builtin_expect(last_bat != bat.level, 0))
     {
         int write = -1;
         if(__builtin_expect(bat.is_charging, 0))
-            write = snprintf(&buffer[0], max_str_len, "/\\%" PRIu8, bat.level);
+            write = snprintf(&buffer[0], max_str_len, "%3" PRIiFAST8, bat.level);
         else
-            write = snprintf(&buffer[0], max_str_len, "  %" PRIu8, bat.level);
+            write = snprintf(&buffer[0], max_str_len, "%3" PRIiFAST8, bat.level);
 
         if(__builtin_expect(write < 0, 0)){
             return;

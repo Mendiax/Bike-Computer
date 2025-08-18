@@ -61,7 +61,7 @@ View_List* View::get_next_view_list()
 
 void View::action(void)
 {
-    // empty handler
+
 }
 void View::action_long(void)
 {

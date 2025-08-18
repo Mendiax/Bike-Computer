@@ -37,7 +37,7 @@ void View_Last_Date::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data.current_time.hours, &this->data.lipo);
+    auto frame = creator->setup_bar(&this->data);
 
     // frame.height = DISPLAY_HEIGHT;
 

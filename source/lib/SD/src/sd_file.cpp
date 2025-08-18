@@ -72,7 +72,13 @@ Sd_File::Result Sd_File::append(const char* string, bool reset)
 {
     FRESULT res;
     auto time_start_open = get_absolute_time();
-    if(reset || append_file.fptr == 0) {
+    if(reset ||
+    #if PICO_RP2040
+        append_file.fptr == 0
+    #else
+        append_file.file == 0
+    #endif
+    ) {
         res = f_open(&append_file, file_name.c_str(),  FA_WRITE | FA_OPEN_APPEND);
         if (res != FR_OK)
         {

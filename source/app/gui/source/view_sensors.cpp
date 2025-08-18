@@ -23,7 +23,7 @@ void View_Sensors::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data.current_time.hours, &this->data.lipo);
+    auto frame = creator->setup_bar(&this->data);
 
     auto frames = View_Creator::split_horizontal_arr(frame, 5);
     creator->add_value("voltage:%.2fV",std::strlen("voltage:") + 4,&this->data.lipo.voltage, frames[0], Align::LEFT);

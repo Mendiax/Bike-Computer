@@ -12,6 +12,7 @@
 #include "gui/view_last_time.hpp"
 #include "gui/view_sensors.hpp"
 #include "gui/view_sensors_plots.hpp"
+#include "gui/view_boot.hpp"
 
 
 #include "views/view.hpp"
@@ -73,7 +74,10 @@ void Gui::set_data(Sensor_Data* data_p, Session_Data* session_p)
 }
 void Gui::create()
 {
+    auto boot_menu = new View_List();
+
     auto main_menu = new View_List();
+    boot_menu->add_view(new View_Boot(*data, *session, (gui::View_List*)main_menu));
     // -----------------------------
     //      session
     // -----------------------------
@@ -101,7 +105,9 @@ void Gui::create()
     main_menu->add_view(new Main_History((gui::View_List*)history_session_menu));
 
 
-    this->current_view_list = main_menu;
+
+
+    this->current_view_list = boot_menu;
 }
 
 static void blank(){}
