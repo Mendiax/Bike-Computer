@@ -38,6 +38,7 @@
 #include "display_actor.hpp"
 #include "data_actor.hpp"
 #include "sd_file.h"
+#include "complementary.hpp"
 // SIM868
 #include "sim868/interface.hpp"
 #include "sim868/gps.hpp"
@@ -80,6 +81,7 @@ Bike_Config config;
 bool config_received = false;
 Sensor_Data sensors_data{};
 Session_Data *session_p = 0;
+Filter_Complementary<float> complementary_filter;
 
 
 // #------------------------------#
@@ -534,7 +536,11 @@ static void cycle_get_gps_data()
         {
             sim868::gps::get_speed(speed);
             sim868::gps::get_position(latitude, longitude);
-            sim868::gps::get_msl(msl);
+            bool has_msl = sim868::gps::get_msl(msl);
+            if(has_msl) {
+                complementary_filter.update_gps(msl);
+                sensors_data.altitude = complementary_filter.get_altitude();
+            }
 
             sim868::gps::get_signal(sensors_data.gps_data.sat,
                                     sensors_data.gps_data.sat2);
@@ -598,7 +604,9 @@ static void cycle_get_weather_data()
                                                 temp);
                      sensors_data.weather.temperature = temp - 3;
                      sensors_data.weather.pressure = press;
-                     sensors_data.altitude = altitude;
+                     complementary_filter.update_baro(altitude);
+                     sensors_data.altitude = complementary_filter.get_altitude();
+
                      TRACE_DEBUG(4, TRACE_CORE_0,
                                  "Current weather temp:%.2fC press:%.2fPa altitude:%.2fm\n",
                                  temp, press, altitude);
