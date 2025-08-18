@@ -493,11 +493,11 @@ static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const 
     std::stringstream ss;
     ss << FOLDER_LOG_DATA "gps_log_" << time_to_str_file_name_conv(session.get_start_time()) << ".csv";
     payload->file_name = ss.str();
-    payload->header = "time;latitude;longitude;velocity;altitude;slope;cadence\n";
+    payload->header = "time;latitude;longitude;velocity;altitude;slope;cadence;gear\n";
 
     char buffer[200] = {0};
-    sprintf(buffer, "%s;%f;%f;%.1f;%.1f;%.1f;%.1f\n",
-        time_to_str(time).c_str(), gps.lat, gps.lon, sensor_data.velocity, sensor_data.altitude, sensor_data.slope, sensor_data.cadence);
+    sprintf(buffer, "%s;%f;%f;%.1f;%.1f;%.1f;%.1f;%d\n",
+        time_to_str(time).c_str(), gps.lat, gps.lon, sensor_data.velocity, sensor_data.altitude, sensor_data.slope, sensor_data.cadence, sensor_data.gear.rear);
     payload->line = buffer;
 
     Signal sig(actors_common::SIG_DISPLAY_ACTOR_LOG, payload);
