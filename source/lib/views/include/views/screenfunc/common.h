@@ -68,6 +68,15 @@ typedef struct PlotSettings
     display::DisplayColor color;
 } PlotSettings;
 
+struct GpsSettings
+{
+    Frame frame;
+    const void *data; // ptr to array
+    display::DisplayColor color;
+    display::DisplayColor color2;
+    float radius;
+};
+
 struct FrameSettings
 {
     Frame frame;
@@ -81,6 +90,7 @@ struct Settings
         ValSettings val;
         PlotSettings plot;
         FrameSettings frame;
+        GpsSettings gps;
     };
 };
 

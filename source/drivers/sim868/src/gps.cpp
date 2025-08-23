@@ -152,6 +152,9 @@ bool sim868::gps::fetch_data()
         gps_current_state = GpsState::POSITION_AVAILABLE;
         gps_counter.position_available++;
       }
+      else {
+        gps_has_correct_data = false;
+      }
     } else {
       gps_current_state = GpsState::NO_RESPOND;
     }

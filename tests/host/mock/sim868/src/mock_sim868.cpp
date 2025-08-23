@@ -12,6 +12,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <random>
 
 // my includes
 #include "mock_sim868.hpp"
@@ -38,10 +39,22 @@
 // #------------------------------#
 // | global function definitions  |
 // #------------------------------#
-Mock_SIM868::Mock_SIM868()
+Mock_SIM868::Mock_SIM868() :
+    stop(0),
+    urat_thread(NULL),
+    current_lat(53.0),
+    current_lon(39.1),
+    current_alt(350),
+    current_speed(10.0),
+    current_sats_view(12),
+    current_sats_used(8),
+    current_glonass_used(4),
+    rng(std::random_device{}()),
+    rand_pos_delta(0.2, 0.1),    // ~10m range for position
+    rand_alt_delta(0.0, 0.5),       // 0.5m standard deviation for altitude
+    rand_speed_delta(0.0, 0.5),     // 0.2 km/h standard deviation for speed
+    rand_sats_delta(-1, 1)          // -1, 0, or +1 for satellite count changes
 {
-    this->stop = 0;
-    this->urat_thread = NULL;
 }
 Mock_SIM868::~Mock_SIM868()
 {
@@ -80,9 +93,36 @@ void* Mock_SIM868::thread_kernel(void* args)
             }
             else if(msg == "AT+CGNSINF")
             {
+                // Update position with small random changes
+                current_lat += rand_pos_delta(rng);
+                current_lon += rand_pos_delta(rng);
+
+                // Update altitude (keep it reasonable: 300-400m)
+                current_alt += rand_alt_delta(rng);
+                current_alt = std::min(400.0f, std::max(300.0f, current_alt));
+
+                // Update speed (keep it non-negative and reasonable: 0-60 km/h)
+                current_speed += rand_speed_delta(rng);
+                current_speed = std::min(60.0f, std::max(0.0f, current_speed));
+
+                // Update satellite counts (keep within reasonable ranges)
+                current_sats_view += rand_sats_delta(rng);
+                current_sats_view = std::min(15, std::max(8, current_sats_view));
+
+                current_sats_used += rand_sats_delta(rng);
+                current_sats_used = std::min(current_sats_view, std::max(4, current_sats_used));
+
+                current_glonass_used += rand_sats_delta(rng);
+                current_glonass_used = std::min(8, std::max(2, current_glonass_used));
+
                 send_to_pico(build_gps_response(1, 1,
                                                 get_current_time().c_str(),
-                                                53.0, 39.1, 350, 10, 9, 8, 7)
+                                                current_lat, current_lon,
+                                                static_cast<int>(current_alt),
+                                                current_speed,
+                                                current_sats_view,
+                                                current_sats_used,
+                                                current_glonass_used)
                                  .c_str());
             }
             else if(msg == "AT+CGNSPWR=1")

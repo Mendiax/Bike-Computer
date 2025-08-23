@@ -33,12 +33,12 @@ void View_Boot::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data);
+    auto frame = creator->get_frame_bar();
 
     auto frames = View_Creator::split_horizontal_arr(frame, 3);
-    creator->add_value("rtc %f", 5, &data.boot.rtc, frames[0], Align::LEFT);
-    creator->add_value("cfg %f", 5, &data.boot.config, frames[1], Align::LEFT);
-    creator->add_value("sim %f", 5, &data.boot.sim868, frames[2], Align::LEFT);
+    creator->add_label("Booting", frames[0],Align::CENTER, 7);
+    creator->add_value("time %4.1fs", 11, &data.boot.time, frames[1], Align::CENTER);
+    creator->add_value("config %1.0f", 11, &data.boot.config, frames[2], Align::CENTER);
 }
 
 void View_Boot::action(void)

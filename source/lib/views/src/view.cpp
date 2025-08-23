@@ -262,6 +262,15 @@ std::vector<Frame> View_Creator::split_horizontal_arr(const Frame &frame, const 
     return frames;
 }
 
+void View_Creator::add_gps(const GpsSettings& settings)
+{
+    Window new_window;
+    new_window.updateFunc_p = get_draw_func_gps_path();
+    new_window.settings.gps = settings;
+    add_new_window(new_window);
+}
+
+
 
 void View_Creator::top_bar(const Time_HourS *hours, const Battery *lipo, const GpsDataS* gps)
 {

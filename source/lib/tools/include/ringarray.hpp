@@ -24,6 +24,9 @@ private:
     size_t first_elem_pos = 0;
 
 public:
+    RingArray<T>() {
+        array.resize(1);
+    }
     // RingArray(size_t length) : array(length), first_elem_pos(0) {}
     void set_length(size_t len) {
         array.resize(len);
@@ -40,6 +43,26 @@ public:
 
     const std::vector<T>& get_data() {
         return array;
+    }
+
+    bool empty() const {
+        return array.empty();
+    }
+
+    size_t size() const {
+        return array.size();
+    }
+
+    T& operator[] (size_t index) {
+        if (index >= array.size()) {
+            return array[0];
+        }
+        return array[(first_elem_pos + index) % array.size()];
+    }
+
+    const T& get_last_element() {
+        size_t last_pos = (first_elem_pos + array.size() - 1) % array.size();
+        return array[last_pos];
     }
 
     /**

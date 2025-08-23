@@ -172,6 +172,8 @@ void Data_Actor::setup(void)
     //     return;
     // }
     sensors_data.imu.accel_hist.set_length(100);
+    sensors_data.gps_graph.points.set_length(100);
+
 
     TRACE_DEBUG(0, TRACE_MAIN, "interrupt setup core 0\n");
     interruptSetupCore0();
@@ -194,7 +196,6 @@ void Data_Actor::setup(void)
         .sec   = 00
     };
     rtc_set_datetime(&t);
-    sensors_data.boot.rtc = 1;
     TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR CONFIG\n");
     // wait for config
     while(!config_received)
@@ -535,7 +536,11 @@ static void cycle_get_gps_data()
     CYCLE_UPDATE_SIMPLE(sim868::gps::fetch_data(), GPS_FETCH_CYCLE_MS,
         {
             sim868::gps::get_speed(speed);
-            sim868::gps::get_position(latitude, longitude);
+            if(sim868::gps::get_position(latitude, longitude)) {
+                // const auto new_point = Gps_Graph::Point{latitude, longitude};
+                sensors_data.gps_graph.points.add_element({latitude, longitude});
+                sensors_data.gps_graph.pos = sensors_data.gps_graph.points.get_last_element();
+            }
             bool has_msl = sim868::gps::get_msl(msl);
             if(has_msl) {
                 complementary_filter.update_gps(msl);

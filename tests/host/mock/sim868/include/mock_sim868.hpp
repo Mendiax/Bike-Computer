@@ -8,6 +8,9 @@
 // c/c++ includes
 #include <atomic>
 #include <thread>
+#include <random>
+#include <string>
+
 // my includes
 
 // #-------------------------------#
@@ -22,6 +25,18 @@ class Mock_SIM868{
 private:
     std::thread* urat_thread;
     std::atomic_int stop;
+    float current_lat;
+    float current_lon;
+    float current_alt;
+    float current_speed;
+    int current_sats_view;
+    int current_sats_used;
+    int current_glonass_used;
+    std::mt19937 rng;
+    std::normal_distribution<float> rand_pos_delta;     // For lat/lon
+    std::normal_distribution<float> rand_alt_delta;     // For altitude
+    std::normal_distribution<float> rand_speed_delta;   // For speed
+    std::uniform_int_distribution<int> rand_sats_delta; // For satellites
 
 public:
     Mock_SIM868();

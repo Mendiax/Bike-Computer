@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __SESSION_VIEW_BMP_HPP__
+#define __SESSION_VIEW_BMP_HPP__
 // #-------------------------------#
 // |           includes            |
 // #-------------------------------#
@@ -16,7 +17,7 @@
 // #-------------------------------#
 // | global types declarations     |
 // #-------------------------------#
-class View_Gps : public View_Session
+class View_Bmp : public View_Session
 {
 private:
 
@@ -38,3 +39,4 @@ public:
 // | global function declarations  |
 // #-------------------------------#
 
+#endif

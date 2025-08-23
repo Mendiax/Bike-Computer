@@ -208,6 +208,7 @@ void Display_Actor::setup(void)
         Signal sig(actors_common::SIG_DATA_ACTOR_SET_CONFIG ,payload);
         Data_Actor::get_instance().send_signal(sig);
     }
+    sensor_data_p->boot.config = 1;
 
     TRACE_DEBUG(0, TRACE_CORE_1, "send total data\n");
     // update data on start
@@ -316,6 +317,12 @@ int Display_Actor::loop(void)
     const absolute_time_t frameStart = get_absolute_time();
     Display_Actor::get_instance().handle_all();
     const absolute_time_t timeAferHandlers = get_absolute_time();
+    auto local_data = Display_Actor::get_instance().get_local_data();
+    if(local_data.sensors.boot.sim868 == 0)
+    {
+        local_data.sensors.boot.time = to_ms_since_boot(frameStart) / 1000.0f;
+        Display_Actor::get_instance().set_local_data(local_data);
+    }
     // frame update
     {
         this->gui->handle_buttons();
@@ -323,7 +330,7 @@ int Display_Actor::loop(void)
         // render
         this->gui->refresh();
 
-        if(Display_Actor::get_instance().get_local_data().session.get_status() == Session_Data::Status::PAUSED)
+        if(local_data.session.get_status() == Session_Data::Status::PAUSED)
         {
             TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label\n");
             Frame pause_label = {DISPLAY_WIDTH / 10, DISPLAY_HEIGHT / 3, DISPLAY_WIDTH, DISPLAY_HEIGHT / 4};

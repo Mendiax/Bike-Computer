@@ -7,6 +7,7 @@
 #else
 #include <pico/sync.h>
 #endif
+
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include <inttypes.h>
@@ -110,8 +111,8 @@ static inline void traces_init()
     // 5 6 drawing windows
     // TRACES_ON(5,TRACE_VIEWS);
     // TRACES_ON(6,TRACE_VIEWS);
-
     // TRACES_ON(7,TRACE_VIEWS); // adding new window
+    // TRACES_ON(8, TRACE_VIEWS); // gps map render
 
     // ==================================================
     //                   CORE 0 TRACES
@@ -132,7 +133,7 @@ static inline void traces_init()
     // ==================================================
     // TRACES_ON(1,TRACE_CORE_1); // render time for screen
     // TRACES_ON(2,TRACE_CORE_1); // pause btn
-    TRACES_ON(3,TRACE_CORE_1); // time file write
+    // TRACES_ON(3,TRACE_CORE_1); // time file write
 
 
 
@@ -221,10 +222,10 @@ static inline void traces_init()
 #define ESC_WHITE ESC "[1;37m"
 #else
 #define ESC             ""
-#define ESC_RESET ESC   ""
-#define ESC_RED ESC     ""
-#define ESC_GREEN ESC   ""
-#define ESC_WHITE ESC   ""
+#define ESC_RESET       ""
+#define ESC_RED         ""
+#define ESC_GREEN       ""
+#define ESC_WHITE       ""
 
 #endif
 

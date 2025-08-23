@@ -19,6 +19,7 @@
 #include "views/screenfunc/val.h"
 #include "views/screenfunc/label.h"
 #include "views/screenfunc/plot.h"
+#include "views/screenfunc/gps.h"
 
 
 
@@ -90,6 +91,8 @@ public:
     void add_plot(const PlotSettings& settings);
     template<typename T>
     void add_plot_ring(const PlotSettings& settings);
+    void add_gps(const GpsSettings& settings);
+
 
 
 
@@ -278,8 +281,6 @@ void View_Creator::add_plot_ring(const PlotSettings& settings)
     new_window.settings.plot = settings;
     add_new_window(new_window);
 }
-
-
 
 template <typename T, typename Q>
 void View_Creator::add_Vertical(const char *overFormat, size_t overCommonLength, const T *overData,

@@ -13,6 +13,7 @@
 #include "gui/view_sensors.hpp"
 #include "gui/view_sensors_plots.hpp"
 #include "gui/view_boot.hpp"
+#include "gui/view_gps.hpp"
 
 
 #include "views/view.hpp"
@@ -84,9 +85,10 @@ void Gui::create()
     auto session_menu = new View_List(main_menu);
     session_menu->add_view(new View_Velocity(*data, *session));
     session_menu->add_view(new View_Max_Avg(*data, *session));
+    session_menu->add_view(new View_Bmp(*data, *session));
+    // session_menu->add_view(new View_Sensors(*data, *session));
+    // session_menu->add_view(new View_Date(*data, *session));
     session_menu->add_view(new View_Gps(*data, *session));
-    session_menu->add_view(new View_Sensors(*data, *session));
-    session_menu->add_view(new View_Date(*data, *session));
     session_menu->add_view(new View_Total(*data, *session));
     session_menu->add_view(new View_Sensors_Plots(*data, *session));
 

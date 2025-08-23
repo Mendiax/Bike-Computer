@@ -167,7 +167,7 @@ void display::set_pixel(uint16_t x, uint16_t y, display::DisplayColor color)
     if(x >= DISPLAY_WIDTH || y >= DISPLAY_HEIGHT)
     {
         TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "write outside of window x=%" PRIu16 " y=%" PRIu16 "\n", x, y);
-        //return;
+        return;
         // no return (XD) so it can be optimised out when compiling without traces and have greater performance
     }
     uint_fast32_t index = 0;
@@ -204,38 +204,47 @@ void display::println(uint16_t x, uint16_t y, const char *str,
 
 void display::draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, display::DisplayColor color, uint8_t scale)
 {
+    // swap to always draw left to right
+    if(x0 > x1)
+    {
+        std::swap(x0, x1);
+        std::swap(y0, y1);
+    }
+    if(y0 > DISPLAY_HEIGHT || y1 > DISPLAY_HEIGHT || x0 > DISPLAY_WIDTH || x1 > DISPLAY_WIDTH)
+    {
+        TRACE_ABNORMAL(TRACE_DISPLAY_PRINT, "draw line outside of window x0=%" PRIu16 " y0=%" PRIu16 " x1=%" PRIu16 " y1=%" PRIu16 "\n", x0, y0, x1, y1);
+        return;
+        // no return (XD) so it can be optimised out when compiling without traces and have greater performance
+    }
     Paint_DrawLineGen(x0,y0,x1,y1, display::set_pixel, color, scale);
 }
 
 void Paint_DrawLineGen(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, void (*draw_func)(uint16_t x, uint16_t y, display::DisplayColor color), display::DisplayColor color, [[maybe_unused]]uint8_t scale)
 {
     int_fast32_t dx = std::abs((int32_t)x1 - (int32_t)x0);
-    uint_fast8_t sx = x0 < x1 ? 1 : -1;
-    int_fast32_t dy = - std::abs((int32_t)y1 - (int32_t)y0);
-    uint_fast8_t sy = y0 < y1 ? 1 : -1;
+    int_fast32_t dy = std::abs((int32_t)y1 - (int32_t)y0);
+    int_fast8_t sx = x0 < x1 ? 1 : -1;
+    int_fast8_t sy = y0 < y1 ? 1 : -1;
 
-    int_fast32_t error = dx + dy;
+    int_fast32_t err = (dx > dy ? dx : -dy) / 2;
+    int_fast32_t e2;
 
     while(true)
     {
         draw_func(x0, y0, color);
         if(x0 == x1 && y0 == y1)
             break;
-        auto e2 = 2 * error;
-        if (e2 >= dy)
-        {
-            if(x0 == x1)
-                break;
-            error = error + dy;
-            x0 = x0 + sx;
-        }
 
-        if (e2 <= dx)
+        e2 = err;
+        if(e2 > -dx)
         {
-            if (y0 == y1)
-                break;
-            error = error + dx;
-            y0 = y0 + sy;
+            err -= dy;
+            x0 += sx;
+        }
+        if(e2 < dy)
+        {
+            err += dx;
+            y0 += sy;
         }
     }
 }

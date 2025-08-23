@@ -144,6 +144,15 @@ struct Gear_Suggestions
     char gear_suggestion[GEAR_SUGGESTION_LEN + 1];
 };
 
+struct Gps_Graph {
+    struct Point {
+        float lat;
+        float lon;
+    };
+    RingArray<Point> points; // vector of points
+    Point pos{0.0f, 0.0f};
+};
+
 /**
  * @brief Contains data from sensors
  *
@@ -151,12 +160,13 @@ struct Gear_Suggestions
 typedef struct Sensor_Data
 {
     struct {
-        float rtc{0};
+        float time{0};
         float sim868{0};
         float config{0};
     } boot;
     TimeS current_time;
     Weather_BMP280_S weather;
+    Gps_Graph gps_graph;
     GpsDataS gps_data;
     Battery lipo; // battery info
     Gear_S gear;  // gear {front, rear}

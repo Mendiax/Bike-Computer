@@ -19,8 +19,8 @@
 #define BTN2 2
 #define BTN3 3
 
-#define LONG_PRESS_MS 1000
-#define PRESS_TIMEOUT 500
+#define LONG_PRESS_US 1000000
+#define PRESS_TIMEOUT 500000
 
 // #-------------------------------#
 // | global types declarations     |
@@ -36,8 +36,8 @@ class Button : public Button_Interface
 private:
     unsigned pin;                          ///< The pin number to which the button is connected.
     volatile bool pressed;                 ///< Flag indicating if the button is currently pressed.
-    volatile uint32_t time_press;          ///< Timestamp of the button press event.
-    volatile uint32_t time_release;        ///< Timestamp of the button release event.
+    volatile absolute_time_t time_press;          ///< Timestamp of the button press event.
+    volatile absolute_time_t time_release;        ///< Timestamp of the button release event.
     volatile bool was_pressed;             ///< Flag indicating if the button was pressed.
     volatile bool was_pressed_long;        ///< Flag indicating if the button was pressed long.
 
