@@ -82,7 +82,7 @@
 extern Bike_Config config;
 extern bool config_received;
 extern Sensor_Data sensors_data;
-extern Session_Data *session_p;
+extern Session *session_p;
 
 
 // #------------------------------#
@@ -142,7 +142,7 @@ void Data_Actor::handle_sig_session_load(const Signal &sig)
 
     if (session_p)
         delete session_p;
-    session_p = new Session_Data(payload->session_string.c_str());
+    session_p = new Session(payload->session_string.c_str());
     delete payload;
 }
 
@@ -167,7 +167,7 @@ void Data_Actor::handle_sig_req_packet(const Signal &sig)
         }
     }
     else {
-        *payload->packet_p = {sensors_data, Session_Data()};
+        *payload->packet_p = {sensors_data, Session()};
         {
             Signal sig(actors_common::SIG_DISPLAY_ACTOR_GET_PACKET, payload);
             Display_Actor::get_instance().send_signal(sig);
@@ -196,7 +196,7 @@ void Data_Actor::handle_sig_session_start([[maybe_unused]] const Signal &sig)
     {
         if(session_p != nullptr)
             delete session_p;
-        session_p = new Session_Data();
+        session_p = new Session();
         session_p->start(sensors_data.current_time);
         session_p->pause();
     }
@@ -234,7 +234,7 @@ void Data_Actor::handle_sig_stop(const Signal &sig)
     }
     if(session_p != nullptr)
         delete session_p;
-    session_p = new Session_Data();
+    session_p = new Session();
 }
 
 static bool load_config_from_file(const char* config_str, const char* file_name)

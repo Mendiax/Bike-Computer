@@ -99,7 +99,7 @@ endef
 ################################################################################
 
 
-full_build: clean cmake
+full_build: clean parser cmake
 	cmake --build $(BUILD) --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
@@ -160,6 +160,8 @@ test_all:
 parser:
 	bison -o source/lib/Parser/src/parser_bison.cpp -d source/lib/Parser/parser.y
 	flex -Cr -o source/lib/Parser/src/lexer.cpp source/lib/Parser/lexer.l
+# 	bison -o source/lib/Parser/src/parser_gpx_bison.cpp -d source/lib/Parser/parser_gpx.y
+# 	flex -Cr -o source/lib/Parser/src/lexer_gpx.cpp source/lib/Parser/lexer_gpx.l
 
 
 CMAKE_ARGS := -G$(CMAKE_BUILDER) -S ./ \
@@ -219,7 +221,7 @@ write_picotool:
 	picotool load -x ./$(PICO_MAIN_FILE_PATH_RELATIVE) -f || picotool load -x ./$(PICO_MAIN_FILE_PATH_RELATIVE) -F
 
 write_openocd:
-	openocd -s /home/bartek/pico/pico-sdk/../openocd/tcl -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" -c "program build/pico_main.elf verify reset exit"
+	openocd -s /home/bartek/pico/pico-sdk/../openocd/tcl -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" -c "program $(BUILD)/pico_main.elf verify reset exit"
 
 
 cwt_all:

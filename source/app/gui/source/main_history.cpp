@@ -115,7 +115,7 @@ void Main_History::render()
     auto creator = View_Creator::get_view();
     creator->reset();
     auto gui = Gui::get_gui();
-    auto frame = creator->setup_bar(gui->data);
+    auto frame = creator->setup_bar(&gui->data->sensors);
     auto [top, bot] = View_Creator::split_horizontal(frame, 4);
 
     creator->add_label("History", top, Align::CENTER);

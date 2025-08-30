@@ -21,11 +21,10 @@
 class View_Boot : public gui::View
 {
 protected:
-    const Sensor_Data& data;
-    const Session_Data& session;
+    const SessionData& data;
 
 public:
-    View_Boot(const Sensor_Data& data, const Session_Data& session, gui::View_List* next);
+    View_Boot(const SessionData& data, gui::View_List* next);
     /**
      * @brief render function that renders current view
      *

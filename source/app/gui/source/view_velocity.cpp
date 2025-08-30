@@ -34,7 +34,7 @@ void View_Velocity::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data);
+    auto frame = creator->setup_bar(&this->data.sensors);
 
     frame.height = DISPLAY_HEIGHT;
 
@@ -47,15 +47,15 @@ void View_Velocity::render(void)
     frame_gear_current.width += 5;
     frame_gear_current.x -= 5;
 
-    creator->add_value("%2.0f", (size_t)2, &this->data.velocity, frame_velocity, Align::LEFT);
-    creator->add_value("%3.0f", (size_t)3, &this->data.cadence, frame_cadence, Align::RIGHT);
-    creator->add_value("%3" PRIu8, (size_t)3, &this->data.gear.rear, frame_gear, Align::RIGHT);
-    creator->add_label(this->data.gear_suggestions.gear_suggestion, frame_gear_suggestion, Align::RIGHT, (size_t)2);
+    creator->add_value("%2.0f", (size_t)2, &this->data.sensors.velocity, frame_velocity, Align::LEFT);
+    creator->add_value("%3.0f", (size_t)3, &this->data.sensors.cadence, frame_cadence, Align::RIGHT);
+    creator->add_value("%3" PRIu8, (size_t)3, &this->data.sensors.gear.rear, frame_gear, Align::RIGHT);
+    creator->add_label(this->data.sensors.gear_suggestions.gear_suggestion, frame_gear_suggestion, Align::RIGHT, (size_t)2);
 
     auto prev = creator->get_previous_window();
-    prev->settings.label.text.color = (display::DisplayColor*)&this->data.gear_suggestions.gear_suggestion_color;
-    creator->addValueValuesVertical("%3" PRIu16, 3, &this->session.speed.distance,
-                           "%02" PRIu8, 2, &this->session.speed.distanceDec,
+    prev->settings.label.text.color = (display::DisplayColor*)&this->data.sensors.gear_suggestions.gear_suggestion_color;
+    creator->addValueValuesVertical("%3" PRIu16, 3, &this->data.session.speed.distance,
+                           "%02" PRIu8, 2, &this->data.session.speed.distanceDec,
                            "km", 2, (void *)0,
                            frame_distance,
                            Align::CENTER, true);

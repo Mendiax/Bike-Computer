@@ -7,7 +7,7 @@
 #include <sstream>
 #include <math.h>
 
-Session_Data::Session_Data()
+Session::Session()
 {
     memset(&this->time_start, 0, sizeof(this->time_start));
     memset(&this->time_end, 0, sizeof(this->time_end));
@@ -17,11 +17,11 @@ Session_Data::Session_Data()
     memset(&this->absolute_time_last_stop, 0, sizeof(this->absolute_time_last_stop));
 
 
-    this->status = Session_Data::Status::NOT_STARTED;
+    this->status = Session::Status::NOT_STARTED;
 }
-void Session_Data::start(TimeS time)
+void Session::start(TimeS time)
 {
-    if(this->status != Session_Data::Status::NOT_STARTED)
+    if(this->status != Session::Status::NOT_STARTED)
     {
         return;
     }
@@ -31,63 +31,63 @@ void Session_Data::start(TimeS time)
     this->absolute_time_start = get_absolute_time();
 
     // set to stop
-    this->status = Session_Data::Status::RUNNING;
+    this->status = Session::Status::RUNNING;
     this->pause();
 }
-void Session_Data::pause()
+void Session::pause()
 {
     switch (this->status)
     {
-        case Session_Data::Status::RUNNING:
+        case Session::Status::RUNNING:
             {
-                this->status = Session_Data::Status::PAUSED;
+                this->status = Session::Status::PAUSED;
                 this->absolute_time_last_stop = get_absolute_time();
             }
             break;
-        case Session_Data::Status::NOT_STARTED:
-        case Session_Data::Status::PAUSED:
-        case Session_Data::Status::ENDED:
+        case Session::Status::NOT_STARTED:
+        case Session::Status::PAUSED:
+        case Session::Status::ENDED:
         default:
             break;
     }
 }
-void Session_Data::cont()
+void Session::cont()
 {
     switch (this->status)
     {
-        case Session_Data::Status::PAUSED:
+        case Session::Status::PAUSED:
             {
-                this->status = Session_Data::Status::RUNNING;
+                this->status = Session::Status::RUNNING;
                 auto stop_time_ms = us_to_ms(absolute_time_diff_us(this->absolute_time_last_stop, get_absolute_time()));
                 this->speed.stop_time += stop_time_ms;
             }
             break;
-        case Session_Data::Status::NOT_STARTED:
-        case Session_Data::Status::RUNNING:
-        case Session_Data::Status::ENDED:
+        case Session::Status::NOT_STARTED:
+        case Session::Status::RUNNING:
+        case Session::Status::ENDED:
         default:
             break;
     }
 }
-void Session_Data::end(TimeS time)
+void Session::end(TimeS time)
 {
     this->pause();
-    this->status = Session_Data::Status::ENDED;
+    this->status = Session::Status::ENDED;
     this->time_end = time;
 }
 
-void Session_Data::update(float speed_kph, float distance_m)
+void Session::update(float speed_kph, float distance_m)
 {
     uint32_t stop_time = this->speed.stop_time;
     switch (this->status)
     {
-    case Session_Data::Status::NOT_STARTED:
-    case Session_Data::Status::ENDED:
+    case Session::Status::NOT_STARTED:
+    case Session::Status::ENDED:
         return;
-    case Session_Data::Status::PAUSED:
+    case Session::Status::PAUSED:
         stop_time += us_to_ms(absolute_time_diff_us(this->absolute_time_last_stop, get_absolute_time()));
         break;
-    case Session_Data::Status::RUNNING:
+    case Session::Status::RUNNING:
         this->speed.velocity = speed_kph;
         this->speed.distance = distance_m / 1000.0;
         this->speed.distanceDec = (uint64_t)(distance_m / 10.0) % 100;
@@ -104,14 +104,14 @@ void Session_Data::update(float speed_kph, float distance_m)
     }
 }
 
-const char *Session_Data::get_header()
+const char *Session::get_header()
 {
     return "id;time_start;time_end;"
             "velocityMax;avg;distance;drive_time" // speed
             "\n";
 }
 
-Session_Data::Session_Data(const char* csv_line)
+Session::Session(const char* csv_line)
 {
     const auto data = split_string(csv_line, ';');
     massert(data.size() >= (8), "wrong read session from line:'%s', data size:%zu", csv_line, data.size());
@@ -126,7 +126,7 @@ Session_Data::Session_Data(const char* csv_line)
     this->speed.drive_time = std::atoll(data.at(6).c_str());
 }
 
-std::string Session_Data::get_line()
+std::string Session::get_line()
 {
     // 12;2004.01.01,00:00:19.50;2004.01.01,00:01:1.59;25.1481;25.3401;22.8785;260;37000  // min len 78 + 8 + ? -> 100 (safe?) dist(m) + time(s?)
     std::stringstream csv_line;

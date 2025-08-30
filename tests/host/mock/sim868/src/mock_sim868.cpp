@@ -50,7 +50,7 @@ Mock_SIM868::Mock_SIM868() :
     current_sats_used(8),
     current_glonass_used(4),
     rng(std::random_device{}()),
-    rand_pos_delta(0.2, 0.1),    // ~10m range for position
+    rand_pos_delta(0.0001, 0.1),    // ~10m range for position
     rand_alt_delta(0.0, 0.5),       // 0.5m standard deviation for altitude
     rand_speed_delta(0.0, 0.5),     // 0.2 km/h standard deviation for speed
     rand_sats_delta(-1, 1)          // -1, 0, or +1 for satellite count changes

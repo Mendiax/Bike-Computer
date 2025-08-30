@@ -36,14 +36,14 @@ void View_Last_Time::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data);
+    auto frame = creator->setup_bar(&this->data.sensors);
 
 
     auto [frame_time, frame_distance] = View_Creator::split_horizontal(frame);
 
-    creator->add_value("time:%2d:%02d:%02d", 13, (mtime_t *)&this->session.speed.drive_time, frame_time, Align::CENTER);
-    creator->addValueValuesVertical("dist:%3" PRIu16, 8, &this->session.speed.distance,
-                           "%02" PRIu8, 2, &this->session.speed.distanceDec,
+    creator->add_value("time:%2d:%02d:%02d", 13, (mtime_t *)&this->data.session.speed.drive_time, frame_time, Align::CENTER);
+    creator->addValueValuesVertical("dist:%3" PRIu16, 8, &this->data.session.speed.distance,
+                           "%02" PRIu8, 2, &this->data.session.speed.distanceDec,
                            "km", 2, (void *)0,
                            frame_distance,
                            Align::CENTER, true);

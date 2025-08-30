@@ -11,6 +11,7 @@
 #include "gui/view_gps.hpp"
 #include "views/view.hpp"
 #include "display/driver.hpp"
+#include "global.hpp"
 
 
 // #------------------------------#
@@ -24,14 +25,29 @@ void View_Gps::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data);
-    GpsSettings settings;
-    settings.frame = frame;
-    settings.color = COLOR_WHITE;
-    settings.color2 = COLOR_BLUE;
-    settings.data = &this->data.gps_graph;
-    settings.radius = 1.0f; // ~1km
-    creator->add_gps(settings);
+    auto frame = creator->setup_bar(&this->data.sensors);
+
+    const float radius = GET_GLOBAL(global_gps_radius, 0.001f); // ~1km
+
+    {
+        GpsSettings settings;
+        settings.frame = frame;
+        settings.color = COLOR_WHITE;
+        settings.color2 = COLOR_BLUE;
+        settings.data = &this->data.sensors.gps_graph;
+        settings.radius = radius;
+        creator->add_gps(settings);
+    }
+
+    {
+        GpsSettings settings;
+        settings.frame = frame;
+        settings.color = COLOR_RED;
+        settings.color2 = COLOR_GREEN;
+        settings.data = &this->data.track.track_graph;
+        settings.radius = radius;
+        creator->add_gps(settings);
+    }
 
 
 }

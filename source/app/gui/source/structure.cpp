@@ -51,7 +51,7 @@ using namespace gui;
 Gui* Gui::singleton = nullptr;
 
 
-Gui::Gui(Sensor_Data* data_p, Session_Data* session_p)
+Gui::Gui(SessionData* data_p)
 {
     display::init();
     display::clear();
@@ -59,7 +59,7 @@ Gui::Gui(Sensor_Data* data_p, Session_Data* session_p)
     PRINTF("Gui::Gui()\n");
 
 
-    this->set_data(data_p, session_p);
+    this->set_data(data_p);
     this->create();
     // this->render();
 }
@@ -68,43 +68,44 @@ Gui::~Gui()
 {
 
 }
-void Gui::set_data(Sensor_Data* data_p, Session_Data* session_p)
+void Gui::set_data(SessionData* data_p)
 {
     data = data_p;
-    session = session_p;
 }
 void Gui::create()
 {
     auto boot_menu = new View_List();
 
     auto main_menu = new View_List();
-    boot_menu->add_view(new View_Boot(*data, *session, (gui::View_List*)main_menu));
+    boot_menu->add_view(new View_Boot(*data, (gui::View_List*)main_menu));
     // -----------------------------
     //      session
     // -----------------------------
     auto session_menu = new View_List(main_menu);
-    session_menu->add_view(new View_Velocity(*data, *session));
-    session_menu->add_view(new View_Max_Avg(*data, *session));
-    session_menu->add_view(new View_Bmp(*data, *session));
-    // session_menu->add_view(new View_Sensors(*data, *session));
-    // session_menu->add_view(new View_Date(*data, *session));
-    session_menu->add_view(new View_Gps(*data, *session));
-    session_menu->add_view(new View_Total(*data, *session));
-    session_menu->add_view(new View_Sensors_Plots(*data, *session));
+    session_menu->add_view(new View_Velocity(*data));
+    session_menu->add_view(new View_Max_Avg(*data));
+    session_menu->add_view(new View_Bmp(*data));
+    // session_menu->add_view(new View_Sensors(*data));
+    // session_menu->add_view(new View_Date(*data));
+    session_menu->add_view(new View_Gps(*data));
+    session_menu->add_view(new View_Total(*data));
+    session_menu->add_view(new View_Sensors_Plots(*data));
 
     // -----------------------------
     //      history
     // -----------------------------
     auto history_session_menu = new View_List(main_menu);
-    history_session_menu->add_view(new View_Last_Time(*data, *session));
-    history_session_menu->add_view(new View_Last_Avg(*data, *session));
-    history_session_menu->add_view(new View_Last_Date(*data, *session));
+    history_session_menu->add_view(new View_Last_Time(*data));
+    history_session_menu->add_view(new View_Last_Avg(*data));
+    history_session_menu->add_view(new View_Last_Date(*data));
     // -----------------------------
     //      main menu
     // -----------------------------
 
     main_menu->add_view(new Main_New_Session((gui::View_List*)session_menu));
+    main_menu->add_view(new Main_Select_Tracks((gui::View_List*)session_menu));
     main_menu->add_view(new Main_History((gui::View_List*)history_session_menu));
+
 
 
 

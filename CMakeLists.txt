@@ -103,6 +103,7 @@ else()
     add_definitions(-DCONFIG_FILE_NAME="${SD_MOCK_PATH}/config_file.txt")
     add_definitions(-DFILE_TOTAL_DATA="${SD_MOCK_PATH}/total_stats.txt")
     add_definitions(-DFOLDER_LOG_DATA="${SD_MOCK_PATH}/log/")
+    add_definitions(-DFOLDER_TRACKS_DATA="${SD_MOCK_PATH}/tracks/")
     add_definitions(-DFILE_SESSION_DATA="${SD_MOCK_PATH}/session_log.csv")
 
     # add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
@@ -159,5 +160,10 @@ add_subdirectory(source/app/cores)
 enable_testing()
 add_subdirectory(tests)
 
+
+file(CREATE_LINK
+     "${CMAKE_BINARY_DIR}/compile_commands.json"
+     "${CMAKE_SOURCE_DIR}/compile_commands.json"
+     SYMBOLIC)
 
 

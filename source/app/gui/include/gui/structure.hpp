@@ -9,8 +9,7 @@
 
 // my includes
 #include "gui_common.hpp"
-#include "common_types.h"
-#include "session.hpp"
+#include "session_data.hpp"
 #include "massert.hpp"
 
 
@@ -39,21 +38,19 @@ private:
      */
     void create();
 
-    void set_data(Sensor_Data* data_p, Session_Data* session_p);
+    void set_data(SessionData* data_p);
 
-    Gui(Sensor_Data* data_p, Session_Data* session_p);
+    Gui(SessionData* data_p);
     ~Gui();
 public:
-    Sensor_Data* data;
-    Session_Data* session;
-    static inline Gui* get_gui(Sensor_Data* data_p = nullptr, Session_Data* session_p = nullptr)
+    SessionData* data;
+    static inline Gui* get_gui(SessionData* data_p = nullptr)
     {
         if(singleton == nullptr)
         {
             massert(data_p != nullptr, "get_gui create with nullptr parameters\n");
-            massert(session_p != nullptr, "get_gui create with nullptr parameters\n");
 
-            singleton = new Gui(data_p, session_p);
+            singleton = new Gui(data_p);
         }
         return singleton;
     }

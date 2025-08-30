@@ -11,6 +11,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <memory>
+#include <algorithm>
 
 // my includes
 #include "display_actor.hpp"
@@ -25,6 +26,8 @@
 #include "buttons/buttons.h"
 #include "traces.h"
 #include "sd_file.h"
+#include "file.hpp"
+#include "line_reader.hpp"
 #include "session.hpp"
 
 
@@ -71,6 +74,59 @@ void Display_Actor::run_thread(void)
 // #------------------------------#
 // | static functions definitions |
 // #------------------------------#
+void Display_Actor::handle_sig_load_track(const Signal &sig) {
+    auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Load_Track>();
+
+    auto& data = Display_Actor::get_instance().get_local_data();
+    TRACE_DEBUG(4, TRACE_CORE_1, "Loading track from %s\n", payload->track_path.c_str());
+
+    auto sd = File(payload->track_path, File::Flags::READ);
+    if(!sd.is_open()) {
+        TRACE_ABNORMAL(TRACE_CORE_1, "Cannot open track file %s\n", payload->track_path.c_str());
+        delete payload;
+        return;
+    }
+
+
+    std::vector<Gps_Graph::Point> points;
+    points.reserve(100);
+    for (auto& line : read_lines(sd)) {
+        std::cout << "Line: " << line << "\n";
+        if(line.find("<trkpt ") != std::string::npos) {
+            // extract lat and lon
+            auto lat_pos = line.find("lat=\"");
+            auto lon_pos = line.find("lon=\"");
+            if(lat_pos != std::string::npos && lon_pos != std::string::npos) {
+                lat_pos += 5;
+                lon_pos += 5;
+                auto lat_end = line.find("\"", lat_pos);
+                auto lon_end = line.find("\"", lon_pos);
+                if(lat_end != std::string::npos && lon_end != std::string::npos) {
+                    auto lat_str = line.substr(lat_pos, lat_end - lat_pos);
+                    auto lon_str = line.substr(lon_pos, lon_end - lon_pos);
+                    // try {
+                        float lat = std::stof(lat_str);
+                        float lon = std::stof(lon_str);
+                        Gps_Graph::Point point = {lat, lon};
+                        points.emplace_back(point);
+                        TRACE_DEBUG(4, TRACE_CORE_1, "point: %f, %f\n", lat, lon);
+                    // } catch(...) {
+                    //     TRACE_ABNORMAL(TRACE_CORE_1, "Cannot parse lat/lon: %s/%s\n", lat_str.c_str(), lon_str.c_str());
+                    // }
+                }
+            }
+        }
+    }
+    data.track.name = payload->track_path;
+    data.track.track_graph.points = RingArray(points);
+    data.track.track_graph.pos = points.front(); // set start position
+
+    // print number of points
+    TRACE_DEBUG(4, TRACE_CORE_1, "Loaded %zu points from track %s\n", data.track.track_graph.points.size(), payload->track_path.c_str());
+
+
+    delete payload;
+}
 
 void Display_Actor::handle_sig_get_packet(const Signal &sig)
 {
@@ -109,7 +165,7 @@ void Display_Actor::handle_sig_show_msg(const Signal &sig)
 
 void Display_Actor::handle_sig_log(const Signal &sig)
 {
-    static std::unique_ptr<Sd_File> config_file_ptr;
+    static std::unique_ptr<File> config_file_ptr;
     auto time_start = get_absolute_time();
     auto payload = sig.get_payload<Display_Actor::Sig_Display_Actor_Log>();
 
@@ -118,13 +174,16 @@ void Display_Actor::handle_sig_log(const Signal &sig)
     absolute_time_t time_end_header = 0;
     if(!config_file_ptr ||  payload->file_name != config_file_ptr->get_file_name())
     {
+        if(config_file_ptr)
+            TRACE_DEBUG(4, TRACE_SD, "LOG open: %s, %s", payload->file_name.c_str(), config_file_ptr->get_file_name().c_str());
         // if file name is different, create new file
         TRACE_DEBUG(3, TRACE_CORE_1, "creating new file %s\n", payload->file_name.c_str());
-        config_file_ptr = std::make_unique<Sd_File>(payload->file_name);
+        config_file_ptr = std::make_unique<File>(payload->file_name, File::Flags::APPEND | File::Flags::READ | File::Flags::WRITE);
         time_start_header = get_absolute_time();
         if(config_file_ptr->is_empty())
         {
-            config_file_ptr->append(payload->header.c_str());
+            config_file_ptr->write(payload->header);
+            config_file_ptr->flush();
         }
         time_end_header = get_absolute_time();
     }
@@ -133,7 +192,7 @@ void Display_Actor::handle_sig_log(const Signal &sig)
 
 
     auto time_start_append = get_absolute_time();
-    config_file_ptr->append(payload->line.c_str(), false);
+    config_file_ptr->write(payload->line);
     auto time_end_append = get_absolute_time();
 
     auto time_start_del = get_absolute_time();
@@ -185,11 +244,10 @@ void Display_Actor::setup(void)
     TRACE_DEBUG(0, TRACE_CORE_1, "interrupt setup\n");
     interruptSetupCore1();
     // setup
-    Sensor_Data* sensor_data_p = &Display_Actor::get_instance().get_local_data().sensors;
-    Session_Data* session_data_p = &Display_Actor::get_instance().get_local_data().session;
+    SessionData* session_data_p = &Display_Actor::get_instance().get_local_data();
 
     TRACE_DEBUG(0, TRACE_CORE_1, "creating GUI\n");
-    this->gui = Gui::get_gui(sensor_data_p, session_data_p);
+    this->gui = Gui::get_gui(session_data_p);
     this->gui->render();
     this->gui->refresh();
 
@@ -208,7 +266,7 @@ void Display_Actor::setup(void)
         Signal sig(actors_common::SIG_DATA_ACTOR_SET_CONFIG ,payload);
         Data_Actor::get_instance().send_signal(sig);
     }
-    sensor_data_p->boot.config = 1;
+    session_data_p->sensors.boot.config = 1;
 
     TRACE_DEBUG(0, TRACE_CORE_1, "send total data\n");
     // update data on start
@@ -225,7 +283,7 @@ void Display_Actor::setup(void)
 
     TRACE_DEBUG(0, TRACE_CORE_1, "send req packet\n");
     auto payload = new Data_Actor::Sig_Display_Actor_Req_Packet();
-    payload->packet_p = new actors_common::Packet();
+    payload->packet_p = new Packet();
     {
         Signal sig(actors_common::SIG_DATA_ACTOR_REQ_PACKET, payload);
         Data_Actor::get_instance().send_signal(sig);
@@ -317,11 +375,10 @@ int Display_Actor::loop(void)
     const absolute_time_t frameStart = get_absolute_time();
     Display_Actor::get_instance().handle_all();
     const absolute_time_t timeAferHandlers = get_absolute_time();
-    auto local_data = Display_Actor::get_instance().get_local_data();
+    auto& local_data = Display_Actor::get_instance().get_local_data();
     if(local_data.sensors.boot.sim868 == 0)
     {
         local_data.sensors.boot.time = to_ms_since_boot(frameStart) / 1000.0f;
-        Display_Actor::get_instance().set_local_data(local_data);
     }
     // frame update
     {
@@ -330,7 +387,7 @@ int Display_Actor::loop(void)
         // render
         this->gui->refresh();
 
-        if(local_data.session.get_status() == Session_Data::Status::PAUSED)
+        if(local_data.session.get_status() == Session::Status::PAUSED)
         {
             TRACE_DEBUG(2, TRACE_CORE_1, "printing pause label\n");
             Frame pause_label = {DISPLAY_WIDTH / 10, DISPLAY_HEIGHT / 3, DISPLAY_WIDTH, DISPLAY_HEIGHT / 4};

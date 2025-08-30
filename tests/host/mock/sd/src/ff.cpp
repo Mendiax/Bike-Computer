@@ -65,7 +65,7 @@ FRESULT f_open(FIL *fp, const TCHAR *path, BYTE mode) {
             fopen_mode = "w+x";
             break;
         default:
-            TRACE_ABNORMAL(TRACE_HOST, "Invalid f_open mode\n");
+            TRACE_ABNORMAL(TRACE_HOST, "Invalid f_open mode %s\n", toBits(mode));
             exit(-1);
             return FR_INVALID_PARAMETER;
     }
@@ -110,6 +110,13 @@ FRESULT f_write(FIL *fp, const void *buff, unsigned int btw, unsigned int *bw) {
 
 FRESULT f_lseek(FIL *fp, FSIZE_t ofs) {
     if (fseek(fp->file, ofs, SEEK_SET) != 0) {
+        return FR_DISK_ERR;
+    }
+    return FR_OK;
+}
+
+FRESULT f_sync(FIL *fp) {
+    if (fflush(fp->file) != 0) {
         return FR_DISK_ERR;
     }
     return FR_OK;
@@ -167,7 +174,7 @@ FRESULT f_readdir(DIR **dp, FILINFO *fno) {
             break;
 
     }
-    strncpy(fno->fname, entry->d_name, 12);
+    strncpy(fno->fname, entry->d_name, sizeof(fno->fname) - 1);
     // Implement directory reading logic
     return FR_OK;
 }
@@ -246,6 +253,9 @@ FRESULT f_rewind(FIL *fp) {
     return FR_OK;
 }
 
+bool f_eof(FIL *fp) {
+    return feof(fp->file);
+}
 
 
 // size_t f_tell(FIL *fp) { return 0; }

@@ -22,6 +22,7 @@
 #include "pico/types.h"
 #include "pico/time.h"
 
+
 // #-------------------------------#
 // |            macros             |
 // #-------------------------------#
@@ -148,6 +149,7 @@ struct Gps_Graph {
     struct Point {
         float lat;
         float lon;
+        // float alt; TODO future
     };
     RingArray<Point> points; // vector of points
     Point pos{0.0f, 0.0f};

@@ -13,6 +13,8 @@
 
 #include "main/main_new_session.hpp"
 #include "main/main_history.hpp"
+#include "main/main_select_tracks.hpp"
+
 
 
 #endif

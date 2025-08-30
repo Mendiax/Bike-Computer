@@ -53,7 +53,7 @@ public:
      * @brief Signal structure for requesting a display packet.
      */
     struct Sig_Display_Actor_Get_Packet {
-        actors_common::Packet* packet_p; ///< Pointer to the packet.
+        Packet* packet_p; ///< Pointer to the packet.
     };
 
     /**
@@ -67,7 +67,7 @@ public:
      * @brief Signal structure for saving a session.
      */
     struct Sig_Display_Actor_Save_Session {
-        Session_Data session; ///< The session data to save.
+        Session session; ///< The session data to save.
     };
 
     /**
@@ -75,6 +75,13 @@ public:
      */
     struct Sig_Display_Actor_Load_Session {
         uint16_t session_id; ///< The ID of the session to load.
+    };
+
+    /**
+     * @brief Signal structure for loading a session.
+     */
+    struct Sig_Display_Actor_Load_Track {
+        std::string track_path; ///< The name of the track to load.
     };
 
     /**
@@ -87,7 +94,7 @@ public:
 
 private:
     Gui* gui;                     ///< Pointer to the GUI.
-    actors_common::Packet local_data; ///< Local data packet.
+    SessionData local_data; ///< Local data packet.
 
     // Defined in core1.cpp
     static void handle_sig_total_update(const Signal &sig);
@@ -96,6 +103,8 @@ private:
     static void handle_sig_log(const Signal &sig);
     static void handle_sig_show_msg(const Signal &sig);
     static void handle_sig_get_packet(const Signal &sig);
+    static void handle_sig_load_track(const Signal &sig);
+
 
     /**
      * @brief Sets up signal handlers for the Display_Actor.
@@ -108,6 +117,7 @@ private:
         this->handler_add(handle_sig_log, actors_common::SIG_DISPLAY_ACTOR_LOG);
         this->handler_add(handle_sig_show_msg, actors_common::SIG_DISPLAY_ACTOR_SHOW_MSG);
         this->handler_add(handle_sig_get_packet, actors_common::SIG_DISPLAY_ACTOR_GET_PACKET);
+        this->handler_add(handle_sig_load_track, actors_common::SIG_DISPLAY_ACTOR_LOAD_TRACK);
     }
 
     /**
@@ -142,14 +152,15 @@ public:
      * @brief Gets the local data packet.
      * @return Reference to the local data packet.
      */
-    inline actors_common::Packet& get_local_data() { return local_data; }
+    inline SessionData& get_local_data() { return local_data; }
 
     /**
      * @brief Sets the local data packet.
      * @param data The data packet to set.
      */
-    inline void set_local_data(const actors_common::Packet& data) {
-        this->local_data = data;
+    inline void set_local_data(const Packet& data) {
+        this->local_data.sensors = data.sensors;
+        this->local_data.session = data.session;
     }
 
     /**

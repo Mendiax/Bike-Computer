@@ -1,5 +1,4 @@
-#ifndef TRACES_H
-#define TRACES_H
+#pragma once
 
 #include <stdint.h>
 #ifdef MOCK_MULTICORE
@@ -30,6 +29,39 @@
      std::cout << std::endl;\
      }while (0)
 
+
+template<typename T>
+const char* toBits(const T& val)
+{
+    constexpr size_t BYTE_SIZE = 8;
+    constexpr size_t T_SIZE = 8 * sizeof(T);
+
+    static char bits[T_SIZE + 1];
+    bits[T_SIZE] = '\0';
+    for (size_t i = 0; i < T_SIZE; i++)
+    {
+        bits[T_SIZE - 1 - i] = (val & ((T)1 << i)) ? '1' : '0';
+    }
+    return bits;
+}
+
+namespace std {
+    static inline std::string to_string(const std::string str){return str;}
+}
+
+template <typename T>
+std::string toString(const T& container, std::string separator = ", ")
+{
+    std::string str;
+    str = "";
+    for (const auto& item : container)
+    {
+        str += std::to_string(item) + separator;
+    }
+    if (!str.empty())
+        str.erase(str.size() - separator.size());
+    return str;
+}
 
 
 // formats
@@ -134,6 +166,8 @@ static inline void traces_init()
     // TRACES_ON(1,TRACE_CORE_1); // render time for screen
     // TRACES_ON(2,TRACE_CORE_1); // pause btn
     // TRACES_ON(3,TRACE_CORE_1); // time file write
+    TRACES_ON(4,TRACE_CORE_1); // read gpx file
+
 
 
 
@@ -197,6 +231,10 @@ static inline void traces_init()
     // TRACES_ON(1, TRACE_SD);  // read file size
     // TRACES_ON(2, TRACE_SD);  // SD mount
     // TRACES_ON(3, TRACE_SD);  // write time
+    // TRACES_ON(4, TRACE_SD);  // open File
+    // TRACES_ON(5, TRACE_SD);  // list dir
+
+
 
 
     // ==================================================
@@ -208,9 +246,11 @@ static inline void traces_init()
     //                   GUI TRACES
     // ==================================================
     // TRACES_ON(1, TRACE_GUI); // history log data update
+    TRACES_ON(2, TRACE_GUI); // select track data update
+
 
 }
-
+#ifndef ESC
 #ifdef ESC_ENABLE
 
 #define ESC "\x1b"
@@ -227,6 +267,7 @@ static inline void traces_init()
 #define ESC_GREEN       ""
 #define ESC_WHITE       ""
 
+#endif
 #endif
 
 
@@ -271,5 +312,3 @@ static inline void traces_init()
             assert(false); \
         } \
     } while(0)
-
-#endif

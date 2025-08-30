@@ -7,7 +7,7 @@
 
 class Sd_File
 {
-    public:
+public:
     enum Result{
         F_OK, F_ERROR
     };

@@ -21,8 +21,8 @@
 // | global variables definitions |
 // #------------------------------#
 
-View_Session_History::View_Session_History(const Sensor_Data& data, const Session_Data& session)
-    : data{data}, session{session}
+View_Session_History::View_Session_History(const SessionData& data)
+    : data{data}
 {
     TRACE_DEBUG(4, TRACE_VIEWS, "View_Session_History constructor\n");
 }

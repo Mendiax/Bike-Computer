@@ -36,13 +36,13 @@ void View_Last_Avg::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data);
+    auto frame = creator->setup_bar(&this->data.sensors);
 
     // frame.height = DISPLAY_HEIGHT;
 
     auto frames = View_Creator::split_horizontal_arr(frame, 2);
-    creator->add_value("max  :%4.2f", 10, &this->session.speed.velocityMax, frames[0], Align::LEFT);
-    creator->add_value("avg  :%4.2f",10,&this->session.speed.avg, frames[1], Align::LEFT);
+    creator->add_value("max  :%4.2f", 10, &this->data.session.speed.velocityMax, frames[0], Align::LEFT);
+    creator->add_value("avg  :%4.2f",10,&this->data.session.speed.avg, frames[1], Align::LEFT);
 
     TRACE_DEBUG(4, TRACE_VIEWS, "View_Last_Avg render \n");
 }

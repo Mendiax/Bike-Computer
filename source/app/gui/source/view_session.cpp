@@ -22,8 +22,8 @@
 // | global variables definitions |
 // #------------------------------#
 
-View_Session::View_Session(const Sensor_Data& data, const Session_Data& session)
-    : data{data}, session{session}
+View_Session::View_Session(const SessionData& data)
+    : data{data}
 {
     TRACE_DEBUG(4, TRACE_VIEWS, "View_Session constructor\n");
 }
@@ -41,7 +41,7 @@ void View_Session::action(void)
     const auto& sessionDataDisplay = Display_Actor::get_instance().get_local_data().session;
      switch(sessionDataDisplay.get_status())
     {
-        case Session_Data::Status::PAUSED:
+        case Session::Status::PAUSED:
             {
                 Signal sig(actors_common::SIG_DATA_ACTOR_CONTINUE);
                 Data_Actor::get_instance().send_signal(sig);
@@ -49,7 +49,7 @@ void View_Session::action(void)
 
             }
             break;
-        case Session_Data::Status::RUNNING:
+        case Session::Status::RUNNING:
             {
                 Signal sig(actors_common::SIG_DATA_ACTOR_PAUSE);
                 Data_Actor::get_instance().send_signal(sig);
@@ -57,7 +57,7 @@ void View_Session::action(void)
 
             }
             break;
-        case Session_Data::Status::NOT_STARTED:
+        case Session::Status::NOT_STARTED:
             {
                 Signal sig(actors_common::SIG_DATA_ACTOR_SESSION_START);
                 Data_Actor::get_instance().send_signal(sig);

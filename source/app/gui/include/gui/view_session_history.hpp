@@ -10,8 +10,7 @@
 // my includes
 #include "gui_common.hpp"
 #include "views/view.hpp"
-#include "common_types.h"
-#include "session.hpp"
+#include "session_data.hpp"
 
 
 // #-------------------------------#
@@ -28,11 +27,10 @@
 class View_Session_History : public gui::View
 {
 protected:
-    const Sensor_Data& data;
-    const Session_Data& session;
+    const SessionData& data;
 
 public:
-    View_Session_History(const Sensor_Data& data, const Session_Data& session);
+    View_Session_History(const SessionData& data);
     ~View_Session_History();
 
     // start/pause

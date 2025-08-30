@@ -49,7 +49,7 @@ void render_gps_path(const void *settings) {
     Gps_Graph& gps_data = *((Gps_Graph*)plot_settings->data);
 
     if (gps_data.points.empty()) {
-        TRACE_DEBUG(8, TRACE_VIEWS, "GPS Plot: No points to render\n");
+        TRACE_ABNORMAL(TRACE_VIEWS, "GPS Plot: No points to render\n");
         return;
     }
 

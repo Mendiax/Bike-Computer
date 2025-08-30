@@ -117,7 +117,7 @@ std::vector<std::string> dir::get_files(const char* path)
     else{
         TRACE_ABNORMAL(TRACE_HOST, "could not open file %s", path);
     }
-
+    TRACE_DEBUG(5, TRACE_SD, "found %zu files in %s\n", founded_files.size(), path);
     return founded_files;
 // #endif
 }

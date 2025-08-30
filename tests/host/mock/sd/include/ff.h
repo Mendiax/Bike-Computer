@@ -90,7 +90,7 @@ typedef struct {
   TCHAR altname[FF_SFN_BUF + 1]; /* Alternative file name */
   TCHAR fname[FF_LFN_BUF + 1];   /* Primary file name */
 #else
-  TCHAR fname[12 + 1]; /* File name */
+  TCHAR fname[30 + 1]; /* File name */
 #endif
 } FILINFO;
 
@@ -185,7 +185,7 @@ size_t f_tell(FIL* fp);
 void f_unmount(const char* path);
 FRESULT f_rewind(FIL* fp);
 
-// #define f_eof(fp) ((int)((fp)->fptr == (fp)->obj.objsize))
+bool f_eof(FIL *fp);
 // #define f_error(fp) ((fp)->err)
 // #define f_tell(fp) ((fp)->fptr) // pos in file
 // #define f_size(fp) ((fp)->obj.objsize)

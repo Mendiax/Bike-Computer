@@ -23,8 +23,8 @@
 // | global variables definitions |
 // #------------------------------#
 
-View_Boot::View_Boot(const Sensor_Data& data, const Session_Data& session, gui::View_List* next)
-    : gui::View(next), data{data}, session{session}
+View_Boot::View_Boot(const SessionData& data, gui::View_List* next)
+    : gui::View(next), data{data}
 {
 
 }
@@ -37,8 +37,8 @@ void View_Boot::render(void)
 
     auto frames = View_Creator::split_horizontal_arr(frame, 3);
     creator->add_label("Booting", frames[0],Align::CENTER, 7);
-    creator->add_value("time %4.1fs", 11, &data.boot.time, frames[1], Align::CENTER);
-    creator->add_value("config %1.0f", 11, &data.boot.config, frames[2], Align::CENTER);
+    creator->add_value("time %4.1fs", 11, &data.sensors.boot.time, frames[1], Align::CENTER);
+    creator->add_value("config %1.0f", 11, &data.sensors.boot.config, frames[2], Align::CENTER);
 }
 
 void View_Boot::action(void)

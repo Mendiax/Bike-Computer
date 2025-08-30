@@ -51,7 +51,7 @@ public:
      * @brief Signal structure for requesting a display packet.
      */
     struct Sig_Display_Actor_Req_Packet {
-        actors_common::Packet* packet_p; ///< Pointer to the packet.
+        Packet* packet_p; ///< Pointer to the packet.
     };
 
 private:

@@ -14,7 +14,7 @@
  * speed data, and session status. It also provides CSV interface methods
  * for header and line generation.
  */
-class Session_Data : public Csv_Interface
+class Session : public Csv_Interface
 {
 public:
     uint16_t id;              ///< Session ID
@@ -52,13 +52,13 @@ public:
     /**
      * @brief Constructs a new Session_Data object.
      */
-    Session_Data();
+    Session();
 
     /**
      * @brief Constructs a new Session_Data object from a CSV line.
      * @param csv_line A CSV line representing session data.
      */
-    Session_Data(const char* csv_line);
+    Session(const char* csv_line);
 
     /**
      * @brief Gets the current status of the session.

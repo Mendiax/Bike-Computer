@@ -10,8 +10,7 @@
 #include <string>
 
 // my includes
-#include "common_types.h"
-#include "session.hpp"
+#include "session_data.hpp"
 #include "actors.hpp"
 #include "display/driver.hpp"
 #include "pico/stdlib.h"
@@ -42,6 +41,7 @@ namespace actors_common {
         // core 1
         SIG_DISPLAY_ACTOR_TOTAL_UPDATE,
         SIG_DISPLAY_ACTOR_LOAD_SESSION,
+        SIG_DISPLAY_ACTOR_LOAD_TRACK,
         SIG_DISPLAY_ACTOR_SAVE_SESSION,
         SIG_DISPLAY_ACTOR_LOG,
         SIG_DISPLAY_ACTOR_SHOW_MSG,
@@ -49,11 +49,6 @@ namespace actors_common {
         SIG_NO_MAX
     };
     enum class File_Respond { time_offset };
-
-    struct Packet{
-        Sensor_Data sensors;
-        Session_Data session;
-    };
 }
 
 // #-------------------------------#

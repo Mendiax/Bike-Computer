@@ -27,6 +27,8 @@ public:
     RingArray<T>() {
         array.resize(1);
     }
+    RingArray<T>(const std::vector<T>& arr) : array(arr), first_elem_pos(0) {
+    }
     // RingArray(size_t length) : array(length), first_elem_pos(0) {}
     void set_length(size_t len) {
         array.resize(len);

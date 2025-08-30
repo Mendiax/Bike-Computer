@@ -13,6 +13,7 @@
 // c/c++ includes
 
 // my includes
+#include "global.hpp"
 #include "imgui_kernel.hpp"
 #include "buttons/buttons.h"
 #include "speedometer/speedometer.hpp"
@@ -52,7 +53,7 @@ struct Imgui_Context {
  * @param btn button class
  * @param label label rendered on gui
  */
-void handle_button(Button& btn, const char* label);
+void handle_button(Button& btn, const char* label, bool long_press = false);
 /**
  * @brief Setup function for imgui. Setup all needed data and returns io,
  * sdl window and sdl gl context
@@ -125,14 +126,22 @@ void imgui_thread_kernel(void* args)
             ImGui::Text("Use to interact with device.");
             ImGui::Text("Buttons from the device");
             {
-                ImGui::Columns(2, nullptr);
+                ImGui::Columns(4, nullptr, true);
+                handle_button(btn0, "Top Left Long", true);
+                ImGui::NextColumn();
                 handle_button(btn0, "Top Left");
                 ImGui::NextColumn();
                 handle_button(btn1, "Top Right");
                 ImGui::NextColumn();
+                handle_button(btn1, "Top Right Long", true);
+                ImGui::NextColumn();
+                handle_button(btn3, "Bottom Left Long", true);
+                ImGui::NextColumn();
                 handle_button(btn3, "Bottom Left");
                 ImGui::NextColumn();
                 handle_button(btn2, "Bottom Right");
+                ImGui::NextColumn();
+                handle_button(btn2, "Bottom Right Long", true);
             }
             ImGui::Columns(1);
 
@@ -142,6 +151,8 @@ void imgui_thread_kernel(void* args)
             ImGui::Text("Set window values");
             ImGui::SliderInt("Display size", &scale, 1, 5);
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::Text("Set gps zoom");
+            ImGui::SliderFloat("zoom", &global_gps_radius, 0.001f, 0.01f);
             ImGui::End();
         }
 
@@ -263,12 +274,19 @@ static void imgui_render(SDL_Window* window, Imgui_Display_Data& imgui_display_d
     SDL_GL_SwapWindow(window);
 }
 
-void handle_button(Button& btn, const char* label)
+void handle_button(Button& btn, const char* label, bool long_press)
 {
     if(ImGui::Button(label))
     {
         btn.on_call_press();
-        sleep_ms(100);
+        if(long_press)
+        {
+            sleep_ms((LONG_PRESS_US / 1000) + 50);
+        }
+        else
+        {
+            sleep_ms(100);
+        }
         btn.on_call_release();
     }
 }

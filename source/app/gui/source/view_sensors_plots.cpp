@@ -24,7 +24,7 @@ void View_Sensors_Plots::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data);
+    auto frame = creator->setup_bar(&this->data.sensors);
     // static float val_min=0;
     // static float val_max=0;
 
@@ -34,7 +34,7 @@ void View_Sensors_Plots::render(void)
         .auto_min=true,
         .min = nullptr,
         .max = nullptr,
-        .data = &this->data.imu.accel_hist,
+        .data = &this->data.sensors.imu.accel_hist,
         .len = 100,
         .color = COLOR_WHITE
     };

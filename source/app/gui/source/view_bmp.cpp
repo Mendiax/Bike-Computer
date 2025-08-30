@@ -22,7 +22,7 @@ void View_Bmp::render(void)
 {
     auto creator = View_Creator::get_view();
     creator->reset();
-    auto frame = creator->setup_bar(&this->data);
+    auto frame = creator->setup_bar(&this->data.sensors);
     auto [gps, gsm] = View_Creator::split_horizontal(frame);
 
 
@@ -37,23 +37,23 @@ void View_Bmp::render(void)
 
     //Frame topLeft = {0,TOP_BAR_HEIGHT, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2};
     //Frame topRight = {DISPLAY_WIDTH/2,topLeft.y, DISPLAY_WIDTH/2, topLeft.height};
-    creator->addValueUnitsVertical("%2.0f", 2, &this->data.gps_data.speed, "km","h", gps_speed,
+    creator->addValueUnitsVertical("%2.0f", 2, &this->data.sensors.gps_data.speed, "km","h", gps_speed,
                            Align::CENTER, true);
-    //add_value("%3.0f",3,&this->data.gps_data.msl, gps_height, Align::CENTER);
-    creator->add_value("%3.0fm",4,&this->data.altitude, gps_height, Align::CENTER);
+    //add_value("%3.0f",3,&this->data.sensors.gps_data.msl, gps_height, Align::CENTER);
+    creator->add_value("%3.0fm",4,&this->data.sensors.altitude, gps_height, Align::CENTER);
 
     //Frame bottomLeft ={0, get_frame_top_y(topLeft), topLeft.width, DISPLAY_HEIGHT - bottomLeft.y};
     //Frame bottomRight ={topRight.x,get_frame_top_y(topRight), topRight.width, bottomRight.height};
-    creator->add_value("%6.3fN",7,&this->data.gps_data.lat, gps_lat, Align::CENTER);
-    creator->add_value("%6.3fE",7,&this->data.gps_data.lon, gps_long, Align::CENTER);
+    creator->add_value("%6.3fN",7,&this->data.sensors.gps_data.lat, gps_lat, Align::CENTER);
+    creator->add_value("%6.3fE",7,&this->data.sensors.gps_data.lon, gps_long, Align::CENTER);
 
 
-    creator->add_value("s1:%2" PRIu8,5,&this->data.gps_data.sat, sat, Align::LEFT);
-    creator->add_value("s2:%2" PRIu8,5,&this->data.gps_data.sat2, sat2, Align::LEFT);
+    creator->add_value("s1:%2" PRIu8,5,&this->data.sensors.gps_data.sat, sat, Align::LEFT);
+    creator->add_value("s2:%2" PRIu8,5,&this->data.sensors.gps_data.sat2, sat2, Align::LEFT);
 
-    creator->add_value("% 3.0fC",4,&this->data.weather.temperature, temp, Align::CENTER);
-    creator->add_value("% 3.0fp",4,&this->data.slope, slope, Align::CENTER); // TODO fix for %
-    //add_value("%4f",4,&this->data.gps_data.sat2, sat2, Align::CENTER);
+    creator->add_value("% 3.0fC",4,&this->data.sensors.weather.temperature, temp, Align::CENTER);
+    creator->add_value("% 3.0fp",4,&this->data.sensors.slope, slope, Align::CENTER); // TODO fix for %
+    //add_value("%4f",4,&this->data.sensors.gps_data.sat2, sat2, Align::CENTER);
 }
 // #------------------------------#
 // | static variables definitions |

@@ -80,7 +80,7 @@
 Bike_Config config;
 bool config_received = false;
 Sensor_Data sensors_data{};
-Session_Data *session_p = 0;
+Session *session_p = 0;
 Filter_Complementary<float> complementary_filter;
 
 
@@ -183,7 +183,7 @@ void Data_Actor::setup(void)
     sim868::init();
     sim868::turn_on();
 
-    session_p = new Session_Data();
+    session_p = new Session();
 
     rtc_init();
     datetime_t t = {
@@ -456,9 +456,9 @@ static void cycle_print_heart_beat()
 {
     CYCLE_UPDATE_SIMPLE(true, HEART_BEAT_CYCLE_MS,
         {
-            // float memory = (float)check_free_mem()/1000.0;
-            // PRINTF("[HEART_BEAT] time since boot: %.3fs Avaible memory = %.3fkb/256kb\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0, memory);
-            PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
+            float memory = (float)check_free_mem()/1000.0;
+            PRINTF("[HEART_BEAT] time since boot: %.3fs Avaible memory = %.3fkb/256kb\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0, memory);
+            // PRINTF("[HEART_BEAT] time since boot: %.3fs\n", (float)to_ms_since_boot(get_absolute_time())/ 1000.0);
 
         });
     CYCLE_UPDATE_SIMPLE_SLOW_RERUN(
@@ -490,7 +490,7 @@ static void cycle_get_battery_status()
 #define FOLDER_LOG_DATA "log/"
 #endif
 
-static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const Session_Data& session, const Sensor_Data& sensor_data)
+static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const Session& session, const Sensor_Data& sensor_data)
 {
     auto payload = new Display_Actor::Sig_Display_Actor_Log();
     std::stringstream ss;
