@@ -325,8 +325,33 @@ int Data_Actor::loop_frame_update()
 
 
     // read data
-    const float distance = speed_cadence_update();
-    gear_update(gear_suggestion_calc);
+    float distance;
+    if(config.speed_source == Bike_Config::Speed_Source::GPS)
+    {
+        // static absolute_time_t update_time;
+        // static float cumulative_distance = 0.0f;
+        // // use gps speed
+        // if(sensors_data.gps_data.delta_time_ms == 0 || sensors_data.gps_data.delta_time_ms > (GPS_FETCH_CYCLE_MS * 2)) {
+        //     sensors_data.velocity = 0.0f;
+        //     sensors_data.gps_data.distance = 0.0f;
+        // }
+        // else {
+        //     const float gps_time_s = sensors_data.gps_data.delta_time_ms / 1000.0f;
+        //     const float gps_speed_mps = (sensors_data.gps_data.speed * 1000.0f / 3600.0f);
+        //     cumulative_distance += gps_speed_mps * gps_time_s;
+        //     sensors_data.velocity = sensors_data.gps_data.speed;
+        // }
+        // sensors_data.cadence = 0.0f;
+        // sensors_data.gear = {0,0};
+        distance = sensors_data.gps_data.distance;
+        sensors_data.velocity = sensors_data.gps_data.speed;
+        sensors_data.cadence = 0.0f;
+        sensors_data.gear = {0,0};
+    }
+    else {
+        distance = speed_cadence_update();
+        gear_update(gear_suggestion_calc);
+    }
 
 
     // simulate slowing down
@@ -528,6 +553,7 @@ static void cycle_get_gps_data()
     static float longitude;
     static float msl;
     static TimeS current_time;
+    static absolute_time_t time_last_update;
     datetime_t t;
     static int last_signal_strength = -1;
     static int last_signal_strength2 = -1;
@@ -540,6 +566,10 @@ static void cycle_get_gps_data()
                 // const auto new_point = Gps_Graph::Point{latitude, longitude};
                 sensors_data.gps_graph.points.add_element({latitude, longitude});
                 sensors_data.gps_graph.pos = sensors_data.gps_graph.points.get_last_element();
+                sensors_data.gps_data.delta_time_ms = us_to_ms(absolute_time_diff_us(time_last_update, get_absolute_time()));
+                sensors_data.gps_data.distance += speed::kph_to_mps(speed) * (sensors_data.gps_data.delta_time_ms / 1000.0f);
+
+                time_last_update = get_absolute_time();
             }
             bool has_msl = sim868::gps::get_msl(msl);
             if(has_msl) {

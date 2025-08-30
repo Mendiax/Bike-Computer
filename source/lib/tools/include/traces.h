@@ -231,7 +231,7 @@ static inline void traces_init()
     // TRACES_ON(1, TRACE_SD);  // read file size
     // TRACES_ON(2, TRACE_SD);  // SD mount
     // TRACES_ON(3, TRACE_SD);  // write time
-    // TRACES_ON(4, TRACE_SD);  // open File
+    TRACES_ON(4, TRACE_SD);  // open File
     // TRACES_ON(5, TRACE_SD);  // list dir
 
 

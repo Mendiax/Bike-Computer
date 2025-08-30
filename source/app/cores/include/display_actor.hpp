@@ -12,6 +12,7 @@
 #include "common_actors.hpp"
 #include "session.hpp"
 #include "gui/structure.hpp"
+#include "persistent_storage.hpp"
 
 // #-------------------------------#
 // |            macros             |
@@ -30,6 +31,8 @@
  */
 class Display_Actor : public Actor
 {
+public:
+    static constexpr const char* LAST_CONFIG_KEY = "last_config_path";
 public:
     /**
      * @brief Signal structure for showing a message on the display.

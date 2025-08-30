@@ -65,19 +65,9 @@ static float speed_velocity_from_delta(int64_t delta_time);
 // global definitions
 Interrupt interrupt_speed = {PIN_SPEED, speed_update, GPIO_IRQ_EDGE_RISE}; // GPIO_IRQ_EDGE_FALL
 
-float speed_kph_to_mps(float speed_kph)
-{
-    return speed_kph / 3.6;
-}
-
-float speed_mps_to_kmph(float speed_mps)
-{
-    return speed_mps * 3.6;
-}
-
 float speed::get_velocity_kph_raw()
 {
-    return speed_mps_to_kmph(speed_velocity);
+    return speed::mps_to_kph(speed_velocity);
 }
 
 /*returns last read speed [m/s]*/
@@ -99,7 +89,7 @@ static float speed_getSpeed(float last_speed)
     }
     data_ready = false;
     DEBUG_SPEED("getSpeed : %ul speed : %f\n", to_ms_since_boot(update_us), current_speed);
-    current_speed = last_speed >= speed_kph_to_mps(MIN_SPEED) ? last_speed : 0.0;
+    current_speed = last_speed >= speed::kph_to_mps(MIN_SPEED) ? last_speed : 0.0;
     return current_speed;
 }
 
@@ -146,7 +136,7 @@ void speed_emulate(float speed)
 // speed in km/h
 static uint32_t speed_to_ms(float speed_kph)
 {
-    const float speed_mps = speed_kph / 3.6;
+    const float speed_mps = speed::kph_to_mps(speed_kph);
     // t = s/v
     return (wheel_size / speed_mps) * 1000.0;
 }
@@ -177,7 +167,7 @@ static void speed_update()
     speed_wheel_counter_total++;
     speed_velocity = speed_velocity_from_delta(delta_time);
     // if speed > MIN add time to counter
-    if(speed_velocity >= speed_kph_to_mps(MIN_SPEED))
+    if(speed_velocity >= speed::kph_to_mps(MIN_SPEED))
     {
         speed_total_time += delta_time;
     }
@@ -221,7 +211,7 @@ void speed::setup(float wheel_diameter, uint8_t no_magnets)
 
 float speed::get_velocity_kph()
 {
-    return speed_mps_to_kmph(speed_getSpeed(speed_velocity));
+    return speed::mps_to_kph(speed_getSpeed(speed_velocity));
 }
 
 float speed::get_distance_m()

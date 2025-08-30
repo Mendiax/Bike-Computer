@@ -193,6 +193,8 @@ void Data_Actor::handle_sig_session_start([[maybe_unused]] const Signal &sig)
 {
     speed::stop();
     speed::reset();
+    sensors_data.gps_data.distance = 0.0f;
+    sensors_data.gps_data.delta_time_ms = 0.0f;
     {
         if(session_p != nullptr)
             delete session_p;

@@ -93,7 +93,7 @@ if(PICO_PLATFORM MATCHES "rp2040")
             Cores
             FatFs_SPI
     )
-
+    add_definitions(-DSD_PATH="")
 else()
     add_definitions(-DBUILD_FOR_HOST)
     add_definitions(-DBUILD_MOCK_INTERRUPTS)
@@ -105,6 +105,7 @@ else()
     add_definitions(-DFOLDER_LOG_DATA="${SD_MOCK_PATH}/log/")
     add_definitions(-DFOLDER_TRACKS_DATA="${SD_MOCK_PATH}/tracks/")
     add_definitions(-DFILE_SESSION_DATA="${SD_MOCK_PATH}/session_log.csv")
+    add_definitions(-DSD_PATH="${SD_MOCK_PATH}/")
 
     # add_compile_options(-Wfatal-errors -Werror=return-type -Wall -Wextra)
     add_compile_options(-Wno-unused-variable -Werror=return-type)

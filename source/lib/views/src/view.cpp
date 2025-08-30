@@ -283,7 +283,7 @@ void View_Creator::top_bar(const Time_HourS *hours, const Battery *lipo, const G
 
     auto [frame_gps_sat1, frame_gps_sat2] = split_vertical(frame_gps);
     add_value("%2" PRIu8, 2, &gps->sat, frame_gps_sat1, Align::RIGHT); // 6
-    add_value("%2" PRIu8, 2, &gps->sat2, frame_gps_sat2, Align::LEFT); // 2
+    add_value("%2" PRIu8, 2, &gps->sat2, frame_gps_sat2, Align::CENTER); // 2
 
 
 }

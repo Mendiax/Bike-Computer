@@ -57,6 +57,10 @@ struct Gear_S
  */
 struct Bike_Config
 {
+    enum class Speed_Source {
+       WHEEL,
+       GPS
+    };
     struct Gear_Ratio_Range {
         float min; ///< Minimum gear ratio.
         float max; ///< Maximum gear ratio.
@@ -66,10 +70,11 @@ struct Bike_Config
     std::vector<uint8_t> gear_front; ///< Chainring sizes for the front gears.
     std::vector<uint8_t> gear_rear;  ///< Chainring sizes for the rear gears.
 
+    Speed_Source speed_source = Speed_Source::GPS; ///< Source of speed data.
+
     double wheel_size; ///< Circumference of the wheel.
     double min_gear_diff; ///< Minimum difference of ratio between gears.
 
-    int hour_offset; ///< Hour offset for the bike configuration.
     uint16_t cadence_min; ///< Minimum cadence.
     uint16_t cadence_max; ///< Maximum cadence.
     uint8_t no_magnets_cadence; ///< Number of magnets for cadence.

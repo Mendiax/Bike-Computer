@@ -102,6 +102,8 @@ struct Battery
 struct GpsDataS
 {
     float speed;
+    float delta_time_ms;
+    float distance;
     float lat;
     float lon;
     float msl;

@@ -14,6 +14,7 @@
 #include "gui/view_sensors_plots.hpp"
 #include "gui/view_boot.hpp"
 #include "gui/view_gps.hpp"
+#include "gui/main/main_select_config.hpp"
 
 
 #include "views/view.hpp"
@@ -98,13 +99,14 @@ void Gui::create()
     history_session_menu->add_view(new View_Last_Time(*data));
     history_session_menu->add_view(new View_Last_Avg(*data));
     history_session_menu->add_view(new View_Last_Date(*data));
+
     // -----------------------------
     //      main menu
     // -----------------------------
-
-    main_menu->add_view(new Main_New_Session((gui::View_List*)session_menu));
-    main_menu->add_view(new Main_Select_Tracks((gui::View_List*)session_menu));
-    main_menu->add_view(new Main_History((gui::View_List*)history_session_menu));
+    main_menu->add_view(new Main_New_Session(session_menu));
+    main_menu->add_view(new Main_Select_Tracks(session_menu));
+    main_menu->add_view(new Main_Select_Config(session_menu));
+    main_menu->add_view(new Main_History(history_session_menu));
 
 
 

@@ -251,15 +251,19 @@ void Display_Actor::setup(void)
     this->gui->render();
     this->gui->refresh();
 
-    TRACE_DEBUG(0, TRACE_CORE_1, "reading config file %s\n", CONFIG_FILE_NAME);
+    // Load last used config if available
+    PersistentStorage storage;
+    const std::string config_path = storage.get_string(LAST_CONFIG_KEY, CONFIG_FILE_NAME);
+    TRACE_DEBUG(0, TRACE_CORE_1, "reading config file %s\n", config_path.c_str());
+
     {
-        Sd_File config_file(CONFIG_FILE_NAME);
+        Sd_File config_file(config_path);
         auto content = config_file.read_all();
         TRACE_DEBUG(0, TRACE_CORE_1, "config file content:\n%s\n", content.c_str());
 
         auto payload = new Data_Actor::Sig_Data_Actor_Set_Config();
         payload->file_content = config_file.read_all();
-        payload->file_name = std::string(CONFIG_FILE_NAME);
+        payload->file_name = config_path;
         TRACE_DEBUG(0, TRACE_CORE_1, "[config payload] pointer:%p\n",payload);
         TRACE_DEBUG(0, TRACE_CORE_1, "[config payload] name:%s\n",payload->file_name.c_str());
         TRACE_DEBUG(0, TRACE_CORE_1, "[config payload] content:%s\n",payload->file_content.c_str());

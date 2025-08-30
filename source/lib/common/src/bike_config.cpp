@@ -47,11 +47,12 @@ Gear_S Gear_Iterator::get_gear()
 #define GEARS_FRONT_STR "GEARS_FRONT"
 #define GEARS_REAR_STR "GEARS_REAR"
 #define WHEEL_SIZE_STR "WHEEL_SIZE"
-#define TIME_OFFSET_STR "TIME_OFFSET"
 #define CADENCE_MIN_STR "CAD_MIN"
 #define CADENCE_MAX_STR "CAD_MAX"
 #define NO_MAGNETS_CADENCE_STR "CADENCE_MAGNETS"
 #define NO_MAGNETS_SPEED_STR "SPEED_MAGNETS"
+#define SPEED_SOURCE_STR "SPEED_SRC"
+
 
 
 
@@ -170,10 +171,6 @@ bool Bike_Config::from_string(const char* str)
         {
             wheel_size = std::atof(line_arr.at(1).c_str());
         }
-        else if(line_arr.at(0).compare(TIME_OFFSET_STR) == 0)
-        {
-            this->hour_offset = std::atoi(line_arr.at(1).c_str());
-        }
         else if(line_arr.at(0).compare(CADENCE_MAX_STR) == 0)
         {
             this->cadence_max = std::atoi(line_arr.at(1).c_str());
@@ -187,6 +184,10 @@ bool Bike_Config::from_string(const char* str)
             this->no_magnets_cadence = std::atoi(line_arr.at(1).c_str());
         }
         else if(line_arr.at(0).compare(NO_MAGNETS_SPEED_STR) == 0)
+        {
+            this->no_magnets_speed = std::atoi(line_arr.at(1).c_str());
+        }
+        else if(line_arr.at(0).compare(SPEED_SOURCE_STR) == 0)
         {
             this->no_magnets_speed = std::atoi(line_arr.at(1).c_str());
         }

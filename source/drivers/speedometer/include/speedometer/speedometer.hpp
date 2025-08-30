@@ -36,13 +36,6 @@
 // #-------------------------------#
 
 /**
- * @brief Converts speed from meters per second (m/s) to kilometers per hour (km/h).
- * @param speed_mps Speed in meters per second.
- * @return Speed in kilometers per hour.
- */
-float speed_mps_to_kmph(float speed_mps);
-
-/**
  * @brief Emulates a speed for testing purposes.
  * @param speed The speed to emulate in km/h (default: 20.0 km/h).
  */
@@ -110,6 +103,21 @@ namespace speed
      * @return Velocity in RPM.
      */
     float kph_to_rpm(float kph);
+
+    template<typename T>
+    constexpr inline std::enable_if_t<std::is_floating_point_v<T>, T>
+    kph_to_mps(T speed_kph) {
+        constexpr T MPS_TO_KMPH = static_cast<T>(3.6);
+        return speed_kph / MPS_TO_KMPH;
+    }
+
+    template<typename T>
+    constexpr inline std::enable_if_t<std::is_floating_point_v<T>, T>
+    mps_to_kph(T speed_mps) {
+        constexpr T MPS_TO_KMPH = static_cast<T>(3.6);
+        return speed_mps * MPS_TO_KMPH;
+    }
+
 
     /**
      * @brief Gets the current distance traveled in meters.
