@@ -13,6 +13,9 @@
 #include <iomanip>
 #include <sstream>
 #include <random>
+#include <vector>
+#include <fstream>
+#include <filesystem>
 
 // my includes
 #include "mock_sim868.hpp"
@@ -42,20 +45,29 @@
 Mock_SIM868::Mock_SIM868() :
     stop(0),
     urat_thread(NULL),
-    current_lat(53.0),
-    current_lon(39.1),
+    currentDataIndex(0),
+    useFileData(false),
+    current_lat(49.20742),
+    current_lon(16.597857),
     current_alt(350),
     current_speed(10.0),
     current_sats_view(12),
     current_sats_used(8),
     current_glonass_used(4),
     rng(std::random_device{}()),
-    rand_pos_delta(0.0001, 0.1),    // ~10m range for position
+    rand_pos_delta(0.00001, 0.1),    // ~10m range for position
     rand_alt_delta(0.0, 0.5),       // 0.5m standard deviation for altitude
     rand_speed_delta(0.0, 0.5),     // 0.2 km/h standard deviation for speed
     rand_sats_delta(-1, 1)          // -1, 0, or +1 for satellite count changes
 {
+    // useFileData = loadDataFromCsv( SD_PATH "log/local_log.csv");
 }
+
+Mock_SIM868::Mock_SIM868(const std::string& csvFilePath) : Mock_SIM868()
+{
+    useFileData = loadDataFromCsv(csvFilePath);
+}
+
 Mock_SIM868::~Mock_SIM868()
 {
     this->stop = 1;
@@ -79,6 +91,40 @@ void Mock_SIM868::run()
         });
 }
 
+bool Mock_SIM868::loadDataFromCsv(const std::string& filePath)
+{
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        TRACE_ABNORMAL(TRACE_HOST, "Failed to open CSV file: %s", filePath.c_str());
+        return false;
+    }
+
+    std::string line;
+    // Skip header
+    std::getline(file, line);
+
+    gpsData.clear();
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        GpsDataPoint point;
+        std::string token;
+
+        // Parse each field
+        if (std::getline(ss, token, ';')) point.time = token;
+        if (std::getline(ss, token, ';')) point.latitude = std::stof(token);
+        if (std::getline(ss, token, ';')) point.longitude = std::stof(token);
+        if (std::getline(ss, token, ';')) point.velocity = std::stof(token);
+        if (std::getline(ss, token, ';')) point.altitude = std::stof(token);
+        if (std::getline(ss, token, ';')) point.slope = std::stof(token);
+        if (std::getline(ss, token, ';')) point.cadence = std::stof(token);
+        if (std::getline(ss, token, ';')) point.gear = std::stoi(token);
+
+        gpsData.push_back(point);
+    }
+
+    return !gpsData.empty();
+}
+
 void* Mock_SIM868::thread_kernel(void* args)
 {
     while (this->stop == 0)
@@ -86,44 +132,59 @@ void* Mock_SIM868::thread_kernel(void* args)
         auto msg = get_msg_from_pico();
         if(msg != "" && msg != "\r\n")
         {
-            // PRINT("msg" << msg << "; " << msg.length());
             if(msg == "AT")
             {
                 send_to_pico("\r\nOK\r\n");
             }
             else if(msg == "AT+CGNSINF")
             {
-                // Update position with small random changes
-                current_lat += rand_pos_delta(rng);
-                current_lon += rand_pos_delta(rng);
+                if (useFileData && !gpsData.empty())
+                {
+                    // Get current data point
+                    const auto& point = gpsData[currentDataIndex];
 
-                // Update altitude (keep it reasonable: 300-400m)
-                current_alt += rand_alt_delta(rng);
-                current_alt = std::min(400.0f, std::max(300.0f, current_alt));
+                    // Update current values from file
+                    current_lat = point.latitude;
+                    current_lon = point.longitude;
+                    current_alt = point.altitude;
+                    current_speed = point.velocity;
 
-                // Update speed (keep it non-negative and reasonable: 0-60 km/h)
-                current_speed += rand_speed_delta(rng);
-                current_speed = std::min(60.0f, std::max(0.0f, current_speed));
+                    // Cycle through data points
+                    currentDataIndex = (currentDataIndex + 1) % gpsData.size();
+                }
+                else
+                {
+                    // Update position with small random changes
+                    current_lat += rand_pos_delta(rng);
+                    current_lon += rand_pos_delta(rng);
 
-                // Update satellite counts (keep within reasonable ranges)
-                current_sats_view += rand_sats_delta(rng);
-                current_sats_view = std::min(15, std::max(8, current_sats_view));
+                    // Update altitude (keep it reasonable: 300-400m)
+                    current_alt += rand_alt_delta(rng);
+                    current_alt = std::min(400.0f, std::max(300.0f, current_alt));
 
-                current_sats_used += rand_sats_delta(rng);
-                current_sats_used = std::min(current_sats_view, std::max(4, current_sats_used));
+                    // Update speed (keep it non-negative and reasonable: 0-60 km/h)
+                    current_speed += rand_speed_delta(rng);
+                    current_speed = std::min(60.0f, std::max(0.0f, current_speed));
 
-                current_glonass_used += rand_sats_delta(rng);
-                current_glonass_used = std::min(8, std::max(2, current_glonass_used));
+                    // Update satellite counts (keep within reasonable ranges)
+                    current_sats_view += rand_sats_delta(rng);
+                    current_sats_view = std::min(15, std::max(8, current_sats_view));
+
+                    current_sats_used += rand_sats_delta(rng);
+                    current_sats_used = std::min(current_sats_view, std::max(4, current_sats_used));
+
+                    current_glonass_used += rand_sats_delta(rng);
+                    current_glonass_used = std::min(8, std::max(2, current_glonass_used));
+                }
 
                 send_to_pico(build_gps_response(1, 1,
-                                                get_current_time().c_str(),
-                                                current_lat, current_lon,
-                                                static_cast<int>(current_alt),
-                                                current_speed,
-                                                current_sats_view,
-                                                current_sats_used,
-                                                current_glonass_used)
-                                 .c_str());
+                                            useFileData ? gpsData[currentDataIndex].time.c_str() : get_current_time().c_str(),
+                                            current_lat, current_lon,
+                                            static_cast<int>(current_alt),
+                                            current_speed,
+                                            current_sats_view,
+                                            current_sats_used,
+                                            current_glonass_used));
             }
             else if(msg == "AT+CGNSPWR=1")
             {

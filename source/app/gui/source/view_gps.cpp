@@ -34,7 +34,8 @@ void View_Gps::render(void)
         settings.frame = frame;
         settings.color = COLOR_WHITE;
         settings.color2 = COLOR_BLUE;
-        settings.data = &this->data.sensors.gps_graph;
+        settings.data = &this->data.sensors.gps_graph.points;
+        settings.pos = &this->data.sensors.gps_graph.pos;
         settings.radius = radius;
         creator->add_gps(settings);
     }
@@ -44,7 +45,8 @@ void View_Gps::render(void)
         settings.frame = frame;
         settings.color = COLOR_RED;
         settings.color2 = COLOR_GREEN;
-        settings.data = &this->data.track.track_graph;
+        settings.data = &this->data.track.track_graph.points;
+        settings.pos = &this->data.sensors.gps_graph.pos;
         settings.radius = radius;
         creator->add_gps(settings);
     }

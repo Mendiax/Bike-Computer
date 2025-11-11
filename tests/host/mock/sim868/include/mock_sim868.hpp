@@ -38,8 +38,22 @@ private:
     std::normal_distribution<float> rand_speed_delta;   // For speed
     std::uniform_int_distribution<int> rand_sats_delta; // For satellites
 
+    bool useFileData;
+    size_t currentDataIndex;
+    struct GpsDataPoint {
+        std::string time;
+        float latitude;
+        float longitude;
+        float altitude;
+        float velocity;
+        float slope;
+        int cadence;
+        int gear;
+    };
+    std::vector<GpsDataPoint> gpsData;
 public:
     Mock_SIM868();
+    Mock_SIM868(const std::string& csvFilePath);
     ~Mock_SIM868();
 
     /**
@@ -53,6 +67,8 @@ public:
     TODO implement
     */
     void set_gps_data(const char* csv_file_path);
+
+
 
 private:
     void* thread_kernel(void* args);
@@ -69,6 +85,7 @@ private:
         const int gnssSatellitesUsed,
         const int glonassSatellitesUsed);
     std::string get_current_time();
+    bool loadDataFromCsv(const std::string& filePath);
 };
 
 // #-------------------------------#

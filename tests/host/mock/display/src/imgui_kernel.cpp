@@ -10,6 +10,8 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
+#include <algorithm>
+
 // c/c++ includes
 
 // my includes
@@ -54,6 +56,9 @@ struct Imgui_Context {
  * @param label label rendered on gui
  */
 void handle_button(Button& btn, const char* label, bool long_press = false);
+
+void press_button(Button& btn, bool long_press);
+
 /**
  * @brief Setup function for imgui. Setup all needed data and returns io,
  * sdl window and sdl gl context
@@ -144,15 +149,64 @@ void imgui_thread_kernel(void* args)
                 handle_button(btn2, "Bottom Right Long", true);
             }
             ImGui::Columns(1);
+            if(ImGui::Button("Go to Track view"))
+            {
+                constexpr auto delay_time = 500;
+                auto& btn_top_right = btn1;
+                auto& btn_bottom_right = btn2;
+
+                // run buttons sequence
+                // go to track view
+                press_button(btn_top_right, false);
+                sleep_ms(delay_time);
+                // select second track
+                press_button(btn_bottom_right, false);
+                sleep_ms(delay_time);
+                press_button(btn_bottom_right, true);
+                sleep_ms(delay_time);
+
+                // go to track view
+                for(int i = 0; i < 3; i++)
+                {
+                    press_button(btn_top_right, false);
+                    sleep_ms(delay_time);
+                }
+                press_button(btn_bottom_right, false);
+            }
 
             ImGui::Text("Set simulate values");
             ImGui::SliderFloat("speed", &speed, 0.0f, 40.0f);
+
+
 
             ImGui::Text("Set window values");
             ImGui::SliderInt("Display size", &scale, 1, 5);
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::Text("Set gps zoom");
-            ImGui::SliderFloat("zoom", &global_gps_radius, 0.001f, 0.01f);
+
+            constexpr float gps_radius_min = 0.0001f; // ~10m
+            constexpr float gps_radius_max = 0.1f;    // ~10km
+            constexpr float scale = 1.5f;
+            ImGui::SliderFloat("zoom", &global_gps_radius, gps_radius_min, gps_radius_max);
+            ImGui::Columns(2, nullptr, true);
+            if(ImGui::Button("zoom ++"))
+            {
+                global_gps_radius /= scale;
+                global_gps_radius = std::max(global_gps_radius, gps_radius_min);
+                press_button(btn1,false);
+                press_button(btn0,false);
+            }
+            ImGui::NextColumn();
+            if(ImGui::Button("zoom --"))
+            {
+                global_gps_radius *= scale;
+                global_gps_radius = std::min(global_gps_radius, gps_radius_max);
+                press_button(btn1,false);
+                press_button(btn0,false);
+            }
+            ImGui::Columns(1);
+
+
             ImGui::End();
         }
 
@@ -274,19 +328,23 @@ static void imgui_render(SDL_Window* window, Imgui_Display_Data& imgui_display_d
     SDL_GL_SwapWindow(window);
 }
 
+void press_button(Button& btn, bool long_press) {
+    btn.on_call_press();
+    if(long_press)
+    {
+        sleep_ms((LONG_PRESS_US / 1000) + 50);
+    }
+    else
+    {
+        sleep_ms(100);
+    }
+    btn.on_call_release();
+}
+
 void handle_button(Button& btn, const char* label, bool long_press)
 {
     if(ImGui::Button(label))
     {
-        btn.on_call_press();
-        if(long_press)
-        {
-            sleep_ms((LONG_PRESS_US / 1000) + 50);
-        }
-        else
-        {
-            sleep_ms(100);
-        }
-        btn.on_call_release();
+        press_button(btn, long_press);
     }
 }

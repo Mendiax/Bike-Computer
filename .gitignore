@@ -12,6 +12,8 @@ sim800_doc/
 source/external/no-OS-FatFS
 tests/hw/hw_config/config.yaml
 imgui.ini
+log/
+tests/host/sd_card_mock/log/
 
 # parser files
 source/lib/Parser/src/parser_bison.hpp
@@ -46,3 +48,5 @@ tools/doxygen/logs
 imgui.ini
 .gdb_history
 compile_commands.json
+tests/host/sd_card_mock/_global.cfg
+tests/host/sd_card_mock/session_log.csv

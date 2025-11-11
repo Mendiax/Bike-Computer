@@ -72,6 +72,7 @@ struct GpsSettings
 {
     Frame frame;
     const void *data; // ptr to array
+    const void *pos; // ptr to pos
     display::DisplayColor color;
     display::DisplayColor color2;
     float radius;

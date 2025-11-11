@@ -91,7 +91,6 @@ void Display_Actor::handle_sig_load_track(const Signal &sig) {
     std::vector<Gps_Graph::Point> points;
     points.reserve(100);
     for (auto& line : read_lines(sd)) {
-        std::cout << "Line: " << line << "\n";
         if(line.find("<trkpt ") != std::string::npos) {
             // extract lat and lon
             auto lat_pos = line.find("lat=\"");
