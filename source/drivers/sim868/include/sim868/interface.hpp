@@ -25,7 +25,7 @@
 #define SIM868_PIN_POWER 14
 #define SIM868_PIN_DTR 17
 
-#define GSM_WAIT
+// #define GSM_WAIT
 
 // #-------------------------------#
 // | local class definitions       |
@@ -103,10 +103,10 @@ public:
  */
 enum class ResponseStatus
 {
-    SENT,        ///< Request sent.
-    STARTED,     ///< Request started.
+    IDLE,        ///< No request sent.
+    SENT,        ///< Request sent, waiting for response.
     TIME_OUT,    ///< Request timed out.
-    RECEIVED     ///< Response received.
+    RECEIVED     ///< Response received and ready to process.
 };
 
 /**
@@ -114,11 +114,11 @@ enum class ResponseStatus
  */
 struct Response
 {
-    std::string response;          ///< Response string.
+    std::string response; ///< Response string.
     volatile ResponseStatus status;///< Status of the response.
-    absolute_time_t time_start;    ///< Start time of the response.
-    uint64_t id;                   ///< ID of the response.
-    long timeout;                  ///< Timeout duration for the response.
+    volatile absolute_time_t time_start;    ///< Start time of the response.
+    volatile uint64_t id;                   ///< ID of the response.
+    volatile long timeout;                  ///< Timeout duration for the response.
 };
 
 // #-------------------------------#
@@ -136,7 +136,7 @@ namespace sim868
     void waitForBoot(void);
 
     bool check_for_boot(void);
-    bool check_for_boot_long(void);
+    bool check_for_boot_blocking(void);
 
     /**
      * @brief Initializes, turns on, and waits for boot to finish.
@@ -189,7 +189,7 @@ namespace sim868
      * @param id The request ID to get the response for.
      * @return The response string.
      */
-    std::string get_respond(uint64_t id);
+    std::string get_respond(uint64_t& id);
 
     /**
      * @brief Checks if the response ends with "\r\nOK\r\n".

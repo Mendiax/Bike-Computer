@@ -231,7 +231,7 @@ void Data_Actor::setup(void)
     TRACE_DEBUG(0, TRACE_MAIN, "DOF IS ON\n");
 
     TRACE_DEBUG(0, TRACE_MAIN, "WAITING FOR SIM868\n");
-    while (sim868::check_for_boot_long() == false) {
+    while (sim868::check_for_boot_blocking() == false) {
         sleep_ms(1000);
         sensors_data.boot.sim868 += 1;
     }
@@ -298,20 +298,41 @@ int Data_Actor::loop_frame_update()
     }
     cycle_print_heart_beat();
 
-    if(sim868::is_booted())
-    {
-        cycle_get_battery_status();
-        cycle_get_gps_data();
-    }
-    else
-    {
-        //boot sim
-        if(sim868::check_for_boot() && !sim868::is_booted())
+    if(sim868::is_on()) {
+        if(sim868::is_booted())
         {
-            PRINT("waiting for boot");
+            cycle_get_battery_status();
+            cycle_get_gps_data();
+            CYCLE_UPDATE_SIMPLE(sim868::check_for_boot(), 10000,
+            {
+                if(!sim868::is_booted())
+                {
+                    sim868::turn_off();
+                }
+            });
         }
-        // PRINT("Booting done");
+        else
+        {
+            //boot sim
+            if(sim868::check_for_boot() && !sim868::is_booted())
+            {
+                PRINT("waiting for boot");
+            }
+            // PRINT("Booting done");
+        }
+    } else {
+        sim868::turn_on();
     }
+
+
+    // CYCLE_UPDATE_SIMPLE(true, 1000, {
+    //     const auto gps_counters = sim868::gps::get_gps_counter();
+    //     TRACE_DEBUG(0, TRACE_CORE_0,
+    //         "sim868[%d], gps: %s\n", sim868::is_booted() ? 1 : 0,
+    //         to_string_yaml(gps_counters).c_str());
+    // });
+
+
     cycle_log_data();
     cycle_get_weather_data();
     cycle_get_slope();
@@ -511,10 +532,6 @@ static void cycle_get_battery_status()
                  });
 }
 
-#ifndef FOLDER_LOG_DATA
-#define FOLDER_LOG_DATA "log/"
-#endif
-
 static void send_log_signal(const Time_HourS& time, const  GpsDataS& gps, const Session& session, const Sensor_Data& sensor_data)
 {
     auto payload = new Display_Actor::Sig_Display_Actor_Log();
@@ -558,9 +575,16 @@ static void cycle_get_gps_data()
     static int last_signal_strength = -1;
     static int last_signal_strength2 = -1;
 
+    if(us_to_ms(absolute_time_diff_us(time_last_update, get_absolute_time())) > 60*1000)
+    {
+        TRACE_ABNORMAL(TRACE_CORE_0, "GPS data not updated for %" PRIu32 " ms\n",
+                       us_to_ms(absolute_time_diff_us(time_last_update, get_absolute_time())));
+    }
+
 
     CYCLE_UPDATE_SIMPLE(sim868::gps::fetch_data(), GPS_FETCH_CYCLE_MS,
-        {
+    {
+            time_last_update = get_absolute_time();
             sim868::gps::get_speed(speed);
             if(sim868::gps::get_position(latitude, longitude)) {
                 // const auto new_point = Gps_Graph::Point{latitude, longitude};
@@ -569,7 +593,6 @@ static void cycle_get_gps_data()
                 sensors_data.gps_data.delta_time_ms = us_to_ms(absolute_time_diff_us(time_last_update, get_absolute_time()));
                 sensors_data.gps_data.distance += speed::kph_to_mps(speed) * (sensors_data.gps_data.delta_time_ms / 1000.0f);
 
-                time_last_update = get_absolute_time();
             }
             bool has_msl = sim868::gps::get_msl(msl);
             if(has_msl) {

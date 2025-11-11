@@ -59,8 +59,8 @@ bool sim868::is_on(void)
 void sim868::init(void)
 {
     // init current_response
-    current_response.status = ResponseStatus::RECEIVED;
-    current_response.response = "";
+    current_response.status = ResponseStatus::IDLE;
+    current_response.response = std::string("");
 
 
     // GPIO
@@ -99,15 +99,16 @@ void sim868::init(void)
 void sim868::turn_on(void)
 {
     gpio_put(SIM868_PIN_POWER, 1);
-    sim_on = 1;
-    current_response.status = ResponseStatus::RECEIVED;
+    sim_on = true;
+    current_response.status = ResponseStatus::IDLE;
     current_response.response = "";
 }
 
 void sim868::turn_off(void)
 {
     gpio_put(SIM868_PIN_POWER, 0);
-    sim_on = 0;
+    sim_on = false;
+    sim_booted = false;
 }
 
 // resets module with deleay of 2s
@@ -145,7 +146,7 @@ bool sim868::check_for_boot()
 }
 
 
-bool sim868::check_for_boot_long(void)
+bool sim868::check_for_boot_blocking(void)
 {
     return sim868::sendRequestLong("AT", 2000).find("OK") != std::string::npos;
 }
@@ -158,7 +159,7 @@ void sim868::waitForBoot()
         return;
     }
     int fail_counter = 0;
-    while(!check_for_boot_long())
+    while(!check_for_boot_blocking())
     {
         sleep_ms(1000);
         fail_counter++;
@@ -226,9 +227,6 @@ void on_uart_rx(void)
     switch (current_response.status)
     {
     case ResponseStatus::SENT:
-        current_response.status = ResponseStatus::STARTED;
-        break;
-    case ResponseStatus::STARTED:
         if(absolute_time_diff_us(current_response.time_start, get_absolute_time()) > current_response.timeout * 1000)
         {
             // timeout has occured
@@ -238,7 +236,7 @@ void on_uart_rx(void)
         break;
     // those are cases when we should not received any data so we remove from buffer
     case ResponseStatus::TIME_OUT:
-    case ResponseStatus::RECEIVED:
+    case ResponseStatus::IDLE:
         // read data in buffer
         while (uart_is_readable(UART_ID))
         {
@@ -268,20 +266,20 @@ uint64_t sim868::send_request(const std::string&& cmd,
                               )
 {
     static uint64_t id;
-    if(id == 0){++id;} // proper id cannot be 0
     if(!is_on())
     {
         TRACE_ABNORMAL(TRACE_SIM868, "sim868 is off, cannot send request\n");
         return 0;
     }
 
-    if(current_response.status != ResponseStatus::RECEIVED)
+    if(current_response.status != ResponseStatus::IDLE)
     {
         // there is request pending so it needs to be received first
         TRACE_ABNORMAL(TRACE_SIM868, "there is pending request, cannot send request '%s'\n", cmd.c_str());
         return 0;
     }
     ++id;
+    if(id == 0){++id;} // proper id cannot be 0
 
     // prepare
     current_response.response.clear();
@@ -291,7 +289,7 @@ uint64_t sim868::send_request(const std::string&& cmd,
     current_response.timeout = timeout;
     current_response.id = id;
 
-    TRACE_DEBUG(2, TRACE_SIM868, "new request \'%s\' %" PRIu64 "\n", cmd.c_str(), id);
+    TRACE_DEBUG(0, TRACE_SIM868, "new request \'%s\' %" PRIu64 "\n", cmd.c_str(), id);
     // send request
     uart_puts(UART_ID, cmd.c_str());
     uart_puts(UART_ID, "\r\n");
@@ -305,15 +303,16 @@ uint64_t sim868::send_request(const std::string&& cmd,
     return id;
 }
 
-std::string sim868::get_respond(uint64_t id)
+std::string sim868::get_respond(uint64_t& id)
 {
     if(sim868::check_response(id))
     {
+        id = 0;
         if(is_respond_error(current_response.response))
         {
             TRACE_ABNORMAL(TRACE_SIM868, "received error '%s'\n", current_response.response.c_str());
         }
-        current_response.status = ResponseStatus::RECEIVED;
+        current_response.status = ResponseStatus::IDLE;
         return current_response.response;
     }
     return "";
@@ -323,8 +322,10 @@ bool sim868::check_response(uint64_t id)
 {
     if(current_response.id == id && id != 0)
     {
-        if(current_response.status != ResponseStatus::RECEIVED &&
-            us_to_ms(absolute_time_diff_us(current_response.time_start, get_absolute_time())) > (uint64_t)current_response.timeout)
+        const auto time_passed = us_to_ms(absolute_time_diff_us(current_response.time_start, get_absolute_time()));
+        PRINT("status: " << (int)current_response.status << ", time passed: " << time_passed << "ms");
+        if(current_response.status == ResponseStatus::SENT &&
+            time_passed > (uint64_t)current_response.timeout)
         {
             // timeout has occured
             current_response.status = ResponseStatus::TIME_OUT;
@@ -335,10 +336,12 @@ bool sim868::check_response(uint64_t id)
             case ResponseStatus::TIME_OUT:
             case ResponseStatus::RECEIVED:
                 return true;
-            default:
-            {
-
-            }
+            case ResponseStatus::IDLE:
+                TRACE_ABNORMAL(TRACE_SIM868, "request %" PRIu64 " is idle\n", id);
+                // TODO should not happen, add fix ?
+                return false;
+            case ResponseStatus::SENT:
+                return false;
         }
     }
     return false;

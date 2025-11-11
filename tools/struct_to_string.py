@@ -197,9 +197,17 @@ def struct_to_string(struct_name: str, file_path: str, overwrite : bool) -> str:
 
     print("Final tree:")
     print(json.dumps(tree, indent=2))
+    function = generate_to_string_function_yaml(struct_name, tree)
+    write_function_to_file(function, struct_name, file_path, overwrite)
 
-    function = fr"""#ifndef AUTOGEN_TO_STRING_{struct_name.upper().replace("::", "_")}
-static inline std::string to_string(const {struct_name}& obj) {{
+    function = generate_to_string_function(struct_name, tree)
+    write_function_to_file(function, struct_name, file_path, overwrite)
+    return function
+
+def generate_to_string_function_yaml(struct_name: str, tree: dict) -> str:
+    TYPE = '_yaml'
+    function = fr"""#ifndef AUTOGEN_TO_STRING_{struct_name.upper().replace("::", "_")}{TYPE.upper()}
+static inline std::string to_string{TYPE}(const {struct_name}& obj) {{
     std::stringstream ss;
 """
     function += "    ss << \"Struct {struct_name} contents:\\n\";\n"
@@ -216,21 +224,53 @@ static inline std::string to_string(const {struct_name}& obj) {{
         return lines
     function_lines = generate_string_representation(tree)
     function += "\n".join(function_lines)
-    function += 'return ss.str();\n}\n#endif\n'
+    function += '\nreturn ss.str();\n}\n#endif\n'
     print("Generated function:")
     print(function)
+    return function
 
+def generate_to_string_function(struct_name: str, tree: dict) -> str:
+    TYPE = ''
+    function = fr"""#ifndef AUTOGEN_TO_STRING_{struct_name.upper().replace("::", "_")}{TYPE.upper()}
+static inline std::string to_string{TYPE}(const {struct_name}& obj) {{
+    std::stringstream ss;
+"""
+    function += f"    ss << \"{struct_name}:{{\";\n"
+    INDENT = "    "
+    def generate_string_representation(tree, prefix="obj.", indent=0):
+        lines = []
+        longest_member_length = max(len(member.split('.')[-1]) for member in tree.keys()) + 1
+        for member, mtype in tree.items():
+            if isinstance(mtype, dict):
+                lines.append(f'    ss << " {member}{{";')
+                lines.extend(generate_string_representation(mtype, prefix=prefix, indent=indent + 1))
+                lines.append(f'    ss << "}}";')
+            else:
+                lines.append(f'    ss << " {member.split('.')[-1]+ '='}" << {prefix}{member};')
+        return lines
+    function_lines = generate_string_representation(tree)
+    function += "\n".join(function_lines)
+    function += '\n    ss << \"}\";\n'
+    function += '\nreturn ss.str();\n}\n#endif\n'
+    print("Generated function:")
+    print(function)
+    return function
+
+def write_function_to_file(function: str, struct_name: str, file_path: str, overwrite: bool):
+    with open(file_path, 'r') as file:
+        content = file.read()
     # check for existing to_string function in the file
-    if function.splitlines()[0] in content:
+    function_first_line = function.splitlines()[0]
+    if function_first_line in content:
         if overwrite:
             print(f"Overwriting existing to_string function for {struct_name} in {file_path}")
             # find first line of existing function
-            pattern = re.compile(rf"#ifndef AUTOGEN_TO_STRING_{struct_name.upper().replace('::', '_')}\s*static inline std::string to_string\(const {re.escape(struct_name)}& obj\) \{{", re.MULTILINE)
+            pattern = re.compile(function_first_line, re.MULTILINE)
             match = pattern.search(content)
             if match:
                 start_index = match.start()
                 # find the end of the function (next #endif)
-                end_pattern = re.compile(r"#endif")
+                end_pattern = re.compile(r"#endif\n")
                 end_match = end_pattern.search(content, pos=start_index)
                 if end_match:
                     end_index = end_match.end()
@@ -243,6 +283,9 @@ static inline std::string to_string(const {struct_name}& obj) {{
                     raise ValueError(f"Could not find the end of the existing to_string function for {struct_name} in {file_path}")
         else:
             raise ValueError(f"to_string function for {struct_name} already exists in {file_path}")
+
+    with open(file_path, 'a') as file:
+        file.write("\n" + function)
 
 
 if __name__ == "__main__":

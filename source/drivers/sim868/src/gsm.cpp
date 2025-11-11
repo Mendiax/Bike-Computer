@@ -27,9 +27,6 @@ void on_uart_rx_http(void)
     switch (current_response.status)
     {
     case ResponseStatus::SENT:
-        current_response.status = ResponseStatus::STARTED;
-        break;
-    case ResponseStatus::STARTED:
         if(absolute_time_diff_us(current_response.time_start, get_absolute_time()) > current_response.timeout * 1000)
         {
             // timeout has occured

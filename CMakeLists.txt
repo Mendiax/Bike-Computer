@@ -94,6 +94,7 @@ if(PICO_PLATFORM MATCHES "rp2040")
             FatFs_SPI
     )
     add_definitions(-DSD_PATH="")
+    add_definitions(-DFOLDER_LOG_DATA="log/")
 else()
     add_definitions(-DBUILD_FOR_HOST)
     add_definitions(-DBUILD_MOCK_INTERRUPTS)

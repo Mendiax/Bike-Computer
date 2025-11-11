@@ -15,7 +15,7 @@ static GpsRawData gps_last_data;
 static bool gps_has_correct_data;
 static bool gps_has_correct_date;
 
-static GpsCounter gps_counter;
+static sim868::gps::Counters gps_counter;
 
 
 
@@ -119,10 +119,12 @@ bool sim868::gps::fetch_data()
   static uint_fast16_t fail_counter;
   // keep gps on
   if (get_gps_state() == GpsState::OFF) {
+    gps_counter.status.off_on_fetch++;
     turn_on();
     return false;
   }
   if (get_gps_state() == GpsState::RESTARTING) {
+    gps_counter.status.restart_on_fetch++;
     turn_off();
     fail_counter = 0;
     return false;
@@ -132,43 +134,61 @@ bool sim868::gps::fetch_data()
   {
     auto respond = get_respond(id);
     if (sim868::is_respond_ok(respond)) {
+      gps_counter.requests.response_received++;
+      gps_counter.response.timestamp_last_response = get_absolute_time();
       sim868::clear_respond(respond);
       auto gps_data = get_gps_from_respond(respond);
       gps_current_state = GpsState::NO_RESPOND;
       if (gps_data.status == 1) {
         gps_current_state = GpsState::NO_SIGNAL;
-        gps_counter.no_signal++;
+        gps_counter.response.signal++;
+      } else {
+        gps_counter.response.no_signal++;
       }
       if (gps_data.utc_date_time.is_valid()) {
         gps_current_state = GpsState::DATA_AVAILABLE;
         gps_last_data = gps_data;
         gps_has_correct_date = true;
-        gps_counter.data_available++;
+        gps_counter.response.data_available++;
       }
       if (gps_data.latitude != 0 && gps_data.latitude != 0) {
         // signal ok
         gps_last_correct_data = gps_data;
         gps_has_correct_data = true;
         gps_current_state = GpsState::POSITION_AVAILABLE;
-        gps_counter.position_available++;
+        gps_counter.response.position_available++;
+        gps_counter.response.timestamp_last_position = get_absolute_time();
       }
       else {
         gps_has_correct_data = false;
       }
     } else {
       gps_current_state = GpsState::NO_RESPOND;
+      gps_last_correct_data.gps_satelites = 0;
+      gps_last_correct_data.gnss_satelites = 0;
+      gps_last_correct_data.glonass_satelites = 0;
+      gps_counter.requests.response_not_received++;
     }
     if (gps_current_state != GpsState::POSITION_AVAILABLE) {
-      // fail_counter++;
+      fail_counter++;
       // if (fail_counter >= 20) {
       //   gps_current_state = GpsState::RESTARTING;
       // }
+      gps_counter.status.fail_pos_curent = fail_counter;
+      gps_counter.status.fail_pos_max = std::max(gps_counter.status.fail_pos_max, (uint64_t)fail_counter);
+    }
+    else {
+      fail_counter = 0;
     }
     id = 0;
     return true;
   } else if (id == 0) {
     id = send_request("AT+CGNSINF", 3000);
-    gps_counter.no_req_sent++;
+    if(id == 0) {
+      gps_counter.requests.request_not_sent++;
+    } else {
+      gps_counter.requests.request_sent++;
+    }
   }
   return false;
 }
@@ -222,3 +242,8 @@ bool sim868::gps::get_date(TimeS& time)
     return true;
 
 }
+
+sim868::gps::Counters sim868::gps::get_gps_counter(void) {
+    return gps_counter;
+}
+
