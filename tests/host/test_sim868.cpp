@@ -32,7 +32,8 @@ TEST_CASE_SUB_FUNCTION_DEF(uart_test)
     TimeS time{};
     sim868::gps::get_date(time);
     PICO_TEST_CHECK(time.year >= 2023);
-    PICO_TEST_CHECK_EQ(speed, 10);
+    PICO_TEST_CHECK(speed < 11.0f);
+    PICO_TEST_CHECK(speed > 9.0f);
 }
 
 

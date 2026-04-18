@@ -135,6 +135,7 @@ add_subdirectory(source/drivers/DOF)
 add_subdirectory(source/drivers/display)
 add_subdirectory(source/lib/views)
 add_subdirectory(source/lib/gui)
+add_subdirectory(source/lib/Bat)
 
 add_subdirectory(source/drivers/sim868)
 

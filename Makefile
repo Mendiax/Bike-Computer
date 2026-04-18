@@ -2,16 +2,24 @@
 #                                      setup                                   #
 ################################################################################
 
+ifeq ($(HOST),1)
+    H = 1
+endif
+
 ifeq ($(H),1)
     BUILD_TARGET = host
 else
     BUILD_TARGET = rp2040
 endif
 
+ifeq ($(DEBUG),1)
+	D = 1
+endif
+
 ifeq ($(D),1)
-    BUILD_TYPE = Debug
+	BUILD_TYPE = Debug
 else
-    BUILD_TYPE = Release
+	BUILD_TYPE = Release
 endif
 
 PICODIR := ./pico #/mnt/h
@@ -45,27 +53,35 @@ endif
 
 # can be overriden with "make BUILD_WITH=Unix\ Makefiles"
 ifdef BUILD_WITH
-  	CMAKE_BUILDER = Unix\ Makefiles
+	CMAKE_BUILDER = Unix\ Makefiles
 else
-  	CMAKE_COMMAND = $(shell command -v ninja 2> /dev/null)
+	CMAKE_COMMAND = $(shell command -v ninja 2> /dev/null)
 	ifneq ($(CMAKE_COMMAND),)
-      	CMAKE_BUILDER = "Ninja"
+		CMAKE_BUILDER = "Ninja"
   	else
-    	CMAKE_BUILDER = "Unix Makefiles"
+		CMAKE_BUILDER = "Unix Makefiles"
   	endif
 endif
 
+ifeq ($(VERBOSE),1)
+	V = 1
+endif
+
 ifneq ($(V),1)
-    CMAKE_VERBOSE_MAKEFILE =
+	CMAKE_VERBOSE_MAKEFILE =
 else
-    CMAKE_VERBOSE_MAKEFILE = 1
-$(info [INFO] [CMAKE] Veroose flag on $(CMAKE_VERBOSE_MAKEFILE))
+	CMAKE_VERBOSE_MAKEFILE = 1
+	$(info [INFO] [CMAKE] Verbose flag on $(CMAKE_VERBOSE_MAKEFILE))
+endif
+
+ifeq ($(LOCAL),1)
+	L = 1
 endif
 
 ifeq ($(L),1)
-    PICO_TEST_HOST = local
+	PICO_TEST_HOST = local
 else
-    PICO_TEST_HOST = ssh
+	PICO_TEST_HOST = ssh
 endif
 
 ifeq ($(VALGRIND),1)
@@ -99,60 +115,46 @@ endef
 ################################################################################
 
 
-full_build: clean parser cmake
+rebuild: clean parser cmake
 	cmake --build $(BUILD) --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
 	$(call build_info)
 
-all: clean_tests_header
-	cmake --build $(BUILD) --parallel $(NPROCS) 2>&1 | tee $(BUILD_LOG)
-	$(call build_info)
-
-main:
+build:
 	cmake --build $(BUILD) --parallel $(NPROCS) --target $(PICO_MAIN_FILE) && echo "BUILD FINISHED"
 
 help:
-	@echo "\nFlags for \'make cmake\':"
-	@echo "D=1 -> cmake debug build"
-	@echo "H=1 -> cmake host tests build. Run tests that do not need hw"
-	@echo "V=1 -> cmake verobse build"
-	@echo "L=1 -> cmake run test locally (pico is connected to this system) L=0 -> tests will be run over ssh"
-	@# @echo "=================================================================================================="
-	@echo "\nBuild process:"
-	@echo "make cmake <args>              // build cmake"
-	@echo "make all                       // build program"
-	@echo "progam build in $(BUILD)/$(PICO_MAIN_FILE).uf2"
-	@echo "make write_main                // send program to device"
+	@echo "\nFlags:"
+	@echo "D=1 or DEBUG=1                 // Debug build (default: Release)"
+	@echo "H=1 or HOST=1                  // Host/test build (default: rp2040 hardware)"
+	@echo "V=1 or VERBOSE=1               // Verbose cmake output"
+	@echo "L=1 or LOCAL=1                 // Run tests locally (default: L=0 for ssh)"
+	@echo "VALGRIND=1                     // Run with valgrind (implies D=1 H=1 L=1)"
 
-	@echo "\nBuild test process:"
-	@echo "make cmake <args>              // build cmake"
-	@echo "make all                       // build program"
-	@echo "make ctest                     // run program"
-
-
-
-
-
-
-# test:
-# 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_TEST_FILE) && echo "BUILD FINISHED"
-
-# gsm:
-# 	cmake --build ./build --parallel $(NPROCS) --target $(PICO_GSM_CONSOLE_FILE) && echo "BUILD FINISHED"
+	@echo "\nCommon Commands:"
+	@echo "make rebuild                   // Build program from scratch"
+	@echo "make build                     // Build main target"
+	@echo "make cmake                     // Configure cmake"
+	@echo "make ctest                     // Run tests"
+	@echo "make ctest_rebuild             // Rebuild and run tests"
+	@echo "make test_all                  // Full test suite (host + hw)"
+	@echo "make write_main                // Upload program to device"
+	@echo "make serial                    // View serial output"
+	@echo "make cw_all                    // Build and upload with serial monitor"
+	@echo "make clean                     // Clean build directory"
+	@echo "make plot                      // Plot data from logs"
 
 
-ctest:
+ctest: build
 	cd $(BUILD) && ctest --output-on-failure -V -j $(NPROCS)
 
-ctest_all: all
+ctest_rebuild: rebuild
 	$(MAKE) ctest
 
-ctest_all_clean: full_build
-	$(MAKE) ctest
 
 test_all:
-	$(MAKE) ctest_all_clean L=$(L) D=0 H=1
+	$(MAKE) ctest_rebuild L=$(L) D=0 H=1
 	$(MAKE) warnings
-	$(MAKE) ctest_all_clean L=$(L) D=0
+	$(MAKE) ctest_rebuild L=$(L) D=0
 	$(MAKE) warnings
 
 
@@ -196,11 +198,9 @@ warnings:
 	./tools/warnings.sh $(BUILD_LOG)
 
 
-
-
-# .PHONY: release
-# release:
-# 	cp $(BUILD)/$(PICO_MAIN_FILE).uf2 ./release
+.PHONY: release
+release:
+	cp $(BUILD)/$(PICO_MAIN_FILE).uf2 ./release
 
 
 
@@ -244,10 +244,6 @@ write_main:
 write_test: boot
 	./boot/upload.sh -p '$(PICO_TEST_FILE_PATH)' -d $(PICO_DRIVE_LETTER)
 
-write_gsm_console: boot
-	#mkdir -p $(PICODIR)
-	mount -t drvfs $(PICO_DRIVE_LETTER): $(PICODIR)
-	cp $(BUILD)/$(PICO_GSM_CONSOLE_FILE).uf2 $(PICODIR)
 
 # compile & write
 cw: main write_main
@@ -255,9 +251,6 @@ cw: main write_main
 
 cwt: test write_test
 	echo "cw test"
-
-cwgsm: gsm write_gsm_console
-	echo "cw gsm console"
 
 plot:
 	python3 tools/plotter.py
@@ -277,9 +270,3 @@ clean_tests_header:
 clean: clean_tests_header
 	rm -rf  $(BUILD)
 	mkdir -p $(BUILD)
-
-clean_reset: clean cmake all
-	@echo "clean make done!"
-
-# test:
-# 	$(MAKE) test -C $(BUILD)

@@ -31,7 +31,7 @@ TEST_CASE_SUB_FUNCTION_DEF(sim_avg_test)
         const float dist_m = speed::get_distance_total_m(true);
         const float time_s = speed::get_time_total_s(true);
         speed::stop();
-        const float speed = speed_mps_to_kmph(dist_m/time_s);
+        const float speed = speed::mps_to_kph(dist_m/time_s);
         PICO_TEST_CHECK_VERBAL(std::abs(speed - target_speed) < 1.0, "speed:%f target:%f", speed, target_speed);
     }
     // PRINT("slow to 1 kph");
@@ -58,7 +58,7 @@ TEST_CASE_SUB_FUNCTION_DEF(sim_avg_test)
         const float dist_m = speed::get_distance_total_m(true);
         const float time_s = speed::get_time_total_s(true);
         speed::stop();
-        const float speed = speed_mps_to_kmph(dist_m/time_s);
+        const float speed = speed::mps_to_kph(dist_m/time_s);
         PICO_TEST_CHECK_VERBAL(std::abs(speed - target_speed) < 0.5, "speed:%f target:%f", speed, target_speed);
     }
 

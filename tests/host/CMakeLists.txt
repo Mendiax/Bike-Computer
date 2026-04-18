@@ -23,6 +23,7 @@ function(add_test_executable test_name)
       MOCK_DISPLAY
       Actors
       Views
+      Bat
       ) # move as param ?
 
     # Add the test to CTest
@@ -71,6 +72,7 @@ if(PICO_PLATFORM MATCHES "host")
   add_test_executable(test_sd test_sd.cpp)
   add_test_executable(test_speed test_speed.cpp)
   add_test_executable(test_sim868 test_sim868.cpp)
+  add_test_executable(test_bat test_bat.cpp)
   # add_test_executable(test_imgui test_imgui.cpp)
   add_test_executable(test_actors test_actors.cpp)
   add_test_executable(test_plot test_plot.cpp)

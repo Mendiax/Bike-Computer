@@ -331,6 +331,15 @@ int Data_Actor::loop_frame_update()
     //         "sim868[%d], gps: %s\n", sim868::is_booted() ? 1 : 0,
     //         to_string_yaml(gps_counters).c_str());
     // });
+    {
+        const auto gps_counters = sim868::gps::get_gps_counter();
+        sensors_data.gps_info.requests_sent = gps_counters.requests.request_sent;
+        sensors_data.gps_info.responses_received = gps_counters.requests.response_received;
+        sensors_data.gps_info.time_since_last_response_ms =
+            us_to_ms(absolute_time_diff_us(gps_counters.response.timestamp_last_response, get_absolute_time()));
+        sensors_data.gps_info.time_since_last_pos_response_ms =
+            us_to_ms(absolute_time_diff_us(gps_counters.response.timestamp_last_position, get_absolute_time()));
+    }
 
 
     cycle_log_data();

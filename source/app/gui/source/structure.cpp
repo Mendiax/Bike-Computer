@@ -86,11 +86,21 @@ void Gui::create()
     session_menu->add_view(new View_Velocity(*data));
     session_menu->add_view(new View_Max_Avg(*data));
     session_menu->add_view(new View_Bmp(*data));
-    // session_menu->add_view(new View_Sensors(*data));
-    // session_menu->add_view(new View_Date(*data));
     session_menu->add_view(new View_Gps(*data));
-    session_menu->add_view(new View_Total(*data));
-    session_menu->add_view(new View_Sensors_Plots(*data));
+
+
+    // -----------------------------
+    //      session debug
+    // -----------------------------
+    auto session_menu_debug = new View_List(main_menu);
+    session_menu_debug->add_view(new View_Velocity(*data));
+    session_menu_debug->add_view(new View_Max_Avg(*data));
+    session_menu_debug->add_view(new View_Bmp(*data));
+    // session_menu_debug->add_view(new View_Sensors(*data));
+    // session_menu_debug->add_view(new View_Date(*data));
+    session_menu_debug->add_view(new View_Gps(*data));
+    session_menu_debug->add_view(new View_Total(*data)); // move to main menu with profile selection
+    session_menu_debug->add_view(new View_Sensors_Plots(*data));
 
     // -----------------------------
     //      history
@@ -104,6 +114,7 @@ void Gui::create()
     //      main menu
     // -----------------------------
     main_menu->add_view(new Main_New_Session(session_menu));
+    // main_menu->add_view(new Main_New_Session(session_menu_debug));
     main_menu->add_view(new Main_Select_Tracks(session_menu));
     main_menu->add_view(new Main_Select_Config(session_menu));
     main_menu->add_view(new Main_History(history_session_menu));

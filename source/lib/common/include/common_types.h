@@ -157,11 +157,11 @@ struct Gps_Graph {
     Point pos{0.0f, 0.0f};
 };
 
-struct GpsCounters {
-    uint32_t no_req_sent;      // number of requests sent
-    uint32_t no_err_resp;      // number of error responses
-    uint32_t no_gps_fix;       // number of times GPS fix was acquired
-    uint32_t no_gps_no_fix;    // number of times GPS fix was not acquired
+struct GpsInfo {
+    uint64_t time_since_last_response_ms;
+    uint64_t time_since_last_pos_response_ms;
+    uint64_t requests_sent;
+    uint64_t responses_received;
 };
 
 /**
@@ -179,7 +179,7 @@ typedef struct Sensor_Data
     Weather_BMP280_S weather;
     Gps_Graph gps_graph;
     GpsDataS gps_data;
-    GpsCounters gps_counters; // gps counters
+    GpsInfo gps_info; // gps counters
     Battery lipo; // battery info
     Gear_S gear;  // gear {front, rear}
     IMU imu;
